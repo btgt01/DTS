@@ -340,6 +340,27 @@ iframe{width:100%;height:calc(100vh - 120px);border:none;border-radius:10px;back
   </div>
 </div>
 
+<!-- ==================== 修改密码弹窗 ==================== -->
+<div id="resetPwdModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.6);z-index:2000;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:12px;padding:1.5rem;width:90%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,.2)">
+    <h3 style="font-size:1.1rem;font-weight:700;color:#0f172a;margin-bottom:1rem">🔑 修改密码</h3>
+    <p style="font-size:.85rem;color:#64748b;margin-bottom:1rem">正在修改用户：<strong id="resetPwdUsername">-</strong></p>
+    <div class="form-group">
+      <label>新密码 <span style="color:#dc2626">*</span></label>
+      <input type="password" id="newPassword" placeholder="输入新密码（至少6位）" minlength="6">
+    </div>
+    <div class="form-group">
+      <label>确认密码 <span style="color:#dc2626">*</span></label>
+      <input type="password" id="confirmPassword" placeholder="再次输入新密码" minlength="6">
+    </div>
+    <div id="resetPwdAlert" style="padding:.75rem;border-radius:8px;margin-bottom:1rem;font-size:.85rem;display:none"></div>
+    <div style="display:flex;gap:.75rem;justify-content:flex-end">
+      <button class="btn btn-outline" onclick="closeResetPwdModal()" style="padding:.6rem 1.2rem">取消</button>
+      <button class="btn btn-primary" onclick="doResetPassword()" style="padding:.6rem 1.2rem">确认修改</button>
+    </div>
+  </div>
+</div>
+
 <!-- ==================== 工作台/仪表盘 ==================== -->
 <div id="dashboard-page">
   <div class="dashboard-container">
@@ -677,7 +698,7 @@ async function loadAllUsers() {
       const statusClass = u.role === 'admin' ? 'status-admin' : 'status-' + u.status;
       const statusText = u.role === 'admin' ? '管理员' : { pending:'待审批', approved:'已批准', rejected:'已拒绝' }[u.status] || u.status;
       const tr = document.createElement('tr');
-      tr.innerHTML = '<td><strong>' + u.username + '</strong></td><td>' + (u.email||'-') + '</td><td>' + (u.company||'-') + '</td><td>' + u.role + '</td><td><span class="status-badge ' + statusClass + '">' + statusText + '</span></td><td>' + formatDate(u.created_at) + '</td><td><div class="action-btns">' + (u.role !== 'admin' ? '<button class="btn btn-danger btn-sm" onclick="deleteUser(\'' + u.id + '\',\'' + u.username + '\')">删除</button>' : '<span style="color:var(--gray);font-size:.8rem">-</span>') + '</div></td>';
+      tr.innerHTML = '<td><strong>' + u.username + '</strong></td><td>' + (u.email||'-') + '</td><td>' + (u.company||'-') + '</td><td>' + u.role + '</td><td><span class="status-badge ' + statusClass + '">' + statusText + '</span></td><td>' + formatDate(u.created_at) + '</td><td><div class="action-btns"><button class="btn btn-outline btn-sm" onclick="showResetPassword(\'' + u.id + '\',\'' + u.username + '\')">修改密码</button>' + (u.role !== 'admin' ? '<button class="btn btn-danger btn-sm" onclick="deleteUser(\'' + u.id + '\',\'' + u.username + '\')">删除</button>' : '<span style="color:var(--gray);font-size:.8rem">-</span>') + '</div></td>';
       el.appendChild(tr);
     });
   } catch(e) { el.innerHTML = '<tr><td colspan="7">加载失败</td></tr>'; }
@@ -695,6 +716,73 @@ async function deleteUser(userId, username) {
     if (data.success) loadAllUsers();
     else alert(data.message);
   } catch(e) { alert('删除失败'); }
+}
+
+// 修改密码相关
+let currentResetUserId = '';
+let currentResetUsername = '';
+
+function showResetPassword(userId, username) {
+  currentResetUserId = userId;
+  currentResetUsername = username;
+  document.getElementById('resetPwdUsername').textContent = username;
+  document.getElementById('newPassword').value = '';
+  document.getElementById('confirmPassword').value = '';
+  document.getElementById('resetPwdAlert').style.display = 'none';
+  document.getElementById('resetPwdModal').style.display = 'flex';
+}
+
+function closeResetPwdModal() {
+  document.getElementById('resetPwdModal').style.display = 'none';
+  currentResetUserId = '';
+  currentResetUsername = '';
+}
+
+async function doResetPassword() {
+  const newPwd = document.getElementById('newPassword').value;
+  const confirmPwd = document.getElementById('confirmPassword').value;
+  const alertBox = document.getElementById('resetPwdAlert');
+
+  if (!newPwd || newPwd.length < 6) {
+    alertBox.style.display = 'block';
+    alertBox.style.background = '#fee2e2';
+    alertBox.style.color = '#991b1b';
+    alertBox.textContent = '密码长度不能少于6位';
+    return;
+  }
+  if (newPwd !== confirmPwd) {
+    alertBox.style.display = 'block';
+    alertBox.style.background = '#fee2e2';
+    alertBox.style.color = '#991b1b';
+    alertBox.textContent = '两次输入的密码不一致';
+    return;
+  }
+
+  try {
+    const res = await fetch(API_BASE + '/admin/reset-password', {
+      method: 'POST',
+      headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: currentResetUserId, newPassword: newPwd })
+    });
+    const data = await res.json();
+    if (data.success) {
+      alertBox.style.display = 'block';
+      alertBox.style.background = '#dcfce7';
+      alertBox.style.color = '#166534';
+      alertBox.textContent = '密码修改成功！';
+      setTimeout(closeResetPwdModal, 1500);
+    } else {
+      alertBox.style.display = 'block';
+      alertBox.style.background = '#fee2e2';
+      alertBox.style.color = '#991b1b';
+      alertBox.textContent = data.message || '修改失败';
+    }
+  } catch(e) {
+    alertBox.style.display = 'block';
+    alertBox.style.background = '#fee2e2';
+    alertBox.style.color = '#991b1b';
+    alertBox.textContent = '网络错误，请重试';
+  }
 }
 
 async function loadAuditLogs() {

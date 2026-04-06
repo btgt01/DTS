@@ -245,6 +245,21 @@ api.post('/admin/delete-user', (req, res) => {
   res.json({ success: true });
 });
 
+// ===== 修改用户密码 =====
+api.post('/admin/reset-password', async (req, res) => {
+  if (!requireAdmin(req, res)) return;
+  const { userId, newPassword } = req.body;
+  if (!newPassword || newPassword.length < 6) {
+    return res.json({ success: false, message: '密码长度不能少于6位' });
+  }
+  const user = dbGet("SELECT * FROM users WHERE id = ?", [userId]);
+  if (!user) return res.json({ success: false, message: '用户不存在' });
+  const hashed = await bcrypt.hash(newPassword, 10);
+  dbRun("UPDATE users SET password = ? WHERE id = ?", [hashed, userId]);
+  logAudit('RESET_PWD', req.session.userId, `重置用户 ${user.username} 的密码`);
+  res.json({ success: true, message: '密码已重置' });
+});
+
 // ===== 审计日志 =====
 api.get('/admin/audit-logs', (req, res) => {
   if (!requireAdmin(req, res)) return;
