@@ -1,0 +1,50 @@
+{
+  "envId": "digital-transform-system-f8ac68f",
+  "version": "2.0",
+  "framework": {
+    "plugins": {
+      "client": {
+        "path": "./cloudbase-client.js"
+      },
+      "server": {
+        "path": "./cloudbase-server.js"
+      }
+    },
+    "routes": [
+      {
+        "path": "/",
+        "config": {
+          "index": "index.html",
+          "error": "index.html"
+        }
+      },
+      {
+        "path": "/api",
+        "config": {
+          "service": "server",
+          "action": "index.main"
+        }
+      }
+    ]
+  },
+  "functions": {
+    "server": {
+      "timeout": 60,
+      "memorySize": 256,
+      "handler": "index.main"
+    }
+  },
+  "database": {
+    "collections": {
+      "dts_users": {
+        "description": "用户表"
+      },
+      "dts_sessions": {
+        "description": "会话表"
+      },
+      "dts_audit": {
+        "description": "审计日志表"
+      }
+    }
+  }
+}
