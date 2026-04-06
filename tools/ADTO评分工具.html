@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>企业ADTO评分工具 · 细化问题版</title>
+    <!-- Chart.js 轻量折线图 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * { box-sizing: border-box; font-family: system-ui, 'Segoe UI', Roboto, sans-serif; }
+        body { background: #f0f5fd; margin: 0; min-height: 100vh; display: flex; justify-content: center; padding: 16px; }
+        .app-container { max-width: 1500px; width: 100%; background: white; border-radius: 32px; box-shadow: 0 20px 40px rgba(0,10,30,0.2); padding: 24px; }
+        h1 { font-size: 1.9rem; font-weight: 600; margin: 0 0 8px 0; color: #0b2b4a; display: flex; align-items: center; gap: 8px; }
+        .sub { color: #2c5779; margin-top: 0; margin-bottom: 24px; border-left: 5px solid #1e6ec7; padding-left: 16px; background: #e8f0fe; border-radius: 0 20px 20px 0; line-height: 1.5; }
+        .tab-bar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 28px; background: #eef3fa; padding: 8px; border-radius: 60px; }
+        .tab-btn { padding: 12px 24px; border: none; border-radius: 40px; font-weight: 600; font-size: 1rem; background: transparent; color: #1f3a5f; cursor: pointer; transition: 0.2s; }
+        .tab-btn.active { background: #1e6ec7; color: white; box-shadow: 0 6px 12px rgba(0,80,200,0.3); }
+        .tab-btn:hover:not(.active) { background: #d4e0f0; }
+        .page { display: none; animation: fade 0.25s; }
+        .page.active-page { display: block; }
+        @keyframes fade { from { opacity: 0.3; } to { opacity: 1; } }
+        .dimension-header { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; margin-bottom: 16px; background: white; padding: 16px 20px; border-radius: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.04); }
+        .dimension-title { font-size: 1.7rem; font-weight: 700; color: #0e3b5e; }
+        .score-badge { background: #e0ecfe; padding: 8px 18px; border-radius: 40px; font-size: 1.2rem; font-weight: 600; color: #004080; }
+        .sec-summary { display: flex; flex-wrap: wrap; gap: 20px 30px; background: #f8faff; padding: 16px 20px; border-radius: 28px; margin-bottom: 25px; border: 1px solid #cddff5; }
+        .sec-item { font-size: 1rem; }
+        .sec-name { font-weight: 600; color: #1b4c7c; margin-right: 8px; }
+        .sec-score { background: #d9e9ff; padding: 4px 14px; border-radius: 40px; font-weight: 600; }
+        .table-scroll { max-height: 500px; overflow-y: auto; border-radius: 20px; border: 1px solid #cfdff2; background: white; margin-bottom: 28px; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        th { background: #e2edff; position: sticky; top: 0; color: #0f3f6f; font-weight: 600; padding: 16px 8px; }
+        td { padding: 12px 8px; border-bottom: 1px solid #dbe5f2; vertical-align: middle; }
+        .tert-name { max-width: 180px; font-weight: 500; color: #002856; }
+        .desc-col { max-width: 350px; color: #1f4172; font-size: 0.85rem; line-height: 1.4; background: #f9fcff; }
+        .max-score { color: #4b6f9a; font-size: 0.8rem; margin-left: 6px; font-weight: 400; }
+        input[type=number] { width: 95px; padding: 10px 8px; border: 1px solid #b9d1f0; border-radius: 20px; font-weight: 600; text-align: center; background: #f9fcff; }
+        input[type=number]:focus { outline: 2px solid #1e6ec7; border-color: transparent; }
+        .chart-container { background: #fbfdff; border-radius: 28px; padding: 20px 10px 10px 10px; border: 1px solid #c4d7f0; margin-top: 16px; }
+        canvas { max-height: 280px; width: 100% !important; }
+        .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+        .card { background: #f5faff; border-radius: 28px; padding: 22px; border: 1px solid #c7daf5; }
+        .card h3 { font-size: 1.3rem; margin-top: 0; margin-bottom: 20px; color: #103a62; border-left: 6px solid #1e6ec7; padding-left: 16px; }
+        .summary-table td { padding: 12px 8px; background: white; }
+        .summary-table th { background: #dbeafe; }
+        .advice-box { background: #e2edfe; border-radius: 24px; padding: 24px; line-height: 1.8; color: #023b77; font-size: 1rem; box-shadow: inset 0 2px 6px rgba(0,60,130,0.05); }
+        .advice-box strong { color: #003d66; }
+        footer { margin-top: 30px; font-size: 0.8rem; color: #6682a4; text-align: center; border-top: 1px dashed #aac2e5; padding-top: 16px; }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <h1>📋 企业ADTO评分工具 <span style="font-size: 1rem; font-weight: 400; margin-left: auto">具体问题·实时得分·改进建议</span></h1>
+    <div class="sub">⬇️ 每个问题后直接打分，折线图展示三级指标起伏，汇总页自动生成改进方向</div>
+
+    <div class="tab-bar" id="tabBar">
+        <button class="tab-btn active" data-page="0">📱 应用系统</button>
+        <button class="tab-btn" data-page="1">🗃️ 数据资源</button>
+        <button class="tab-btn" data-page="2">🖧 基础设施</button>
+        <button class="tab-btn" data-page="3">⚙️ 组织流程</button>
+        <button class="tab-btn" data-page="4">📋 汇总 & 建议</button>
+    </div>
+
+    <div id="page0" class="page active-page"></div>
+    <div id="page1" class="page"></div>
+    <div id="page2" class="page"></div>
+    <div id="page3" class="page"></div>
+    <div id="page4" class="page"></div>
+
+    <footer>修改任意分数，汇总自动更新。满分参考括号内数值</footer>
+</div>
+
+<script>
+    (function() {
+        // ----- 构建三级指标库（含评分细则 description）-----
+        const tertiaryItems = [];
+
+        function addTert(dimIndex, secName, secMax, tertName, tertMax, description) {
+            tertiaryItems.push({
+                dimIndex, secName, secMax, tertName, tertMax, description,
+                score: 0,
+                id: `i_${tertiaryItems.length}_${Date.now()}_${Math.random()}`
+            });
+        }
+
+        // ========== 应用系统 dim=0 ==========
+        addTert(0,'战略决策能力',5,'BI(商务智能)',2,'是否有商业智能辅助决策支持系统 (包括KPI,财务分析,主营业务分析等) 根据功能是否全面酌情给分(0-2分)');
+        addTert(0,'战略决策能力',5,'战略与投资管理',1,'是否有战略与投资管理系统 根据功能是否全面酌情给分(0-1分)');
+        addTert(0,'战略决策能力',5,'法务与风险管控',1,'是否有法务与风险管控系统 根据功能是否全面酌情给分(0-1分)');
+        addTert(0,'战略决策能力',5,'KM(知识管理)',0.5,'企业是否建有知识管理共享平台 根据功能是否全面酌情给分(0-0.5分)');
+        addTert(0,'战略决策能力',5,'企业文化(宣传/外网)',0.5,'是否有企业文化宣传、党建宣传、产品品牌宣传以及其他公开信息发布的外部网站 根据内容是否全面酌情给分(0-0.5分)');
+        addTert(0,'经营管理能力',10,'财务管理',3,'根据财务管理功能是否全面(如财务核算,预算管理,成本管理,固定资产管理等)酌情给分(0-3分)');
+        addTert(0,'经营管理能力',10,'人力资源',2,'是否建有人力资源系统 根据功能是否全面酌情给分(0-2分)');
+        addTert(0,'经营管理能力',10,'合同管理',1.5,'是否建有合同管理系统 根据功能是否全面酌情给分(0-1.5分)');
+        addTert(0,'经营管理能力',10,'OA(办公管理)',1.5,'是否建有办公管理系统 根据功能是否全面酌情给分(0-1.5分)');
+        addTert(0,'经营管理能力',10,'档案管理',1,'是否建有档案管理系统 根据功能是否全面酌情给分(0-1分)');
+        addTert(0,'经营管理能力',10,'后勤行政服务',1,'是否建有后勤服务管理系统(比如车辆调度管理、劳保管理等) 根据功能是否全面酌情给分(0-1分)');
+        addTert(0,'主营业务能力',15,'业务流程管理(BPM)',1,'企业是否进行统一的全流程贯通的业务流程梳理并实现自动化管理(BPM) 根据流程贯通程度以及BPM功能的实现程度酌情给分(0-1分)');
+        addTert(0,'主营业务能力',15,'采购/供应商管理',2,'是否建有采购管理系统 根据功能是否全面酌情给分(0-2分)');
+        addTert(0,'主营业务能力',15,'销售管理',2,'是否建有销售管理系统 根据功能是否全面酌情给分(0-2分)');
+        addTert(0,'主营业务能力',15,'客户服务',1,'是否建有客户服务管理系统 根据功能是否全面酌情给分(0-1分)');
+        addTert(0,'主营业务能力',15,'客户关系管理',1,'是否建有客户关系管理系统 根据功能是否全面酌情给分(0-1分)');
+        addTert(0,'主营业务能力',15,'项目管理',0.5,'是否建有项目管理系统 根据功能是否全面酌情给分(0-0.5分)');
+        addTert(0,'主营业务能力',15,'科技管理',0.5,'是否建有科技管理系统 根据功能是否全面酌情给分(0-0.5分)');
+        addTert(0,'主营业务能力',15,'生产运行(计划)',2,'是否建有生产运行(计划)管理系统 根据功能是否全面酌情给分(0-2分)');
+        addTert(0,'主营业务能力',15,'研发设计(协同)',2,'是否有协同研发设计专业软件 (CAD-PDM-PLM) 根据应用程度(协同并与ERP实现一体化) 酌情给分(0-2分)');
+        addTert(0,'主营业务能力',15,'制造工艺(CAPP)',1,'是否有制造工艺专业软件(CAPP) 根据应用程度(与PDM、ERP实现一体化) 酌情给分(0-1分)');
+        addTert(0,'主营业务能力',15,'质量管理',1,'是否建有质量管理系统 根据功能是否全面酌情给分(0-1分)');
+        addTert(0,'主营业务能力',15,'设备管理',0.5,'是否建有设备管理系统 根据功能是否全面酌情给分(0-0.5分)');
+        addTert(0,'主营业务能力',15,'安全&环保',0.5,'是否建有安全&环保管理系统 根据功能是否全面酌情给分(0-0.5分)');
+
+        // ========== 数据资源 dim=1 ==========
+        addTert(1,'数据标准化',5,'分类标准&编码体系',2.5,'是否制定数据分类与编码体系企业标准 根据标准有无及完整性酌情给分(0-2.5分)');
+        addTert(1,'数据标准化',5,'数据模型&数据字典',2.5,'是否编制企业级的数据模型与数据字典 根据数据字典的完整性酌情给分(0-2.5分)');
+        addTert(1,'数据集成度',5,'主数据标准',2.5,'是否构建覆盖整个企业的主数据标准 根据主数据标准的覆盖度酌情给分(0-2.5分)');
+        addTert(1,'数据集成度',5,'主数据系统',2.5,'是否构建覆盖整个企业的主数据系统 根据主数据系统的覆盖度酌情给分(0-2.5分)');
+        addTert(1,'数据应用程度',5,'数据仓库应用',3,'是否构建覆盖整个企业的数据仓库 根据数据仓库的覆盖度酌情给分(0-3分)');
+        addTert(1,'数据应用程度',5,'数据基础应用',2,'数据基础应用指支持的经营管理和主要业务应用系统(如财务,人事,采购,销售等)，根据数据应用的范围酌情给分(0-2分)');
+        addTert(1,'数据管理规范',5,'数据服务管理规范',1,'数据查询、下载、拷贝的权限设置以及审批流程等管理规范');
+        addTert(1,'数据管理规范',5,'数据管理流程与规范',2,'是否制定数据管理流程以及相应的质量控制与安全措施等规范');
+        addTert(1,'数据管理规范',5,'数据管理岗位与职责',2,'是否制定数据管理岗位及相应职责的长效管理机制');
+
+        // ========== 基础设施 dim=2 ==========
+        addTert(2,'基础设施标准化',5,'平台服务软件标准化',1,'WEB Server,DB,OS,Email,EIP标准化');
+        addTert(2,'基础设施标准化',5,'桌面终端设备标准化',1,'PC标准化配置与统一选型');
+        addTert(2,'基础设施标准化',5,'服务器及存储设备标准',1,'服务器及存储设备标准化配置与统一选型');
+        addTert(2,'基础设施标准化',5,'局域网及桌面接入标准化',1,'是否制定局域网及桌面接入标准(1分)');
+        addTert(2,'基础设施标准化',5,'广域网及互联网接入标准化',1,'是否制定广域网及互联网接入标准化(1分)');
+        addTert(2,'基础设施支撑能力',15,'平台软件支撑能力',1,'WEB Server,DB,OS,Email,EIP是否满足应用需求');
+        addTert(2,'基础设施支撑能力',15,'桌面终端支持能力',1,'PC机配置是否满足工作需要：1分');
+        addTert(2,'基础设施支撑能力',15,'运维平台服务能力',2,'数据中心是否建有运维服务管理平台1分 运维管理平台能否满足运维管理需求1分');
+        addTert(2,'基础设施支撑能力',15,'数据中心支撑能力',6,'数据中心符合国家标准：2分 数据中心能够满足业务需求：4分');
+        addTert(2,'基础设施支撑能力',15,'网络通讯能力',5,'网络覆盖度80%以上：2分 内部网及互联网访问满意度>80%：3分');
+        addTert(2,'信息安全保障能力',10,'应用安全',2.5,'身份认证&访问控制，本地备份，异地备份等安全措施齐全：2.5分');
+        addTert(2,'信息安全保障能力',10,'系统安全',2.5,'防病毒、主机监控、漏洞扫描、双机热备、负载均衡等安全措施齐全：2.5分');
+        addTert(2,'信息安全保障能力',10,'网络安全',2.5,'防火墙、入侵检测、网络准入、设备冗余、VPN等安全措施齐全：2.5分');
+        addTert(2,'信息安全保障能力',10,'物理安全',2.5,'机房机器设备安全保护措施（如UPS,防火,防尘,警报等）齐全：2.5分');
+
+        // ========== 组织流程 dim=3 ==========
+        addTert(3,'IT治理组织',5,'信息化决策能力',1,'企业设有信息化委员会或领导小组(CIO)：0.5分 以及领导小组是否真正参与信息化决策：0.5分');
+        addTert(3,'IT治理组织',5,'信息化管理能力',2,'企业设有独立的信息化管理部门 ：2分 信息管理职能挂靠在其他部门：1分 没有信息管理职能：0分');
+        addTert(3,'IT治理组织',5,'信息化运维能力',2,'企业内部有专职的运维组织或队伍2分 运维外包而且能够满足企业需求2分');
+        addTert(3,'IT治理流程',5,'IT规划计划',1,'制定有IT规划流程');
+        addTert(3,'IT治理流程',5,'IT项目建设',1.5,'制定有IT项目建设流程');
+        addTert(3,'IT治理流程',5,'IT运维服务',1.5,'制定有IT运维服务流程');
+        addTert(3,'IT治理流程',5,'IT评估改进',1,'制定有IT评估改进流程');
+        addTert(3,'IT治理体系',6,'信息技术标准体系',4,'制定有一系列信息技术标准规范：如网络技术标准、信息安全标准等');
+        addTert(3,'IT治理体系',6,'信息管理制度体系',2,'制定有一系列信息管理制度规范：如IT项目管理规范,软硬件采购管理规范等');
+        addTert(3,'IT资金投入',4,'IT投资资金',1,'有年度IT投资计划和实际项目投入：1分');
+        addTert(3,'IT资金投入',4,'IT运维资金',1,'有年度IT运维计划和实际运维费用：1分');
+        addTert(3,'IT资金投入',4,'两化融合投资资金',1,'有年度两化融合投资计划和实际项目投入：1分');
+        addTert(3,'IT资金投入',4,'两化融合运维资金',1,'有年度两化融合运维计划和实际运维费用：1分');
+
+        // 总计 24+9+14+13 = 60项
+
+        let currentPage = 0;
+        let chartInstance = null;
+
+        // 计算二级得分
+        function computeSecScores() {
+            const secMap = new Map(); // key: dimIndex||secName
+            tertiaryItems.forEach(item => {
+                const key = item.dimIndex + '||' + item.secName;
+                const max = item.secMax;
+                if (!secMap.has(key)) {
+                    secMap.set(key, { sum: 0, max: max, dimIndex: item.dimIndex, secName: item.secName });
+                }
+                secMap.get(key).sum += item.score;
+            });
+            return secMap;
+        }
+
+        function computeDimScores(secMap) {
+            const dimMap = new Map();
+            const dimMax = [30,20,30,20];
+            tertiaryItems.forEach(item => {
+                if (!dimMap.has(item.dimIndex)) {
+                    dimMap.set(item.dimIndex, { sum: 0, max: dimMax[item.dimIndex] });
+                }
+            });
+            for (let rec of secMap.values()) {
+                dimMap.get(rec.dimIndex).sum += rec.sum;
+            }
+            return dimMap;
+        }
+
+        // 渲染某个维度页面 (0-3)
+        function renderDimensionPage(dimIdx) {
+            const container = document.getElementById(`page${dimIdx}`);
+            if (!container) return;
+            const dimNames = ['应用系统','数据资源','基础设施','组织流程'];
+            const dimMax = [30,20,30,20];
+            const items = tertiaryItems.filter(it => it.dimIndex === dimIdx);
+            const secGroups = {};
+            items.forEach(it => {
+                if (!secGroups[it.secName]) secGroups[it.secName] = { max: it.secMax, items: [] };
+                secGroups[it.secName].items.push(it);
+            });
+
+            let html = `
+                <div class="dimension-header">
+                    <span class="dimension-title">${dimNames[dimIdx]}</span>
+                    <span class="score-badge" id="dimTotal_${dimIdx}">0 / ${dimMax[dimIdx]}</span>
+                </div>
+                <div class="sec-summary" id="secSummary_${dimIdx}"></div>
+                <div class="table-scroll">
+                <table>
+                    <thead><tr><th>三级指标</th><th>评分细则（具体问题）</th><th>满分</th><th>实际得分</th></tr></thead>
+                    <tbody>
+            `;
+            for (let secName in secGroups) {
+                const sec = secGroups[secName];
+                html += `<tr style="background:#f0f5ff; font-weight:600;"><td colspan="4">🔹 ${secName}  (满分 ${sec.max})</td></tr>`;
+                sec.items.forEach(it => {
+                    html += `<tr>
+                        <td class="tert-name">${it.tertName}</td>
+                        <td class="desc-col">${it.description}</td>
+                        <td><span class="max-score">${it.tertMax}</span></td>
+                        <td><input type="number" min="0" max="${it.tertMax}" step="0.1" value="${it.score}" data-id="${it.id}" class="score-input"></td>
+                    </tr>`;
+                });
+            }
+            html += `</tbody></table></div>`;
+            html += `<div class="chart-container"><canvas id="chart_${dimIdx}" width="400" height="200"></canvas></div>`;
+            container.innerHTML = html;
+
+            // 绑定输入事件
+            container.querySelectorAll('.score-input').forEach(inp => {
+                inp.addEventListener('input', function(e) {
+                    const id = this.dataset.id;
+                    const item = tertiaryItems.find(it => it.id === id);
+                    if (!item) return;
+                    let val = parseFloat(this.value);
+                    if (isNaN(val)) val = 0;
+                    val = Math.min(item.tertMax, Math.max(0, val));
+                    item.score = val;
+                    this.value = val.toFixed(1);
+                    refreshAfterScoreChange();
+                });
+            });
+
+            refreshDimDisplay(dimIdx);
+        }
+
+        function refreshDimDisplay(dimIdx) {
+            const secMap = computeSecScores();
+            const dimMap = computeDimScores(secMap);
+            const items = tertiaryItems.filter(it => it.dimIndex === dimIdx);
+            // 更新维度总分
+            const dimTotalSpan = document.getElementById(`dimTotal_${dimIdx}`);
+            if (dimTotalSpan) {
+                const dimData = dimMap.get(dimIdx) || { sum: 0, max: 30 };
+                dimTotalSpan.innerText = dimData.sum.toFixed(1) + ' / ' + dimData.max;
+            }
+            // 更新二级摘要
+            const secSummaryDiv = document.getElementById(`secSummary_${dimIdx}`);
+            if (secSummaryDiv) {
+                let secHtml = '';
+                const seen = new Set();
+                items.forEach(it => {
+                    if (!seen.has(it.secName)) {
+                        seen.add(it.secName);
+                        const key = dimIdx + '||' + it.secName;
+                        const rec = secMap.get(key);
+                        const sum = rec ? rec.sum : 0;
+                        secHtml += `<div class="sec-item"><span class="sec-name">${it.secName}</span> <span class="sec-score">${sum.toFixed(1)} / ${it.secMax}</span></div>`;
+                    }
+                });
+                secSummaryDiv.innerHTML = secHtml;
+            }
+
+            // 更新折线图
+            const ctx = document.getElementById(`chart_${dimIdx}`)?.getContext('2d');
+            if (ctx) {
+                if (chartInstance) chartInstance.destroy();
+                const labels = items.map(it => it.tertName.length > 14 ? it.tertName.slice(0,12)+'…' : it.tertName);
+                const scores = items.map(it => it.score);
+                chartInstance = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: '三级指标实际得分',
+                            data: scores,
+                            borderColor: '#1e6ec7',
+                            backgroundColor: 'rgba(30,110,199,0.1)',
+                            tension: 0.2,
+                            pointBackgroundColor: '#004b9a',
+                            pointBorderColor: 'white',
+                            borderWidth: 3,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: { y: { beginAtZero: true, max: Math.max(...items.map(it=>it.tertMax), 6) } }
+                    }
+                });
+            }
+        }
+
+        function renderSummaryPage() {
+            const container = document.getElementById('page4');
+            if (!container) return;
+            const secMap = computeSecScores();
+            const dimMap = computeDimScores(secMap);
+            const dimMax = [30,20,30,20];
+            const dimNames = ['应用系统','数据资源','基础设施','组织流程'];
+
+            let secRows = '';
+            const secEntries = Array.from(secMap.entries()).map(([key, rec]) => {
+                const [dimIdx, secName] = key.split('||');
+                return { dimIdx: parseInt(dimIdx), secName, sum: rec.sum, max: rec.max };
+            }).sort((a,b)=> a.dimIdx!==b.dimIdx ? a.dimIdx-b.dimIdx : a.secName.localeCompare(b.secName));
+
+            secEntries.forEach(r => {
+                secRows += `<tr><td>${dimNames[r.dimIdx]}</td><td>${r.secName}</td><td>${r.sum.toFixed(1)} / ${r.max}</td></tr>`;
+            });
+
+            let dimRows = '';
+            for (let i=0; i<4; i++) {
+                const d = dimMap.get(i) || { sum:0, max: dimMax[i] };
+                dimRows += `<tr><td>${dimNames[i]}</td><td>${d.sum.toFixed(1)} / ${d.max}</td><td>${(d.sum/d.max*100).toFixed(1)}%</td></tr>`;
+            }
+
+            // 改进建议
+            let advice = '';
+            const lowSecs = secEntries.filter(r => (r.sum / r.max) < 0.4).map(r => `${dimNames[r.dimIdx]}·${r.secName}`).slice(0,5);
+            if (lowSecs.length>0) {
+                advice = `⚠️ 以下二级指标得分率低于40%：${lowSecs.join('；')}。建议优先加强这些领域的建设。`;
+            } else {
+                advice = '✅ 各项二级指标得分均超过40%，整体良好。可关注相对短板继续优化。';
+            }
+            const lowDim = [];
+            for (let i=0; i<4; i++) {
+                const d = dimMap.get(i) || { sum:0, max: dimMax[i] };
+                if (d.sum/d.max < 0.5) lowDim.push(dimNames[i]);
+            }
+            if (lowDim.length) advice += ` 大类短板：${lowDim.join('、')} 得分不足50%，建议制定专项提升计划。`;
+
+            const html = `
+                <div style="margin-bottom:24px">
+                    <h2>📋 综合汇总表</h2>
+                    <div class="summary-grid">
+                        <div class="card">
+                            <h3>📌 二级指标得分 (亚类)</h3>
+                            <table class="summary-table" style="width:100%">
+                                <thead><tr><th>大类</th><th>二级指标</th><th>得分/满分</th></tr></thead>
+                                <tbody>${secRows}</tbody>
+                            </table>
+                        </div>
+                        <div class="card">
+                            <h3>📌 一级指标得分 (大类)</h3>
+                            <table class="summary-table" style="width:100%">
+                                <thead><tr><th>大类</th><th>得分/满分</th><th>得分率</th></tr></thead>
+                                <tbody>${dimRows}</tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="advice-box" style="margin-top:24px">
+                        <strong>💡 改进提升建议</strong><br>${advice}
+                    </div>
+                </div>
+            `;
+            container.innerHTML = html;
+        }
+
+        function refreshAfterScoreChange() {
+            if (currentPage >= 0 && currentPage <= 3) {
+                refreshDimDisplay(currentPage);
+            } else if (currentPage === 4) {
+                renderSummaryPage();
+            }
+        }
+
+        function switchPage(pageIndex) {
+            currentPage = pageIndex;
+            document.querySelectorAll('.tab-btn').forEach((btn, idx) => {
+                if (idx === pageIndex) btn.classList.add('active');
+                else btn.classList.remove('active');
+            });
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
+            const activePage = document.getElementById(`page${pageIndex}`);
+            activePage.classList.add('active-page');
+
+            if (pageIndex <= 3) {
+                if (activePage.innerHTML.trim() === '') {
+                    renderDimensionPage(pageIndex);
+                } else {
+                    refreshDimDisplay(pageIndex);
+                }
+            } else if (pageIndex === 4) {
+                renderSummaryPage();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('tabBar').addEventListener('click', (e) => {
+                const btn = e.target.closest('.tab-btn');
+                if (!btn) return;
+                const page = btn.dataset.page;
+                if (page !== undefined) switchPage(parseInt(page));
+            });
+            renderDimensionPage(0);
+            for (let i=1; i<=4; i++) {
+                const p = document.getElementById(`page${i}`);
+                p.innerHTML = '';
+            }
+            currentPage = 0;
+        });
+    })();
+</script>
+</body>
+</html>

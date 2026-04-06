@@ -1,0 +1,1556 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>企业数字化转型规划SAAS系统 - 交互演示</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #7c3aed;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --light-bg: #f8fafc;
+            --border-color: #e2e8f0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            color: #334155;
+        }
+        
+        .sidebar {
+            background: white;
+            border-right: 1px solid var(--border-color);
+            height: 100vh;
+            position: fixed;
+            width: 280px;
+            padding: 0;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.05);
+            overflow-y: auto;
+        }
+        
+        .main-content {
+            margin-left: 280px;
+            padding: 20px;
+        }
+        
+        .nav-stage {
+            padding: 12px 20px;
+            border-left: 4px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+        
+        .nav-stage:hover {
+            background-color: var(--light-bg);
+        }
+        
+        .nav-stage.active {
+            border-left-color: var(--primary-color);
+            background-color: rgba(37, 99, 235, 0.05);
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+        
+        .nav-module {
+            padding: 8px 20px 8px 40px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .nav-module:hover {
+            background-color: rgba(0,0,0,0.02);
+        }
+        
+        .nav-module.active {
+            background-color: rgba(37, 99, 235, 0.08);
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+        
+        .module-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        
+        .module-header {
+            background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 20px;
+        }
+        
+        .module-body {
+            padding: 25px;
+        }
+        
+        .form-section {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .btn-action {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .btn-action:hover {
+            background: #1d4ed8;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(37, 99, 235, 0.2);
+        }
+        
+        .form-control, .form-select {
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 10px 15px;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+        
+        .badge-stage {
+            background: var(--primary-color);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .interview-card {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            transition: all 0.2s;
+        }
+        
+        .interview-card:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+            transform: translateY(-2px);
+        }
+        
+        .interview-card.active {
+            border-color: var(--primary-color);
+            background-color: rgba(37, 99, 235, 0.03);
+        }
+        
+        .record-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--danger-color);
+            color: white;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        
+        .record-btn.recording {
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+        
+        .project-card {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            cursor: move;
+        }
+        
+        .kanban-column {
+            background: var(--light-bg);
+            border-radius: 8px;
+            padding: 15px;
+            min-height: 500px;
+        }
+        
+        .kanban-title {
+            font-weight: 600;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--border-color);
+        }
+        
+        .kanban-col-planning {
+            border-top: 4px solid #8b5cf6;
+        }
+        
+        .kanban-col-executing {
+            border-top: 4px solid var(--primary-color);
+        }
+        
+        .kanban-col-monitoring {
+            border-top: 4px solid var(--warning-color);
+        }
+        
+        .kanban-col-completed {
+            border-top: 4px solid var(--success-color);
+        }
+        
+        .tag {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-right: 5px;
+        }
+        
+        .tag-pain {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+        
+        .tag-need {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+        
+        .tag-suggestion {
+            background: #f0f9ff;
+            color: #0369a1;
+        }
+        
+        .tag-opportunity {
+            background: #f0fdf4;
+            color: #15803d;
+        }
+        
+        .insight-card {
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .progress-ring {
+            width: 80px;
+            height: 80px;
+        }
+        
+        .progress-ring-circle {
+            stroke: var(--primary-color);
+            stroke-linecap: round;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+            transition: stroke-dashoffset 0.5s;
+        }
+        
+        .status-dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-draft { background-color: #9ca3af; }
+        .status-review { background-color: #f59e0b; }
+        .status-published { background-color: #10b981; }
+        
+        @media (max-width: 992px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 侧边栏导航 -->
+    <div class="sidebar">
+        <div class="p-4 border-bottom">
+            <h4 class="mb-0 text-primary">
+                <i class="fas fa-digital-tachograph me-2"></i>DT规划SAAS
+            </h4>
+            <small class="text-muted">数字化转型规划系统</small>
+        </div>
+        
+        <div class="stages-list">
+            <div class="nav-stage active" data-stage="research">
+                <i class="fas fa-search me-2"></i>调研诊断
+            </div>
+            <div class="nav-module active" data-module="department-interview">部门访谈</div>
+            <div class="nav-module" data-module="executive-interview">高管访谈</div>
+            
+            <div class="nav-stage" data-stage="data-architecture">
+                <i class="fas fa-database me-2"></i>数据架构
+            </div>
+            <div class="nav-module" data-module="data-standards">数据标准</div>
+            <div class="nav-module" data-module="data-model">数据模型</div>
+            
+            <div class="nav-stage" data-stage="project-implementation">
+                <i class="fas fa-tasks me-2"></i>数字化项目实施
+            </div>
+            <div class="nav-module" data-module="project-list">项目列表</div>
+            <div class="nav-module" data-module="project-matrix">实施矩阵</div>
+            
+            <div class="nav-stage" data-stage="maturity-analysis">
+                <i class="fas fa-chart-line me-2"></i>成熟度分析
+            </div>
+            
+            <div class="nav-stage" data-stage="business-architecture">
+                <i class="fas fa-sitemap me-2"></i>业务架构
+            </div>
+            
+            <div class="nav-stage" data-stage="application-architecture">
+                <i class="fas fa-layer-group me-2"></i>应用架构
+            </div>
+        </div>
+        
+        <div class="mt-4 p-4 border-top">
+            <div class="d-flex align-items-center">
+                <div class="progress-ring me-3">
+                    <svg viewBox="0 0 36 36">
+                        <path d="M18 2.0845
+                                a 15.9155 15.9155 0 0 1 0 31.831
+                                a 15.9155 15.9155 0 0 1 0 -31.831"
+                              fill="none"
+                              stroke="#e2e8f0"
+                              stroke-width="3"/>
+                        <path class="progress-ring-circle"
+                              d="M18 2.0845
+                                a 15.9155 15.9155 0 0 1 0 31.831
+                                a 15.9155 15.9155 0 0 1 0 -31.831"
+                              fill="none"
+                              stroke-width="3"
+                              stroke-dasharray="100, 100"
+                              data-progress="35"/>
+                    </svg>
+                </div>
+                <div>
+                    <div class="small text-muted">项目完成度</div>
+                    <h5 class="mb-0">35%</h5>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 主内容区 -->
+    <div class="main-content">
+        <!-- 部门访谈模块 -->
+        <div class="module-card active-module" id="department-interview">
+            <div class="module-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="mb-1">部门访谈</h4>
+                        <p class="mb-0 opacity-75">系统化收集各部门业务现状、痛点、数字化需求</p>
+                    </div>
+                    <span class="badge-stage">调研诊断阶段</span>
+                </div>
+            </div>
+            
+            <div class="module-body">
+                <div class="row">
+                    <!-- 左侧：访谈计划列表 -->
+                    <div class="col-md-4">
+                        <div class="form-section">
+                            <h5>访谈计划</h5>
+                            <div class="mb-3">
+                                <button class="btn btn-action w-100" id="create-interview-plan">
+                                    <i class="fas fa-plus me-2"></i>创建新访谈计划
+                                </button>
+                            </div>
+                            
+                            <div id="interview-plans-container">
+                                <!-- 访谈计划卡片将通过JS动态生成 -->
+                            </div>
+                        </div>
+                        
+                        <div class="form-section">
+                            <h5>AI智能分析</h5>
+                            <div id="ai-insights-container">
+                                <!-- AI分析结果将通过JS动态生成 -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 右侧：访谈执行区 -->
+                    <div class="col-md-8">
+                        <div id="interview-execution-area">
+                            <!-- 初始提示 -->
+                            <div class="text-center py-5">
+                                <i class="fas fa-microphone-alt fa-3x text-muted mb-3"></i>
+                                <h5 class="text-muted">请从左侧选择一个访谈计划开始</h5>
+                                <p class="text-muted">或创建新的访谈计划</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 数据标准模块 -->
+        <div class="module-card" id="data-standards" style="display: none;">
+            <div class="module-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="mb-1">数据标准</h4>
+                        <p class="mb-0 opacity-75">制定企业统一数据标准，确保数据一致性</p>
+                    </div>
+                    <span class="badge-stage">数据架构阶段</span>
+                </div>
+            </div>
+            
+            <div class="module-body">
+                <div class="row">
+                    <!-- 左侧：数据域分类 -->
+                    <div class="col-md-3">
+                        <div class="form-section">
+                            <h5>数据域分类</h5>
+                            <div class="list-group" id="data-domain-list">
+                                <!-- 数据域将通过JS动态生成 -->
+                            </div>
+                        </div>
+                        
+                        <div class="form-section">
+                            <h5>状态筛选</h5>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" value="" id="filter-draft" checked>
+                                <label class="form-check-label" for="filter-draft">
+                                    <span class="status-dot status-draft"></span>草稿
+                                </label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" value="" id="filter-review" checked>
+                                <label class="form-check-label" for="filter-review">
+                                    <span class="status-dot status-review"></span>评审中
+                                </label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" value="" id="filter-published">
+                                <label class="form-check-label" for="filter-published">
+                                    <span class="status-dot status-published"></span>已发布
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 中间：数据标准列表 -->
+                    <div class="col-md-4">
+                        <div class="form-section">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="mb-0">数据标准列表</h5>
+                                <button class="btn btn-sm btn-action" id="create-data-standard">
+                                    <i class="fas fa-plus me-1"></i>新建
+                                </button>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <input type="text" class="form-control" id="search-standards" placeholder="搜索标准名称或编码...">
+                            </div>
+                            
+                            <div id="standards-list-container" style="max-height: 500px; overflow-y: auto;">
+                                <!-- 数据标准列表将通过JS动态生成 -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 右侧：数据标准编辑区 -->
+                    <div class="col-md-5">
+                        <div id="standard-editor-container">
+                            <!-- 标准编辑表单将通过JS动态生成 -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 项目列表模块 -->
+        <div class="module-card" id="project-list" style="display: none;">
+            <div class="module-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="mb-1">项目列表</h4>
+                        <p class="mb-0 opacity-75">管理数字化转型项目组合，跟踪执行进度</p>
+                    </div>
+                    <span class="badge-stage">项目实施阶段</span>
+                </div>
+            </div>
+            
+            <div class="module-body">
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="mb-0">数字化转型项目看板</h5>
+                            <p class="text-muted mb-0">拖拽项目卡片以更新状态</p>
+                        </div>
+                        <div>
+                            <button class="btn btn-action" id="add-project-btn">
+                                <i class="fas fa-plus me-2"></i>添加项目
+                            </button>
+                            <button class="btn btn-outline-primary ms-2" id="export-projects-btn">
+                                <i class="fas fa-download me-2"></i>导出
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 看板视图 -->
+                <div class="row" id="project-kanban">
+                    <!-- 看板列将通过JS动态生成 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- 交互逻辑 -->
+    <script>
+        // 数据存储
+        let appState = {
+            currentModule: 'department-interview',
+            interviewPlans: [
+                {
+                    id: 1,
+                    department: '生产部',
+                    interviewees: ['生产总监', '车间主任', '计划员'],
+                    scheduledTime: '2024-01-15 14:00',
+                    status: '已完成',
+                    insights: ['生产排程效率低', '设备数据未充分利用', '需要实时质量监控']
+                },
+                {
+                    id: 2,
+                    department: '市场部',
+                    interviewees: ['市场总监', '品牌经理', '数字营销专员'],
+                    scheduledTime: '2024-01-16 10:00',
+                    status: '进行中',
+                    insights: ['客户数据分散', '缺乏统一客户视图', '营销活动ROI难衡量']
+                },
+                {
+                    id: 3,
+                    department: 'IT部',
+                    interviewees: ['CIO', '系统架构师', '开发经理'],
+                    scheduledTime: '2024-01-17 15:00',
+                    status: '待执行',
+                    insights: []
+                }
+            ],
+            currentInterview: null,
+            isRecording: false,
+            recordingTranscript: '',
+            dataStandards: [
+                {
+                    id: 1,
+                    standardCode: 'DS-CUST-0001',
+                    chineseName: '客户编码',
+                    englishName: 'Customer_Code',
+                    dataType: '字符串',
+                    length: 20,
+                    format: 'CUST+年月日+5位序列号',
+                    example: 'CUST2024011500001',
+                    responsibleDepartment: '市场部',
+                    relatedSystems: ['CRM', 'ERP', 'BI'],
+                    status: '已发布',
+                    dataDomain: '主数据'
+                },
+                {
+                    id: 2,
+                    standardCode: 'DS-PROD-0001',
+                    chineseName: '产品编码',
+                    englishName: 'Product_Code',
+                    dataType: '字符串',
+                    length: 15,
+                    format: 'PROD+类别+5位序列号',
+                    example: 'PRODELEC00001',
+                    responsibleDepartment: '生产部',
+                    relatedSystems: ['ERP', 'SCM', 'CRM'],
+                    status: '评审中',
+                    dataDomain: '主数据'
+                },
+                {
+                    id: 3,
+                    standardCode: 'DS-ORDER-0001',
+                    chineseName: '订单状态',
+                    englishName: 'Order_Status',
+                    dataType: '枚举',
+                    length: null,
+                    format: '待付款|待发货|已发货|已完成|已取消',
+                    example: '已发货',
+                    responsibleDepartment: '销售部',
+                    relatedSystems: ['CRM', 'ERP', 'WMS'],
+                    status: '草稿',
+                    dataDomain: '交易数据'
+                }
+            ],
+            currentStandard: null,
+            projects: [
+                {
+                    id: 1,
+                    name: 'CRM系统数字化升级',
+                    stage: '执行中',
+                    priority: '高',
+                    budget: '150万元',
+                    progress: 35,
+                    department: '市场部',
+                    description: '升级现有CRM系统，整合客户数据，提升销售效率'
+                },
+                {
+                    id: 2,
+                    name: '生产数据中台建设',
+                    stage: '规划中',
+                    priority: '高',
+                    budget: '200万元',
+                    progress: 15,
+                    department: '生产部',
+                    description: '建设生产数据中台，实现设备数据实时采集与分析'
+                },
+                {
+                    id: 3,
+                    name: '供应链协同平台',
+                    stage: '规划中',
+                    priority: '中',
+                    budget: '120万元',
+                    progress: 10,
+                    department: '采购部',
+                    description: '建立与供应商的数字化协同平台，优化供应链效率'
+                },
+                {
+                    id: 4,
+                    name: '财务数字化系统',
+                    stage: '监控中',
+                    priority: '中',
+                    budget: '80万元',
+                    progress: 65,
+                    department: '财务部',
+                    description: '实现财务流程自动化，提升报表生成效率'
+                },
+                {
+                    id: 5,
+                    name: 'HR数字化平台',
+                    stage: '已完成',
+                    priority: '低',
+                    budget: '60万元',
+                    progress: 100,
+                    department: '人力资源部',
+                    description: '建立员工自助服务平台，优化HR流程'
+                }
+            ]
+        };
+        
+        // 初始化应用
+        document.addEventListener('DOMContentLoaded', function() {
+            initNavigation();
+            renderInterviewPlans();
+            renderAIInsights();
+            renderDataDomains();
+            renderStandardsList();
+            renderProjectKanban();
+            
+            // 设置进度环
+            updateProgressRing();
+        });
+        
+        // 初始化导航
+        function initNavigation() {
+            // 阶段导航点击事件
+            document.querySelectorAll('.nav-stage').forEach(stage => {
+                stage.addEventListener('click', function() {
+                    document.querySelectorAll('.nav-stage').forEach(s => s.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+            
+            // 模块导航点击事件
+            document.querySelectorAll('.nav-module').forEach(module => {
+                module.addEventListener('click', function() {
+                    const moduleId = this.getAttribute('data-module');
+                    
+                    // 更新活跃模块
+                    document.querySelectorAll('.nav-module').forEach(m => m.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // 切换模块显示
+                    document.querySelectorAll('.module-card').forEach(card => {
+                        card.style.display = 'none';
+                    });
+                    
+                    document.getElementById(moduleId).style.display = 'block';
+                    appState.currentModule = moduleId;
+                    
+                    // 如果切换到项目列表，重新渲染看板
+                    if (moduleId === 'project-list') {
+                        renderProjectKanban();
+                    }
+                });
+            });
+            
+            // 创建访谈计划按钮
+            document.getElementById('create-interview-plan').addEventListener('click', function() {
+                const newId = appState.interviewPlans.length + 1;
+                const newPlan = {
+                    id: newId,
+                    department: '新部门',
+                    interviewees: ['待指定'],
+                    scheduledTime: '2024-01-20 10:00',
+                    status: '待执行',
+                    insights: []
+                };
+                
+                appState.interviewPlans.push(newPlan);
+                renderInterviewPlans();
+                selectInterviewPlan(newId);
+            });
+            
+            // 创建数据标准按钮
+            document.getElementById('create-data-standard').addEventListener('click', function() {
+                const newId = appState.dataStandards.length + 1;
+                const newStandard = {
+                    id: newId,
+                    standardCode: 'DS-NEW-' + newId.toString().padStart(4, '0'),
+                    chineseName: '新数据标准',
+                    englishName: 'New_Standard',
+                    dataType: '字符串',
+                    length: null,
+                    format: '',
+                    example: '',
+                    responsibleDepartment: '待指定',
+                    relatedSystems: [],
+                    status: '草稿',
+                    dataDomain: '主数据'
+                };
+                
+                appState.dataStandards.push(newStandard);
+                appState.currentStandard = newStandard;
+                renderStandardsList();
+                renderStandardEditor(newStandard);
+            });
+            
+            // 搜索数据标准
+            document.getElementById('search-standards').addEventListener('input', function(e) {
+                renderStandardsList(e.target.value);
+            });
+            
+            // 状态筛选
+            document.querySelectorAll('input[type="checkbox"][id^="filter-"]').forEach(checkbox => {
+                checkbox.addEventListener('change', renderStandardsList);
+            });
+            
+            // 添加项目按钮
+            document.getElementById('add-project-btn').addEventListener('click', function() {
+                const newId = appState.projects.length + 1;
+                const newProject = {
+                    id: newId,
+                    name: '新数字化项目',
+                    stage: '规划中',
+                    priority: '中',
+                    budget: '待估算',
+                    progress: 0,
+                    department: '待指定',
+                    description: '请填写项目描述...'
+                };
+                
+                appState.projects.push(newProject);
+                renderProjectKanban();
+            });
+        }
+        
+        // 渲染访谈计划列表
+        function renderInterviewPlans() {
+            const container = document.getElementById('interview-plans-container');
+            container.innerHTML = '';
+            
+            appState.interviewPlans.forEach(plan => {
+                const statusColor = plan.status === '已完成' ? 'success' : 
+                                   plan.status === '进行中' ? 'primary' : 'secondary';
+                
+                const card = document.createElement('div');
+                card.className = `interview-card ${plan.id === appState.currentInterview?.id ? 'active' : ''}`;
+                card.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h6 class="mb-1">${plan.department}</h6>
+                            <p class="small text-muted mb-1">
+                                <i class="far fa-clock me-1"></i>${plan.scheduledTime}
+                            </p>
+                            <p class="small mb-2">
+                                <i class="fas fa-users me-1"></i>${plan.interviewees.join(', ')}
+                            </p>
+                        </div>
+                        <span class="badge bg-${statusColor}">${plan.status}</span>
+                    </div>
+                    ${plan.insights.length > 0 ? `
+                    <div class="mt-2">
+                        <small class="text-muted">关键发现：</small>
+                        <p class="small mb-0">${plan.insights[0]}</p>
+                    </div>
+                    ` : ''}
+                    <div class="mt-3">
+                        <button class="btn btn-sm btn-outline-primary w-100 btn-start-interview" data-id="${plan.id}">
+                            ${plan.status === '进行中' ? '继续访谈' : '开始访谈'}
+                        </button>
+                    </div>
+                `;
+                
+                container.appendChild(card);
+                
+                // 添加开始访谈按钮事件
+                card.querySelector('.btn-start-interview').addEventListener('click', function() {
+                    selectInterviewPlan(plan.id);
+                });
+            });
+        }
+        
+        // 选择访谈计划
+        function selectInterviewPlan(planId) {
+            const plan = appState.interviewPlans.find(p => p.id === planId);
+            if (!plan) return;
+            
+            appState.currentInterview = plan;
+            
+            // 更新UI
+            document.querySelectorAll('.interview-card').forEach(card => {
+                card.classList.remove('active');
+            });
+            
+            event.target.closest('.interview-card').classList.add('active');
+            
+            // 渲染访谈执行区
+            renderInterviewExecution(plan);
+        }
+        
+        // 渲染访谈执行区
+        function renderInterviewExecution(plan) {
+            const container = document.getElementById('interview-execution-area');
+            
+            container.innerHTML = `
+                <div class="form-section">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5>访谈执行 - ${plan.department}</h5>
+                        <div>
+                            <button class="btn btn-sm btn-outline-danger me-2" id="toggle-recording">
+                                <i class="fas fa-microphone me-1"></i>
+                                <span id="recording-status">开始录音</span>
+                            </button>
+                            <button class="btn btn-sm btn-action" id="save-interview">
+                                <i class="fas fa-save me-1"></i>保存访谈
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">访谈问题列表</label>
+                                <div class="list-group">
+                                    <div class="list-group-item">1. 当前部门的主要业务流程是什么？</div>
+                                    <div class="list-group-item">2. 在业务流程中遇到的主要痛点是什么？</div>
+                                    <div class="list-group-item">3. 目前使用的数字化系统有哪些？效果如何？</div>
+                                    <div class="list-group-item">4. 最希望数字化解决什么问题？</div>
+                                    <div class="list-group-item">5. 对数字化转型有哪些具体建议？</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">关键发现记录</label>
+                                <textarea class="form-control" rows="4" id="key-findings" placeholder="记录重要发现...">${plan.insights.join('\n')}</textarea>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">标签标记</label>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <span class="tag tag-pain" data-tag="痛点">痛点</span>
+                                    <span class="tag tag-need" data-tag="需求">需求</span>
+                                    <span class="tag tag-suggestion" data-tag="建议">建议</span>
+                                    <span class="tag tag-opportunity" data-tag="机会">机会</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">访谈记录</label>
+                        <textarea class="form-control" rows="8" id="interview-transcript" placeholder="访谈记录将显示在这里...">${appState.recordingTranscript}</textarea>
+                    </div>
+                </div>
+                
+                <div class="form-section">
+                    <h5>AI实时分析</h5>
+                    <div class="alert alert-info">
+                        <i class="fas fa-robot me-2"></i>
+                        AI正在分析访谈内容，自动识别关键主题和洞察...
+                    </div>
+                    
+                    <div id="real-time-insights">
+                        <!-- AI分析结果将动态显示 -->
+                    </div>
+                </div>
+            `;
+            
+            // 录音按钮事件
+            document.getElementById('toggle-recording').addEventListener('click', function() {
+                toggleRecording();
+            });
+            
+            // 保存访谈按钮事件
+            document.getElementById('save-interview').addEventListener('click', function() {
+                saveInterview();
+            });
+            
+            // 标签点击事件
+            document.querySelectorAll('[data-tag]').forEach(tag => {
+                tag.addEventListener('click', function() {
+                    this.classList.toggle('active');
+                });
+            });
+            
+            // 更新AI实时分析
+            updateAIInsights();
+        }
+        
+        // 切换录音状态
+        function toggleRecording() {
+            appState.isRecording = !appState.isRecording;
+            const button = document.getElementById('toggle-recording');
+            const status = document.getElementById('recording-status');
+            
+            if (appState.isRecording) {
+                button.classList.add('btn-danger');
+                button.classList.remove('btn-outline-danger');
+                status.innerHTML = '<i class="fas fa-stop me-1"></i>停止录音';
+                
+                // 模拟录音转文字
+                simulateTranscription();
+            } else {
+                button.classList.remove('btn-danger');
+                button.classList.add('btn-outline-danger');
+                status.innerHTML = '<i class="fas fa-microphone me-1"></i>开始录音';
+            }
+        }
+        
+        // 模拟语音转文字
+        function simulateTranscription() {
+            if (!appState.isRecording) return;
+            
+            const phrases = [
+                "目前生产排程还是手工操作，效率很低。",
+                "设备数据有采集，但没有充分利用起来。",
+                "质量检测数据不能实时查看，问题追溯困难。",
+                "希望有一个集成的生产指挥中心。",
+                "需要实时监控设备状态，预防故障。"
+            ];
+            
+            const randomPhrase = phrases[Math.floor(Math.random() * phrases.length)];
+            
+            if (appState.recordingTranscript) {
+                appState.recordingTranscript += '\n' + randomPhrase;
+            } else {
+                appState.recordingTranscript = randomPhrase;
+            }
+            
+            // 更新文本框
+            const transcriptBox = document.getElementById('interview-transcript');
+            if (transcriptBox) {
+                transcriptBox.value = appState.recordingTranscript;
+            }
+            
+            // 更新AI分析
+            updateAIInsights();
+            
+            // 继续模拟（如果仍在录音）
+            if (appState.isRecording) {
+                setTimeout(simulateTranscription, 3000);
+            }
+        }
+        
+        // 保存访谈
+        function saveInterview() {
+            const keyFindings = document.getElementById('key-findings').value;
+            const transcript = document.getElementById('interview-transcript').value;
+            
+            if (appState.currentInterview) {
+                appState.currentInterview.insights = keyFindings.split('\n').filter(i => i.trim() !== '');
+                appState.currentInterview.status = '已完成';
+                
+                // 显示成功消息
+                alert('访谈已保存！');
+                
+                // 重新渲染
+                renderInterviewPlans();
+                updateProgressRing();
+            }
+        }
+        
+        // 渲染AI洞察
+        function renderAIInsights() {
+            const container = document.getElementById('ai-insights-container');
+            
+            const insights = [
+                "生产部最关注生产排程自动化和设备数据利用",
+                "市场部主要痛点是客户数据分散，缺乏统一视图",
+                "各部门普遍反映系统之间集成度不够"
+            ];
+            
+            container.innerHTML = '';
+            
+            insights.forEach(insight => {
+                const card = document.createElement('div');
+                card.className = 'insight-card';
+                card.innerHTML = `
+                    <div class="small text-muted mb-1">AI分析洞察</div>
+                    <p class="mb-0">${insight}</p>
+                `;
+                container.appendChild(card);
+            });
+        }
+        
+        // 更新AI实时分析
+        function updateAIInsights() {
+            const container = document.getElementById('real-time-insights');
+            if (!container) return;
+            
+            const insights = [
+                "检测到关键词：生产排程、效率低 → 归类为【痛点】",
+                "检测到关键词：设备数据、未充分利用 → 归类为【机会】",
+                "检测到关键词：实时监控、预防故障 → 归类为【需求】",
+                "建议：生产指挥中心 → 归类为【建议】"
+            ];
+            
+            container.innerHTML = '';
+            
+            insights.forEach(insight => {
+                const div = document.createElement('div');
+                div.className = 'mb-2';
+                div.innerHTML = `<i class="fas fa-lightbulb text-warning me-2"></i>${insight}`;
+                container.appendChild(div);
+            });
+        }
+        
+        // 渲染数据域列表
+        function renderDataDomains() {
+            const container = document.getElementById('data-domain-list');
+            const domains = [
+                { id: 'master-data', name: '主数据', count: 2 },
+                { id: 'transaction-data', name: '交易数据', count: 1 },
+                { id: 'analytical-data', name: '分析数据', count: 0 },
+                { id: 'reference-data', name: '参考数据', count: 0 }
+            ];
+            
+            container.innerHTML = '';
+            
+            domains.forEach(domain => {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'list-group-item list-group-item-action d-flex justify-content-between align-items-center';
+                button.innerHTML = `
+                    ${domain.name}
+                    <span class="badge bg-primary rounded-pill">${domain.count}</span>
+                `;
+                
+                button.addEventListener('click', function() {
+                    // 移除所有active类
+                    document.querySelectorAll('#data-domain-list .list-group-item').forEach(item => {
+                        item.classList.remove('active');
+                    });
+                    
+                    // 添加active类到当前项
+                    this.classList.add('active');
+                    
+                    // 筛选数据标准
+                    renderStandardsList();
+                });
+                
+                container.appendChild(button);
+            });
+            
+            // 默认选中第一个
+            if (container.firstChild) {
+                container.firstChild.classList.add('active');
+            }
+        }
+        
+        // 渲染数据标准列表
+        function renderStandardsList(searchTerm = '') {
+            const container = document.getElementById('standards-list-container');
+            const activeDomain = document.querySelector('#data-domain-list .list-group-item.active');
+            const activeDomainName = activeDomain ? activeDomain.textContent.replace(/\d+/g, '').trim() : '主数据';
+            
+            // 获取选中的状态筛选
+            const selectedStatuses = [];
+            if (document.getElementById('filter-draft').checked) selectedStatuses.push('草稿');
+            if (document.getElementById('filter-review').checked) selectedStatuses.push('评审中');
+            if (document.getElementById('filter-published').checked) selectedStatuses.push('已发布');
+            
+            // 筛选数据标准
+            const filteredStandards = appState.dataStandards.filter(standard => {
+                // 按数据域筛选
+                const domainMatch = standard.dataDomain === activeDomainName;
+                
+                // 按状态筛选
+                const statusMatch = selectedStatuses.includes(standard.status);
+                
+                // 按搜索词筛选
+                const searchMatch = !searchTerm || 
+                    standard.chineseName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    standard.standardCode.toLowerCase().includes(searchTerm.toLowerCase());
+                
+                return domainMatch && statusMatch && searchMatch;
+            });
+            
+            container.innerHTML = '';
+            
+            if (filteredStandards.length === 0) {
+                container.innerHTML = '<div class="text-center text-muted py-4">暂无数据标准</div>';
+                return;
+            }
+            
+            filteredStandards.forEach(standard => {
+                const statusClass = standard.status === '已发布' ? 'status-published' :
+                                  standard.status === '评审中' ? 'status-review' : 'status-draft';
+                
+                const card = document.createElement('div');
+                card.className = `standard-item border-bottom pb-3 mb-3 ${standard.id === appState.currentStandard?.id ? 'active' : ''}`;
+                card.style.cursor = 'pointer';
+                card.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h6 class="mb-1">${standard.chineseName}</h6>
+                            <p class="small text-muted mb-1">${standard.standardCode}</p>
+                        </div>
+                        <span class="status-dot ${statusClass}"></span>
+                    </div>
+                    <p class="small mb-1">
+                        <span class="text-muted">数据类型：</span>${standard.dataType}
+                        ${standard.length ? ` | 长度：${standard.length}` : ''}
+                    </p>
+                    <p class="small mb-2">
+                        <span class="text-muted">责任部门：</span>${standard.responsibleDepartment}
+                    </p>
+                `;
+                
+                card.addEventListener('click', function() {
+                    appState.currentStandard = standard;
+                    renderStandardEditor(standard);
+                    
+                    // 高亮当前项
+                    document.querySelectorAll('.standard-item').forEach(item => {
+                        item.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                });
+                
+                container.appendChild(card);
+            });
+            
+            // 如果没有选中任何标准，选中第一个
+            if (!appState.currentStandard && filteredStandards.length > 0) {
+                const firstStandard = filteredStandards[0];
+                appState.currentStandard = firstStandard;
+                container.querySelector('.standard-item').classList.add('active');
+                renderStandardEditor(firstStandard);
+            }
+        }
+        
+        // 渲染数据标准编辑器
+        function renderStandardEditor(standard) {
+            const container = document.getElementById('standard-editor-container');
+            
+            container.innerHTML = `
+                <div class="form-section">
+                    <h5>数据标准编辑</h5>
+                    
+                    <form id="standard-form">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">标准编码</label>
+                                <input type="text" class="form-control" id="standard-code" value="${standard.standardCode}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">状态</label>
+                                <select class="form-select" id="standard-status">
+                                    <option value="草稿" ${standard.status === '草稿' ? 'selected' : ''}>草稿</option>
+                                    <option value="评审中" ${standard.status === '评审中' ? 'selected' : ''}>评审中</option>
+                                    <option value="已发布" ${standard.status === '已发布' ? 'selected' : ''}>已发布</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">中文名称</label>
+                                <input type="text" class="form-control" id="chinese-name" value="${standard.chineseName}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">英文名称</label>
+                                <input type="text" class="form-control" id="english-name" value="${standard.englishName}">
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">数据类型</label>
+                                <select class="form-select" id="data-type">
+                                    <option value="字符串" ${standard.dataType === '字符串' ? 'selected' : ''}>字符串</option>
+                                    <option value="数字" ${standard.dataType === '数字' ? 'selected' : ''}>数字</option>
+                                    <option value="日期" ${standard.dataType === '日期' ? 'selected' : ''}>日期</option>
+                                    <option value="布尔" ${standard.dataType === '布尔' ? 'selected' : ''}>布尔</option>
+                                    <option value="枚举" ${standard.dataType === '枚举' ? 'selected' : ''}>枚举</option>
+                                    <option value="对象" ${standard.dataType === '对象' ? 'selected' : ''}>对象</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">数据长度</label>
+                                <input type="number" class="form-control" id="data-length" value="${standard.length || ''}">
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">格式规则</label>
+                            <input type="text" class="form-control" id="data-format" value="${standard.format || ''}" placeholder="例如：CUST+年月日+5位序列号">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">示例值</label>
+                            <input type="text" class="form-control" id="data-example" value="${standard.example || ''}">
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">责任部门</label>
+                                <input type="text" class="form-control" id="responsible-department" value="${standard.responsibleDepartment}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">数据域</label>
+                                <select class="form-select" id="data-domain">
+                                    <option value="主数据" ${standard.dataDomain === '主数据' ? 'selected' : ''}>主数据</option>
+                                    <option value="交易数据" ${standard.dataDomain === '交易数据' ? 'selected' : ''}>交易数据</option>
+                                    <option value="分析数据" ${standard.dataDomain === '分析数据' ? 'selected' : ''}>分析数据</option>
+                                    <option value="参考数据" ${standard.dataDomain === '参考数据' ? 'selected' : ''}>参考数据</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label">关联系统</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="CRM" id="system-crm" ${standard.relatedSystems.includes('CRM') ? 'checked' : ''}>
+                                <label class="form-check-label" for="system-crm">CRM</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="ERP" id="system-erp" ${standard.relatedSystems.includes('ERP') ? 'checked' : ''}>
+                                <label class="form-check-label" for="system-erp">ERP</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="SCM" id="system-scm" ${standard.relatedSystems.includes('SCM') ? 'checked' : ''}>
+                                <label class="form-check-label" for="system-scm">SCM</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="BI" id="system-bi" ${standard.relatedSystems.includes('BI') ? 'checked' : ''}>
+                                <label class="form-check-label" for="system-bi">BI</label>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <button type="button" class="btn btn-outline-danger" id="delete-standard">删除标准</button>
+                            <div>
+                                <button type="button" class="btn btn-outline-secondary me-2" id="cancel-edit">取消</button>
+                                <button type="button" class="btn btn-action" id="save-standard">保存标准</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            `;
+            
+            // 保存标准按钮事件
+            document.getElementById('save-standard').addEventListener('click', function() {
+                saveDataStandard();
+            });
+            
+            // 删除标准按钮事件
+            document.getElementById('delete-standard').addEventListener('click', function() {
+                if (confirm('确定要删除这个数据标准吗？')) {
+                    deleteDataStandard();
+                }
+            });
+        }
+        
+        // 保存数据标准
+        function saveDataStandard() {
+            const standardCode = document.getElementById('standard-code').value;
+            const chineseName = document.getElementById('chinese-name').value;
+            const englishName = document.getElementById('english-name').value;
+            const dataType = document.getElementById('data-type').value;
+            const dataLength = document.getElementById('data-length').value;
+            const dataFormat = document.getElementById('data-format').value;
+            const dataExample = document.getElementById('data-example').value;
+            const responsibleDepartment = document.getElementById('responsible-department').value;
+            const dataDomain = document.getElementById('data-domain').value;
+            const status = document.getElementById('standard-status').value;
+            
+            // 获取选中的关联系统
+            const relatedSystems = [];
+            if (document.getElementById('system-crm').checked) relatedSystems.push('CRM');
+            if (document.getElementById('system-erp').checked) relatedSystems.push('ERP');
+            if (document.getElementById('system-scm').checked) relatedSystems.push('SCM');
+            if (document.getElementById('system-bi').checked) relatedSystems.push('BI');
+            
+            // 更新当前标准
+            if (appState.currentStandard) {
+                appState.currentStandard.standardCode = standardCode;
+                appState.currentStandard.chineseName = chineseName;
+                appState.currentStandard.englishName = englishName;
+                appState.currentStandard.dataType = dataType;
+                appState.currentStandard.length = dataLength ? parseInt(dataLength) : null;
+                appState.currentStandard.format = dataFormat;
+                appState.currentStandard.example = dataExample;
+                appState.currentStandard.responsibleDepartment = responsibleDepartment;
+                appState.currentStandard.dataDomain = dataDomain;
+                appState.currentStandard.status = status;
+                appState.currentStandard.relatedSystems = relatedSystems;
+                
+                // 显示成功消息
+                alert('数据标准已保存！');
+                
+                // 重新渲染列表
+                renderStandardsList();
+                updateProgressRing();
+            }
+        }
+        
+        // 删除数据标准
+        function deleteDataStandard() {
+            if (appState.currentStandard) {
+                const index = appState.dataStandards.findIndex(s => s.id === appState.currentStandard.id);
+                if (index > -1) {
+                    appState.dataStandards.splice(index, 1);
+                    appState.currentStandard = null;
+                    
+                    // 重新渲染
+                    renderStandardsList();
+                    document.getElementById('standard-editor-container').innerHTML = `
+                        <div class="text-center text-muted py-5">
+                            <i class="fas fa-database fa-3x mb-3"></i>
+                            <p>请从左侧选择一个数据标准进行编辑</p>
+                        </div>
+                    `;
+                }
+            }
+        }
+        
+        // 渲染项目看板
+        function renderProjectKanban() {
+            const container = document.getElementById('project-kanban');
+            
+            const stages = [
+                { id: 'planning', name: '规划中', color: 'kanban-col-planning' },
+                { id: 'executing', name: '执行中', color: 'kanban-col-executing' },
+                { id: 'monitoring', name: '监控中', color: 'kanban-col-monitoring' },
+                { id: 'completed', name: '已完成', color: 'kanban-col-completed' }
+            ];
+            
+            container.innerHTML = '';
+            
+            stages.forEach(stage => {
+                const stageProjects = appState.projects.filter(p => p.stage === stage.name);
+                
+                const col = document.createElement('div');
+                col.className = 'col-md-3';
+                col.innerHTML = `
+                    <div class="kanban-column ${stage.color}">
+                        <div class="kanban-title">
+                            ${stage.name}
+                            <span class="badge bg-secondary float-end">${stageProjects.length}</span>
+                        </div>
+                        <div class="project-list" id="project-list-${stage.id}" data-stage="${stage.id}">
+                            <!-- 项目卡片将通过JS动态生成 -->
+                        </div>
+                    </div>
+                `;
+                
+                container.appendChild(col);
+                
+                // 渲染该阶段的项目卡片
+                const projectList = col.querySelector(`#project-list-${stage.id}`);
+                renderProjectsForStage(stage.id, stageProjects, projectList);
+            });
+            
+            // 初始化拖拽功能
+            initDragAndDrop();
+        }
+        
+        // 为特定阶段渲染项目卡片
+        function renderProjectsForStage(stageId, projects, container) {
+            container.innerHTML = '';
+            
+            projects.forEach(project => {
+                const priorityColor = project.priority === '高' ? 'danger' : 
+                                    project.priority === '中' ? 'warning' : 'secondary';
+                
+                const card = document.createElement('div');
+                card.className = 'project-card';
+                card.setAttribute('draggable', 'true');
+                card.setAttribute('data-project-id', project.id);
+                card.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h6 class="mb-0">${project.name}</h6>
+                        <span class="badge bg-${priorityColor}">${project.priority}</span>
+                    </div>
+                    
+                    <p class="small text-muted mb-2">${project.description}</p>
+                    
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>进度</span>
+                            <span>${project.progress}%</span>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar" role="progressbar" style="width: ${project.progress}%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between small">
+                        <span><i class="fas fa-building me-1"></i>${project.department}</span>
+                        <span><i class="fas fa-money-bill me-1"></i>${project.budget}</span>
+                    </div>
+                `;
+                
+                container.appendChild(card);
+            });
+            
+            // 如果该阶段没有项目，显示提示
+            if (projects.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-inbox fa-2x mb-2"></i>
+                        <p class="small">暂无项目</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // 初始化拖拽功能
+        function initDragAndDrop() {
+            const projectCards = document.querySelectorAll('.project-card');
+            const dropZones = document.querySelectorAll('.project-list');
+            
+            // 设置拖拽事件
+            projectCards.forEach(card => {
+                card.addEventListener('dragstart', function(e) {
+                    e.dataTransfer.setData('text/plain', this.getAttribute('data-project-id'));
+                    this.classList.add('dragging');
+                });
+                
+                card.addEventListener('dragend', function() {
+                    this.classList.remove('dragging');
+                });
+            });
+            
+            // 设置放置区域
+            dropZones.forEach(zone => {
+                zone.addEventListener('dragover', function(e) {
+                    e.preventDefault();
+                    this.classList.add('drag-over');
+                });
+                
+                zone.addEventListener('dragleave', function() {
+                    this.classList.remove('drag-over');
+                });
+                
+                zone.addEventListener('drop', function(e) {
+                    e.preventDefault();
+                    this.classList.remove('drag-over');
+                    
+                    const projectId = parseInt(e.dataTransfer.getData('text/plain'));
+                    const newStage = this.getAttribute('data-stage');
+                    
+                    // 更新项目阶段
+                    updateProjectStage(projectId, newStage);
+                });
+            });
+        }
+        
+        // 更新项目阶段
+        function updateProjectStage(projectId, newStage) {
+            const stageNames = {
+                'planning': '规划中',
+                'executing': '执行中',
+                'monitoring': '监控中',
+                'completed': '已完成'
+            };
+            
+            const project = appState.projects.find(p => p.id === projectId);
+            if (project) {
+                const oldStage = project.stage;
+                project.stage = stageNames[newStage];
+                
+                // 如果移动到"已完成"，设置进度为100%
+                if (newStage === 'completed') {
+                    project.progress = 100;
+                }
+                
+                // 重新渲染看板
+                renderProjectKanban();
+                updateProgressRing();
+                
+                console.log(`项目 "${project.name}" 从 ${oldStage} 移动到 ${project.stage}`);
+            }
+        }
+        
+        // 更新进度环
+        function updateProgressRing() {
+            const completedModules = 
+                (appState.interviewPlans.filter(p => p.status === '已完成').length > 0 ? 1 : 0) +
+                (appState.dataStandards.filter(s => s.status === '已发布').length > 0 ? 1 : 0) +
+                (appState.projects.filter(p => p.stage === '已完成').length > 0 ? 1 : 0);
+            
+            const totalModules = 3; // 演示中的三个模块
+            const progress = Math.round((completedModules / totalModules) * 100);
+            
+            // 更新进度环
+            const circle = document.querySelector('.progress-ring-circle');
+            if (circle) {
+                const radius = circle.r.baseVal.value;
+                const circumference = radius * 2 * Math.PI;
+                const offset = circumference - (progress / 100) * circumference;
+                circle.style.strokeDasharray = `${circumference} ${circumference}`;
+                circle.style.strokeDashoffset = offset;
+                circle.setAttribute('data-progress', progress);
+                
+                // 更新进度文本
+                const progressText = document.querySelector('.main-content .progress-ring + div h5');
+                if (progressText) {
+                    progressText.textContent = `${progress}%`;
+                }
+            }
+        }
+    </script>
+</body>
+</html>

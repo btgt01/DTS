@@ -1,0 +1,3071 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>企业数字化转型成熟度评测系统</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #3b82f6;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --light-color: #f8fafc;
+            --dark-color: #1e293b;
+            --gray-color: #64748b;
+            --border-radius: 8px;
+            --box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background-color: #f1f5f9;
+            color: var(--dark-color);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary-color), #1d4ed8);
+            color: white;
+            padding: 1.5rem 2rem;
+            border-radius: var(--border-radius);
+            margin-bottom: 2rem;
+            box-shadow: var(--box-shadow);
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .logo {
+            font-size: 2.5rem;
+            background-color: rgba(255, 255, 255, 0.1);
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 2rem;
+        }
+        
+        .sidebar {
+            background-color: white;
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            box-shadow: var(--box-shadow);
+            height: fit-content;
+            position: sticky;
+            top: 20px;
+        }
+        
+        .nav-menu {
+            list-style: none;
+        }
+        
+        .nav-item {
+            margin-bottom: 0.5rem;
+        }
+        
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 0.8rem 1rem;
+            color: var(--dark-color);
+            text-decoration: none;
+            border-radius: var(--border-radius);
+            transition: all 0.2s;
+        }
+        
+        .nav-link:hover {
+            background-color: #f1f5f9;
+            color: var(--primary-color);
+        }
+        
+        .nav-link.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .nav-icon {
+            margin-right: 0.75rem;
+            font-size: 1.1rem;
+        }
+        
+        .content-area {
+            background-color: white;
+            border-radius: var(--border-radius);
+            padding: 2rem;
+            box-shadow: var(--box-shadow);
+            min-height: 600px;
+        }
+        
+        .content-section {
+            display: none;
+        }
+        
+        .content-section.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+        
+        .section-subtitle {
+            color: var(--gray-color);
+            margin-top: 0.25rem;
+        }
+        
+        .progress-container {
+            display: flex;
+            align-items: center;
+            margin-top: 1rem;
+        }
+        
+        .progress-text {
+            margin-right: 1rem;
+            font-weight: 500;
+            min-width: 100px;
+        }
+        
+        .progress-bar {
+            flex-grow: 1;
+            height: 10px;
+            background-color: #e2e8f0;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background-color: var(--success-color);
+            border-radius: 5px;
+            transition: width 0.5s ease;
+        }
+        
+        .question-container {
+            margin-bottom: 2rem;
+        }
+        
+        .perspective-header {
+            background-color: #f8fafc;
+            padding: 1rem 1.5rem;
+            border-radius: var(--border-radius);
+            margin-bottom: 1.5rem;
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .perspective-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+        
+        .perspective-desc {
+            color: var(--gray-color);
+            margin-top: 0.25rem;
+        }
+        
+        .question-card {
+            background-color: white;
+            border: 1px solid #e2e8f0;
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: all 0.2s;
+        }
+        
+        .question-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            border-color: #cbd5e1;
+        }
+        
+        .question-number {
+            display: inline-block;
+            background-color: var(--primary-color);
+            color: white;
+            font-size: 0.85rem;
+            font-weight: 600;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            margin-right: 0.75rem;
+        }
+        
+        .question-text {
+            font-weight: 600;
+            margin-bottom: 1.25rem;
+            font-size: 1.05rem;
+            line-height: 1.5;
+        }
+        
+        .options-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 0.75rem;
+        }
+        
+        .option-item {
+            display: flex;
+            align-items: flex-start;
+            padding: 1rem;
+            border: 1px solid #e2e8f0;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .option-item:hover {
+            background-color: #f8fafc;
+        }
+        
+        .option-item.selected {
+            background-color: #e0f2fe;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 1px var(--primary-color);
+        }
+        
+        .option-radio {
+            margin-right: 0.75rem;
+            margin-top: 0.25rem;
+        }
+        
+        .option-text {
+            flex-grow: 1;
+        }
+        
+        .option-score {
+            font-weight: 600;
+            color: var(--primary-color);
+            background-color: #dbeafe;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            margin-left: 0.5rem;
+        }
+        
+        .pagination-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #e2e8f0;
+        }
+        
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--border-radius);
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #1d4ed8;
+        }
+        
+        .btn-secondary {
+            background-color: #e2e8f0;
+            color: var(--dark-color);
+        }
+        
+        .btn-secondary:hover {
+            background-color: #cbd5e1;
+        }
+        
+        .btn-success {
+            background-color: var(--success-color);
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background-color: #0da271;
+        }
+        
+        .btn-icon {
+            margin-right: 0.5rem;
+        }
+        
+        .result-card {
+            background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+            border-radius: var(--border-radius);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        
+        .result-level {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+        
+        .result-stage {
+            font-size: 1.25rem;
+            color: var(--gray-color);
+            margin-bottom: 1.5rem;
+        }
+        
+        .result-description {
+            text-align: left;
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            margin-top: 1.5rem;
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .charts-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+        
+        .chart-card {
+            background-color: white;
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        
+        .chart-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--dark-color);
+        }
+        
+        .perspective-scores {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        
+        .perspective-score-card {
+            background-color: white;
+            border-radius: var(--border-radius);
+            padding: 1rem;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            border-top: 4px solid var(--primary-color);
+        }
+        
+        .perspective-name {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--dark-color);
+        }
+        
+        .perspective-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+        
+        .perspective-level {
+            font-size: 0.9rem;
+            color: var(--gray-color);
+            margin-top: 0.25rem;
+        }
+        
+        .history-item {
+            background-color: white;
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            border-left: 4px solid var(--primary-color);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .history-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .history-date {
+            font-weight: 600;
+            color: var(--dark-color);
+            margin-bottom: 0.5rem;
+        }
+        
+        .history-level {
+            display: inline-block;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-right: 0.5rem;
+        }
+        
+        .history-score {
+            color: var(--gray-color);
+            font-size: 0.9rem;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background-color: white;
+            border-radius: var(--border-radius);
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            padding: 2rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--gray-color);
+        }
+        
+        .file-upload-area {
+            border: 2px dashed #cbd5e1;
+            border-radius: var(--border-radius);
+            padding: 3rem 2rem;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            transition: all 0.2s;
+        }
+        
+        .file-upload-area:hover {
+            border-color: var(--primary-color);
+            background-color: #f8fafc;
+        }
+        
+        .file-upload-icon {
+            font-size: 3rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+        
+        .file-upload-text {
+            margin-bottom: 0.5rem;
+            color: var(--dark-color);
+        }
+        
+        .file-upload-subtext {
+            color: var(--gray-color);
+            font-size: 0.9rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .file-selected {
+            background-color: #f0f9ff;
+            border: 1px solid var(--primary-color);
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            margin-top: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .file-name {
+            font-weight: 500;
+            color: var(--dark-color);
+        }
+        
+        .file-size {
+            color: var(--gray-color);
+            font-size: 0.85rem;
+        }
+        
+        .status-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 1rem;
+            background-color: #f8fafc;
+            border-radius: var(--border-radius);
+            margin-top: 1rem;
+        }
+        
+        .status-message {
+            font-weight: 500;
+        }
+        
+        .status-success {
+            color: var(--success-color);
+        }
+        
+        .status-error {
+            color: var(--danger-color);
+        }
+        
+        .loader {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .loader.active {
+            display: block;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .tooltip .tooltip-text {
+            visibility: hidden;
+            width: 300px;
+            background-color: var(--dark-color);
+            color: white;
+            text-align: left;
+            border-radius: var(--border-radius);
+            padding: 0.75rem;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.9rem;
+            font-weight: normal;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        .tooltip-icon {
+            color: var(--primary-color);
+            margin-left: 0.25rem;
+            cursor: help;
+        }
+        
+        .export-options {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 2rem;
+        }
+        
+        .level-indicator {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            margin-right: 0.5rem;
+        }
+        
+        .level-l1 { background-color: #fef3c7; color: #92400e; }
+        .level-l2 { background-color: #dbeafe; color: #1e40af; }
+        .level-l3 { background-color: #d1fae5; color: #065f46; }
+        .level-l4 { background-color: #ede9fe; color: #5b21b6; }
+        .level-l5 { background-color: #fce7f3; color: #9d174d; }
+        
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                position: static;
+                margin-bottom: 1rem;
+            }
+            
+            .options-container {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .logo {
+                margin-top: 1rem;
+            }
+            
+            .pagination-controls {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <div>
+                    <h1>企业数字化转型成熟度评测系统</h1>
+                    <div class="subtitle">基于GB/T 45341-2025《数字化转型管理参考架构》与T/AIITRE 10004-2023《数字化转型成熟度模型》</div>
+                </div>
+                <div class="logo">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+            </div>
+        </header>
+        
+        <div class="main-content">
+            <aside class="sidebar">
+                <nav>
+                    <ul class="nav-menu">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link active" data-section="home">
+                                <i class="fas fa-home nav-icon"></i>
+                                首页
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-section="assessment">
+                                <i class="fas fa-clipboard-check nav-icon"></i>
+                                评测问卷
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-section="results">
+                                <i class="fas fa-chart-bar nav-icon"></i>
+                                评测结果
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-section="history">
+                                <i class="fas fa-history nav-icon"></i>
+                                历史记录
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-section="import">
+                                <i class="fas fa-file-import nav-icon"></i>
+                                数据导入
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-section="export">
+                                <i class="fas fa-file-export nav-icon"></i>
+                                报告导出
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+                
+                <div class="progress-container" style="margin-top: 2rem;">
+                    <div class="progress-text">评测进度</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #e2e8f0;">
+                    <div style="font-weight: 600; margin-bottom: 0.75rem;">当前状态</div>
+                    <div id="currentStatus">未开始评测</div>
+                </div>
+            </aside>
+            
+            <main class="content-area">
+                <!-- 首页 -->
+                <section id="home" class="content-section active">
+                    <div class="section-header">
+                        <div>
+                            <h2 class="section-title">企业数字化转型成熟度评测</h2>
+                            <div class="section-subtitle">基于国家标准GB/T 45341-2025与T/AIITRE 10004-2023</div>
+                        </div>
+                    </div>
+                    
+                    <div style="background: linear-gradient(135deg, #e0f2fe, #dbeafe); padding: 2rem; border-radius: var(--border-radius); margin-bottom: 2rem;">
+                        <h3 style="font-size: 1.5rem; margin-bottom: 1rem; color: var(--dark-color);">欢迎使用数字化转型成熟度评测系统</h3>
+                        <p style="margin-bottom: 1.5rem; line-height: 1.7;">本系统根据<strong>GB/T 45341-2025《数字化转型管理参考架构》</strong>和<strong>T/AIITRE 10004-2023《数字化转型成熟度模型》</strong>标准设计，帮助企业评估数字化转型水平，识别改进方向，制定发展路径。</p>
+                        <div style="display: flex; gap: 1rem;">
+                            <button class="btn btn-primary" id="startAssessmentBtn">
+                                <i class="fas fa-play btn-icon"></i>
+                                开始评测
+                            </button>
+                            <button class="btn btn-secondary" id="viewDemoBtn">
+                                <i class="fas fa-eye btn-icon"></i>
+                                查看示例报告
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+                        <div style="background-color: white; padding: 1.5rem; border-radius: var(--border-radius); box-shadow: var(--box-shadow);">
+                            <div style="font-size: 2rem; color: var(--primary-color); margin-bottom: 0.5rem;"><i class="fas fa-check-circle"></i></div>
+                            <h4 style="font-weight: 600; margin-bottom: 0.5rem;">国家标准</h4>
+                            <p style="color: var(--gray-color); font-size: 0.9rem;">严格遵循国家标准GB/T 45341-2025与T/AIITRE 10004-2023设计</p>
+                        </div>
+                        <div style="background-color: white; padding: 1.5rem; border-radius: var(--border-radius); box-shadow: var(--box-shadow);">
+                            <div style="font-size: 2rem; color: var(--success-color); margin-bottom: 0.5rem;"><i class="fas fa-chart-pie"></i></div>
+                            <h4 style="font-weight: 600; margin-bottom: 0.5rem;">五个视角</h4>
+                            <p style="color: var(--gray-color); font-size: 0.9rem;">从发展战略、业务创新、新型能力、治理体系、解决方案五个维度评估</p>
+                        </div>
+                        <div style="background-color: white; padding: 1.5rem; border-radius: var(--border-radius); box-shadow: var(--box-shadow);">
+                            <div style="font-size: 2rem; color: var(--warning-color); margin-bottom: 0.5rem;"><i class="fas fa-file-pdf"></i></div>
+                            <h4 style="font-weight: 600; margin-bottom: 0.5rem;">报告导出</h4>
+                            <p style="color: var(--gray-color); font-size: 0.9rem;">生成详细PDF报告，包含评估结果和改进建议</p>
+                        </div>
+                        <div style="background-color: white; padding: 1.5rem; border-radius: var(--border-radius); box-shadow: var(--box-shadow);">
+                            <div style="font-size: 2rem; color: var(--danger-color); margin-bottom: 0.5rem;"><i class="fas fa-history"></i></div>
+                            <h4 style="font-weight: 600; margin-bottom: 0.5rem;">历史追踪</h4>
+                            <p style="color: var(--gray-color); font-size: 0.9rem;">保存历史评估记录，支持趋势分析和进度追踪</p>
+                        </div>
+                    </div>
+                    
+                    <div style="background-color: white; padding: 1.5rem; border-radius: var(--border-radius); box-shadow: var(--box-shadow);">
+                        <h3 style="font-weight: 600; margin-bottom: 1rem; color: var(--dark-color);">评测流程</h3>
+                        <div style="display: flex; flex-wrap: wrap; gap: 1.5rem; margin-top: 1.5rem;">
+                            <div style="flex: 1; min-width: 200px;">
+                                <div style="display: flex; align-items: center; margin-bottom: 0.75rem;">
+                                    <div style="background-color: var(--primary-color); color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 0.75rem; font-weight: 600;">1</div>
+                                    <div style="font-weight: 600;">填写企业信息</div>
+                                </div>
+                                <p style="color: var(--gray-color); font-size: 0.9rem; padding-left: 3.75rem;">输入企业基本情况，为评估提供背景信息</p>
+                            </div>
+                            <div style="flex: 1; min-width: 200px;">
+                                <div style="display: flex; align-items: center; margin-bottom: 0.75rem;">
+                                    <div style="background-color: var(--primary-color); color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 0.75rem; font-weight: 600;">2</div>
+                                    <div style="font-weight: 600;">完成评估问卷</div>
+                                </div>
+                                <p style="color: var(--gray-color); font-size: 0.9rem; padding-left: 3.75rem;">回答200道评估问题，每题对应五级十档成熟度标准</p>
+                            </div>
+                            <div style="flex: 1; min-width: 200px;">
+                                <div style="display: flex; align-items: center; margin-bottom: 0.75rem;">
+                                    <div style="background-color: var(--primary-color); color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 0.75rem; font-weight: 600;">3</div>
+                                    <div style="font-weight: 600;">查看评估结果</div>
+                                </div>
+                                <p style="color: var(--gray-color); font-size: 0.9rem; padding-left: 3.75rem;">获取成熟度等级、档次和详细分析报告</p>
+                            </div>
+                            <div style="flex: 1; min-width: 200px;">
+                                <div style="display: flex; align-items: center; margin-bottom: 0.75rem;">
+                                    <div style="background-color: var(--primary-color); color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 0.75rem; font-weight: 600;">4</div>
+                                    <div style="font-weight: 600;">导出评估报告</div>
+                                </div>
+                                <p style="color: var(--gray-color); font-size: 0.9rem; padding-left: 3.75rem;">生成PDF格式的详细评估报告，用于内部改进和外部展示</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- 评测问卷 -->
+                <section id="assessment" class="content-section">
+                    <div class="section-header">
+                        <div>
+                            <h2 class="section-title">数字化转型成熟度评估问卷</h2>
+                            <div class="section-subtitle">共200题，每题对应五级十档成熟度标准</div>
+                        </div>
+                        <div>
+                            <button class="btn btn-secondary" id="saveProgressBtn">
+                                <i class="fas fa-save btn-icon"></i>
+                                保存进度
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div id="assessmentContent">
+                        <!-- 企业基本信息 -->
+                        <div id="companyInfoSection" class="question-container">
+                            <div class="perspective-header">
+                                <div class="perspective-title">企业基本情况</div>
+                                <div class="perspective-desc">请填写企业的基本信息，以便进行准确的评估</div>
+                            </div>
+                            
+                            <div class="question-card">
+                                <div class="question-text">1. 企业名称：</div>
+                                <input type="text" id="companyName" class="form-input" placeholder="请输入企业名称" style="width: 100%; padding: 0.75rem; border: 1px solid #e2e8f0; border-radius: var(--border-radius);">
+                            </div>
+                            
+                            <div class="question-card">
+                                <div class="question-text">2. 所属行业：</div>
+                                <select id="industry" class="form-input" style="width: 100%; padding: 0.75rem; border: 1px solid #e2e8f0; border-radius: var(--border-radius);">
+                                    <option value="">请选择行业</option>
+                                    <option value="制造业">制造业</option>
+                                    <option value="信息技术">信息技术</option>
+                                    <option value="金融业">金融业</option>
+                                    <option value="零售业">零售业</option>
+                                    <option value="服务业">服务业</option>
+                                    <option value="其他">其他</option>
+                                </select>
+                            </div>
+                            
+                            <div class="question-card">
+                                <div class="question-text">3. 企业规模（员工人数）：</div>
+                                <div class="options-container">
+                                    <label class="option-item">
+                                        <input type="radio" name="companySize" value="1" class="option-radio">
+                                        <div class="option-text">50人以下</div>
+                                    </label>
+                                    <label class="option-item">
+                                        <input type="radio" name="companySize" value="2" class="option-radio">
+                                        <div class="option-text">50-300人</div>
+                                    </label>
+                                    <label class="option-item">
+                                        <input type="radio" name="companySize" value="3" class="option-radio">
+                                        <div class="option-text">300-1000人</div>
+                                    </label>
+                                    <label class="option-item">
+                                        <input type="radio" name="companySize" value="4" class="option-radio">
+                                        <div class="option-text">1000-5000人</div>
+                                    </label>
+                                    <label class="option-item">
+                                        <input type="radio" name="companySize" value="5" class="option-radio">
+                                        <div class="option-text">5000人以上</div>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="question-card">
+                                <div class="question-text">4. 上一年度营业收入（万元）：</div>
+                                <input type="number" id="revenue" class="form-input" placeholder="请输入营业收入" style="width: 100%; padding: 0.75rem; border: 1px solid #e2e8f0; border-radius: var(--border-radius);">
+                            </div>
+                            
+                            <div class="question-card">
+                                <div class="question-text">5. 数字化转型启动时间：</div>
+                                <input type="text" id="digitalTransformationStart" class="form-input" placeholder="例如：2020年" style="width: 100%; padding: 0.75rem; border: 1px solid #e2e8f0; border-radius: var(--border-radius);">
+                            </div>
+                            
+                            <div class="question-card">
+                                <div class="question-text">6. 数字化转型主要负责人职位：</div>
+                                <input type="text" id="digitalLeader" class="form-input" placeholder="例如：首席数字官（CDO）" style="width: 100%; padding: 0.75rem; border: 1px solid #e2e8f0; border-radius: var(--border-radius);">
+                            </div>
+                            
+                            <div class="question-card">
+                                <div class="question-text">7. 是否已制定数字化转型战略：</div>
+                                <div class="options-container">
+                                    <label class="option-item">
+                                        <input type="radio" name="hasDigitalStrategy" value="1" class="option-radio">
+                                        <div class="option-text">是</div>
+                                    </label>
+                                    <label class="option-item">
+                                        <input type="radio" name="hasDigitalStrategy" value="0" class="option-radio">
+                                        <div class="option-text">否</div>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="question-card">
+                                <div class="question-text">8. 是否设立专职数字化部门/团队：</div>
+                                <div class="options-container">
+                                    <label class="option-item">
+                                        <input type="radio" name="hasDigitalTeam" value="1" class="option-radio">
+                                        <div class="option-text">是</div>
+                                    </label>
+                                    <label class="option-item">
+                                        <input type="radio" name="hasDigitalTeam" value="0" class="option-radio">
+                                        <div class="option-text">否</div>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="question-card">
+                                <div class="question-text">9. 近三年数字化投入占营收比例：</div>
+                                <div class="options-container">
+                                    <label class="option-item">
+                                        <input type="radio" name="digitalInvestment" value="1" class="option-radio">
+                                        <div class="option-text">&lt;1%</div>
+                                    </label>
+                                    <label class="option-item">
+                                        <input type="radio" name="digitalInvestment" value="2" class="option-radio">
+                                        <div class="option-text">1%-3%</div>
+                                    </label>
+                                    <label class="option-item">
+                                        <input type="radio" name="digitalInvestment" value="3" class="option-radio">
+                                        <div class="option-text">3%-5%</div>
+                                    </label>
+                                    <label class="option-item">
+                                        <input type="radio" name="digitalInvestment" value="4" class="option-radio">
+                                        <div class="option-text">5%-10%</div>
+                                    </label>
+                                    <label class="option-item">
+                                        <input type="radio" name="digitalInvestment" value="5" class="option-radio">
+                                        <div class="option-text">&gt;10%</div>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="question-card">
+                                <div class="question-text">10. 是否已通过数字化转型相关评估/认证：</div>
+                                <div class="options-container">
+                                    <label class="option-item">
+                                        <input type="radio" name="hasDigitalCertification" value="1" class="option-radio">
+                                        <div class="option-text">是</div>
+                                    </label>
+                                    <label class="option-item">
+                                        <input type="radio" name="hasDigitalCertification" value="0" class="option-radio">
+                                        <div class="option-text">否</div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 问卷部分将动态加载 -->
+                        <div id="questionnaireContent"></div>
+                    </div>
+                    
+                    <div class="pagination-controls">
+                        <button class="btn btn-secondary" id="prevPageBtn">
+                            <i class="fas fa-arrow-left btn-icon"></i>
+                            上一页
+                        </button>
+                        
+                        <div>
+                            <span id="currentPageIndicator">第 1 页 / 共 20 页</span>
+                        </div>
+                        
+                        <button class="btn btn-primary" id="nextPageBtn">
+                            下一页
+                            <i class="fas fa-arrow-right btn-icon"></i>
+                        </button>
+                        
+                        <button class="btn btn-success" id="submitAssessmentBtn" style="display: none;">
+                            <i class="fas fa-check-circle btn-icon"></i>
+                            提交评估
+                        </button>
+                    </div>
+                </section>
+                
+                <!-- 评测结果 -->
+                <section id="results" class="content-section">
+                    <div class="section-header">
+                        <div>
+                            <h2 class="section-title">数字化转型成熟度评估结果</h2>
+                            <div class="section-subtitle">基于五级十档成熟度模型的评估结果</div>
+                        </div>
+                        <div>
+                            <button class="btn btn-primary" id="generateReportBtn">
+                                <i class="fas fa-file-pdf btn-icon"></i>
+                                生成PDF报告
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div id="resultsContent">
+                        <!-- 结果将动态加载 -->
+                        <div class="loader" id="resultsLoader">
+                            <div class="spinner"></div>
+                            <div>正在计算评估结果...</div>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- 历史记录 -->
+                <section id="history" class="content-section">
+                    <div class="section-header">
+                        <div>
+                            <h2 class="section-title">历史评估记录</h2>
+                            <div class="section-subtitle">查看历次数字化转型成熟度评估结果</div>
+                        </div>
+                        <div>
+                            <button class="btn btn-secondary" id="clearHistoryBtn">
+                                <i class="fas fa-trash-alt btn-icon"></i>
+                                清空历史
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div id="historyContent">
+                        <!-- 历史记录将动态加载 -->
+                        <div id="historyList"></div>
+                        
+                        <div id="historyChartContainer" style="margin-top: 2rem;">
+                            <div class="chart-card">
+                                <div class="chart-title">数字化转型成熟度趋势分析</div>
+                                <canvas id="historyChart" height="300"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- 数据导入 -->
+                <section id="import" class="content-section">
+                    <div class="section-header">
+                        <div>
+                            <h2 class="section-title">批量导入评估数据</h2>
+                            <div class="section-subtitle">支持从Excel文件批量导入评估答案</div>
+                        </div>
+                    </div>
+                    
+                    <div id="importContent">
+                        <div class="file-upload-area" id="dropArea">
+                            <div class="file-upload-icon">
+                                <i class="fas fa-file-excel"></i>
+                            </div>
+                            <div class="file-upload-text">拖拽Excel文件到此处，或点击选择文件</div>
+                            <div class="file-upload-subtext">支持.xlsx和.xls格式，请确保文件格式符合模板要求</div>
+                            <button class="btn btn-primary" id="selectFileBtn">
+                                <i class="fas fa-folder-open btn-icon"></i>
+                                选择Excel文件
+                            </button>
+                            <input type="file" id="excelFile" accept=".xlsx,.xls" class="file-input">
+                        </div>
+                        
+                        <div id="fileInfo" style="display: none;"></div>
+                        
+                        <div class="status-bar" id="importStatus" style="display: none;">
+                            <div class="status-message" id="statusMessage"></div>
+                            <div id="importProgress"></div>
+                        </div>
+                        
+                        <div style="margin-top: 2rem; background-color: #f8fafc; padding: 1.5rem; border-radius: var(--border-radius);">
+                            <h3 style="font-weight: 600; margin-bottom: 1rem; color: var(--dark-color);">Excel文件格式说明</h3>
+                            <p style="margin-bottom: 1rem;">请按照以下格式准备Excel文件：</p>
+                            <ol style="margin-left: 1.5rem; margin-bottom: 1rem;">
+                                <li>第一行应为标题行，包含"题号"和"答案"两列</li>
+                                <li>"题号"列填写题目编号（1-200）</li>
+                                <li>"答案"列填写对应的选项值（1-5）</li>
+                                <li>企业基本信息也需要填写，题号为"companyName"、"industry"等</li>
+                            </ol>
+                            <div>
+                                <button class="btn btn-secondary" id="downloadTemplateBtn">
+                                    <i class="fas fa-download btn-icon"></i>
+                                    下载导入模板
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- 报告导出 -->
+                <section id="export" class="content-section">
+                    <div class="section-header">
+                        <div>
+                            <h2 class="section-title">导出评估报告</h2>
+                            <div class="section-subtitle">生成详细的数字化转型成熟度评估报告</div>
+                        </div>
+                    </div>
+                    
+                    <div id="exportContent">
+                        <div class="result-card">
+                            <div id="exportLevel" class="result-level">规范级</div>
+                            <div id="exportStage" class="result-stage">第3档 - 跨细分业务环节信息系统集成</div>
+                            <div style="margin-top: 1.5rem;">
+                                <div class="level-indicator level-l1">规范级</div>
+                                <div class="level-indicator level-l2">场景级</div>
+                                <div class="level-indicator level-l3">领域级</div>
+                                <div class="level-indicator level-l4">平台级</div>
+                                <div class="level-indicator level-l5">生态级</div>
+                            </div>
+                        </div>
+                        
+                        <div class="export-options">
+                            <button class="btn btn-primary" id="exportSummaryBtn">
+                                <i class="fas fa-file-pdf btn-icon"></i>
+                                导出简要报告
+                            </button>
+                            <button class="btn btn-secondary" id="exportDetailedBtn">
+                                <i class="fas fa-file-alt btn-icon"></i>
+                                导出详细报告
+                            </button>
+                            <button class="btn btn-success" id="exportComparisonBtn">
+                                <i class="fas fa-chart-bar btn-icon"></i>
+                                导出对比分析报告
+                            </button>
+                        </div>
+                        
+                        <div style="margin-top: 2rem;">
+                            <div class="chart-card">
+                                <div class="chart-title">五个视角得分对比</div>
+                                <canvas id="exportChart" height="250"></canvas>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-top: 2rem;">
+                            <h3 style="font-weight: 600; margin-bottom: 1rem; color: var(--dark-color);">报告内容预览</h3>
+                            <div style="background-color: #f8fafc; padding: 1.5rem; border-radius: var(--border-radius);">
+                                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem;">
+                                    <div style="padding: 0.75rem; background-color: white; border-radius: var(--border-radius);">
+                                        <div style="font-weight: 600; margin-bottom: 0.25rem;">企业基本信息</div>
+                                        <div style="font-size: 0.9rem; color: var(--gray-color);">包含企业名称、行业、规模等</div>
+                                    </div>
+                                    <div style="padding: 0.75rem; background-color: white; border-radius: var(--border-radius);">
+                                        <div style="font-weight: 600; margin-bottom: 0.25rem;">成熟度等级评估</div>
+                                        <div style="font-size: 0.9rem; color: var(--gray-color);">五级十档成熟度等级与档次</div>
+                                    </div>
+                                    <div style="padding: 0.75rem; background-color: white; border-radius: var(--border-radius);">
+                                        <div style="font-weight: 600; margin-bottom: 0.25rem;">各视角得分分析</div>
+                                        <div style="font-size: 0.9rem; color: var(--gray-color);">五个视角的详细得分与短板分析</div>
+                                    </div>
+                                    <div style="padding: 0.75rem; background-color: white; border-radius: var(--border-radius);">
+                                        <div style="font-weight: 600; margin-bottom: 0.25rem;">改进建议</div>
+                                        <div style="font-size: 0.9rem; color: var(--gray-color);">基于评估结果的针对性改进建议</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+    
+    <!-- 模态框 - 评测完成 -->
+    <div class="modal" id="completionModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">评估完成</div>
+                <button class="modal-close" id="closeCompletionModal">&times;</button>
+            </div>
+            <div style="text-align: center; padding: 1.5rem 0;">
+                <div style="font-size: 4rem; color: var(--success-color); margin-bottom: 1rem;">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <h3 style="font-size: 1.5rem; margin-bottom: 0.5rem; color: var(--dark-color);">数字化转型成熟度评估已完成</h3>
+                <p style="color: var(--gray-color); margin-bottom: 1.5rem;">您的评估结果已保存，可以查看详细分析报告</p>
+                <div style="display: flex; gap: 1rem; justify-content: center;">
+                    <button class="btn btn-primary" id="viewResultsBtn">
+                        <i class="fas fa-chart-bar btn-icon"></i>
+                        查看评估结果
+                    </button>
+                    <button class="btn btn-secondary" id="exportResultsBtn">
+                        <i class="fas fa-file-pdf btn-icon"></i>
+                        导出报告
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 模态框 - 确认清空历史 -->
+    <div class="modal" id="confirmClearModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">确认清空历史记录</div>
+                <button class="modal-close" id="closeConfirmModal">&times;</button>
+            </div>
+            <div style="padding: 1.5rem 0;">
+                <p style="margin-bottom: 1.5rem;">您确定要清空所有历史评估记录吗？此操作无法撤销。</p>
+                <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                    <button class="btn btn-secondary" id="cancelClearBtn">取消</button>
+                    <button class="btn btn-danger" id="confirmClearBtn">确认清空</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 数字化转型成熟度评测工具主逻辑
+        document.addEventListener('DOMContentLoaded', function() {
+            // 全局变量
+            let currentPage = 1;
+            const questionsPerPage = 10;
+            let totalQuestions = 200;
+            let totalPages = Math.ceil(totalQuestions / questionsPerPage);
+            let assessmentData = {};
+            let assessmentResults = {};
+            let historyData = [];
+            
+            // 题目数据 - 简化版，实际应用中应该包含所有200道题目
+            const questionsData = {
+// 发展战略视角 (1-40题)
+'发展战略': [
+    { id: 1, text: '企业是否将数字化转型纳入发展战略？', options: ['未纳入', '部分提及', '作为专项规划', '与业务战略深度融合', '作为核心战略，引领生态发展'], perspective: '发展战略' },
+    { id: 2, text: '数字化转型战略是否明确价值主张与目标？', options: ['无明确目标', '有初步目标但未量化', '目标明确且量化，覆盖主营业务', '目标覆盖全企业价值体系', '目标覆盖产业生态，具备共创机制'], perspective: '发展战略' },
+    { id: 3, text: '是否开展数字化转型现状评估与对标？', options: ['未开展', '偶尔开展，无体系', '定期开展，有简单工具', '系统开展，有模型支持', '实时动态评估，支持智能决策'], perspective: '发展战略' },
+    { id: 4, text: '是否识别并规划了关键业务场景？', options: ['未识别', '识别个别场景', '覆盖主业务环节', '覆盖全企业业务流', '覆盖生态合作伙伴场景'], perspective: '发展战略' },
+    { id: 5, text: '是否建立数字化转型战略迭代机制？', options: ['无迭代机制', '年度回顾', '季度迭代，有反馈机制', '月度动态调整', '实时智能调优'], perspective: '发展战略' },
+    { id: 6, text: '企业在战略中是否明确数字化转型的竞争合作优势定位？', options: ['未明确', '基于传统业务的成本、效率、质量优势', '基于数字化的业务创新优势', '基于全企业一体化敏捷响应优势', '基于生态化共创共享优势'], perspective: '发展战略' },
+    { id: 7, text: '数字化转型战略是否关注从静态竞争向动态竞合转变？', options: ['未关注', '初步意识，未实施', '在部分业务中尝试协同', '建立跨企业协同机制', '形成生态化竞合网络'], perspective: '发展战略' },
+    { id: 8, text: '是否通过数字化转型强化生产运营优化？', options: ['未开展', '局部环节效率提升', '关键业务环节优化', '全企业运营一体化优化', '生态化运营协同优化'], perspective: '发展战略' },
+    { id: 9, text: '是否通过数字化转型推动产品/服务创新？', options: ['未开展', '传统产品功能扩展', '数字化产品/服务开发', '智能化产品/服务体系', '生态化创新产品群'], perspective: '发展战略' },
+    { id: 10, text: '是否通过数字化转型培育新业态？', options: ['未开展', '初步尝试业务延伸', '形成数字新业务模式', '平台化业态创新', '生态化新业态引领'], perspective: '发展战略' },
+    
+    // 11-20题
+    { id: 11, text: '是否基于用户需求设计端到端业务场景？', options: ['未设计', '局部场景设计', '主业务环节场景贯通', '全企业场景一体化', '生态化场景协同'], perspective: '发展战略' },
+    { id: 12, text: '业务场景设计是否明确参与主体（岗位/角色、部门、合作伙伴等）？', options: ['未明确', '部分主体明确', '关键场景主体全覆盖', '全企业主体协同', '生态主体共建'], perspective: '发展战略' },
+    { id: 13, text: '业务场景设计是否覆盖关键行为活动环节？', options: ['未覆盖', '单个环节覆盖', '主业务环节覆盖', '全业务流程覆盖', '生态化活动协同'], perspective: '发展战略' },
+    { id: 14, text: '业务场景设计是否明确所需资源条件（软硬件、网络、平台等）？', options: ['未明确', '局部资源清单', '关键场景资源匹配', '全企业资源统筹', '生态资源协同配置'], perspective: '发展战略' },
+    { id: 15, text: '业务场景设计是否明确数据要素需求？', options: ['未明确', '基础数据需求', '关键数据模型需求', '全企业数据架构', '生态数据共享机制'], perspective: '发展战略' },
+    { id: 16, text: '是否建立基于能力赋能的新型业务体系？', options: ['未建立', '局部能力应用', '主业务能力体系化', '全企业能力网络', '生态能力开放平台'], perspective: '发展战略' },
+    { id: 17, text: '是否构建开放价值生态？', options: ['未构建', '初步开放合作', '价值网络初步形成', '平台化价值网络', '生态化价值共创'], perspective: '发展战略' },
+    { id: 18, text: '是否设计价值创造与传递的新模式？', options: ['未设计', '传统价值模式优化', '数字化价值传递', '网络化价值交换', '生态化价值共创'], perspective: '发展战略' },
+    { id: 19, text: '是否建立价值度量与分配机制？', options: ['未建立', '基础财务度量', '多维价值度量', '动态价值分配', '智能价值分配'], perspective: '发展战略' },
+    { id: 20, text: '数字化转型战略是否与业务创新转型联动？', options: ['未联动', '战略提出业务需求', '业务场景策划联动', '业务模式创新协同', '生态化业务共创联动'], perspective: '发展战略' },
+    
+    // 21-30题
+    { id: 21, text: '数字化转型战略是否与新型能力建设联动？', options: ['未联动', '战略提出能力需求', '能力建设规划协同', '能力体系化构建', '生态化能力共建'], perspective: '发展战略' },
+    { id: 22, text: '数字化转型战略是否与治理体系建设联动？', options: ['未联动', '战略提出治理需求', '治理机制初步建立', '治理体系化运行', '生态化治理协同'], perspective: '发展战略' },
+    { id: 23, text: '数字化转型战略是否与系统性解决方案联动？', options: ['未联动', '战略提出解决方案需求', '解决方案局部实施', '解决方案体系化', '生态化解决方案共建'], perspective: '发展战略' },
+    { id: 24, text: '是否开展可持续竞争合作优势识别？', options: ['未识别', '内部优势分析', '内外部优势综合分析', '动态优势识别机制', '生态优势协同识别'], perspective: '发展战略' },
+    { id: 25, text: '是否基于竞争合作优势策划业务场景？', options: ['未策划', '局部场景匹配优势', '主业务场景系统策划', '全企业场景协同策划', '生态场景共创策划'], perspective: '发展战略' },
+    { id: 26, text: '是否基于竞争合作优势设计价值模式？', options: ['未设计', '传统价值模式优化', '数字化价值模式设计', '网络化价值模式创新', '生态化价值模式共创'], perspective: '发展战略' },
+    { id: 27, text: '是否通过新型能力建设获取竞争合作优势？', options: ['未获取', '局部能力支撑优势', '关键能力形成优势', '能力体系化构建优势', '生态能力共创优势'], perspective: '发展战略' },
+    { id: 28, text: '是否通过业务模式创新获取竞争合作优势？', options: ['未获取', '局部业务创新', '主业务模式创新', '全企业业务模式转型', '生态化业务模式引领'], perspective: '发展战略' },
+    { id: 29, text: '是否建立战略全过程反馈机制？', options: ['未建立', '年度反馈', '季度反馈与调整', '月度动态反馈', '实时智能反馈调优'], perspective: '发展战略' },
+    { id: 30, text: '战略是否具备柔性调整能力？', options: ['不具备', '年度调整', '按需调整', '敏捷调整', '自适应性调整'], perspective: '发展战略' },
+    
+    // 31-40题
+    { id: 31, text: '数字化转型战略是否覆盖数据要素驱动？', options: ['未覆盖', '数据作为辅助资源', '数据作为关键资源', '数据作为核心驱动要素', '数据作为生态创新要素'], perspective: '发展战略' },
+    { id: 32, text: '战略是否关注数字企业/知识企业/智能企业建设？', options: ['未关注', '初步概念引入', '明确建设目标', '系统化推进', '生态化引领'], perspective: '发展战略' },
+    { id: 33, text: '战略是否关注数字平台/知识平台/智能平台建设？', options: ['未关注', '平台概念引入', '平台化业务规划', '平台企业目标', '生态平台引领'], perspective: '发展战略' },
+    { id: 34, text: '战略是否关注数字生态/知识生态/智能生态构建？', options: ['未关注', '生态概念引入', '生态化合作规划', '生态企业目标', '生态体系引领'], perspective: '发展战略' },
+    { id: 35, text: '战略是否体现价值体系优化、创新与重构？', options: ['未体现', '局部价值优化', '主业务价值创新', '全企业价值重构', '生态价值共创'], perspective: '发展战略' },
+    { id: 36, text: '战略是否与新一代信息技术发展趋势结合？', options: ['未结合', '技术应用规划', '技术融合创新规划', '技术引领业务规划', '技术驱动生态规划'], perspective: '发展战略' },
+    { id: 37, text: '战略是否关注数字业务培育与发展？', options: ['未关注', '数字业务概念引入', '数字业务试点规划', '数字业务规模化规划', '数字业务生态化规划'], perspective: '发展战略' },
+    { id: 38, text: '战略是否考虑绿色可持续发展？', options: ['未考虑', '环保合规要求', '节能降耗目标', '绿色运营体系', '生态化可持续发展'], perspective: '发展战略' },
+    { id: 39, text: '战略是否建立跨部门协同机制？', options: ['未建立', '临时会议协调', '定期协同机制', '流程化协同机制', '生态化协同网络'], perspective: '发展战略' },
+    { id: 40, text: '战略是否与行业标杆或国际先进水平对标？', options: ['未对标', '内部对标', '行业对标', '跨行业对标', '全球生态对标'], perspective: '发展战略' }
+],
+// 业务创新转型视角 (41-80题)
+'业务创新转型': [
+    { id: 41, text: '企业是否实现产品/服务的数字化？', options: ['未数字化', '部分产品具备数字化功能', '主要产品数字化，支持状态感知', '全产品数字化，支持智能交互', '产品生态化，支持自主协同'], perspective: '业务创新转型' },
+    { id: 42, text: '是否实现研发设计的数字化协同？', options: ['未协同', '单一工具辅助', '跨部门协同设计', '全企业一体化研发平台', '生态化协同研发网络'], perspective: '业务创新转型' },
+    { id: 43, text: '是否实现生产/建设过程的数字化管控？', options: ['未数字化', '局部自动化', '关键工序数字化', '全流程数字化集成', '智能自主生产体系'], perspective: '业务创新转型' },
+    { id: 44, text: '是否实现用户服务的数字化与个性化？', options: ['未数字化', '基础在线服务', '服务过程可追踪', '全周期个性化服务', '智能预测与主动服务'], perspective: '业务创新转型' },
+    { id: 45, text: '是否开展业务模式创新（如网络化协同、服务化延伸）？', options: ['未开展', '局部试点', '主业务环节创新', '全企业模式转型', '生态化业务共创'], perspective: '业务创新转型' },
+    { id: 46, text: '企业是否实现研发（规划）设计环节的数字化、网络化、智能化？', options: ['未实现', '局部工具应用（如CAD）', '数字化建模与仿真优化', '多专业协同设计平台', '生态化智能研发网络'], perspective: '业务创新转型' },
+    { id: 47, text: '生产（建设）环节是否实现现场活动的数字化、智能化管控？', options: ['未实现', '关键设备数据采集', '生产执行系统（MES）应用', '全流程动态优化与调度', '自组织、自适应的智能生产'], perspective: '业务创新转型' },
+    { id: 48, text: '用户服务是否实现以用户为中心的全过程动态管控？', options: ['未实现', '客服系统信息化', '服务流程在线化、可追踪', '个性化服务推荐与主动维护', '基于智能预测的终身服务伴侣'], perspective: '业务创新转型' },
+    { id: 49, text: '经营管理活动（如计划、财务、人力）是否基于数字化模型实现精准管控？', options: ['未实现', '部门级信息系统应用', '关键管理报表数字化', '数据驱动的管理决策优化', '智能辅助甚至自主决策'], perspective: '业务创新转型' },
+    { id: 50, text: '是否沿纵向管控（资源链）实现计划、采购、生产、销售、财务等活动的数据互联与动态协同？', options: ['未实现', '部分系统间有数据接口', '核心资源链数据基本贯通', '全企业资源全局动态优化配置', '生态化资源网络协同配置'], perspective: '业务创新转型' },
+    
+    // 51-60题
+    { id: 51, text: '是否沿供应链（价值链）实现商机、订单、采购、生产、物流、销售、售后等活动的集成与动态优化？', options: ['未实现', '关键节点数据可查', '供应链主要环节数据贯通', '全链条可视化与协同优化', '社会化供应链网络智能协同'], perspective: '业务创新转型' },
+    { id: 52, text: '是否沿产品（资产）寿命周期实现需求、设计、生产、交付、运维、回收等环节的数据贯通与协同管理？', options: ['未实现', '单点寿命周期数据管理', '关键阶段数据贯通', '全寿命周期数据一体化管理', '产品生态圈数据价值共创'], perspective: '业务创新转型' },
+    { id: 53, text: '是否基于新型能力的模块化封装，推动"智能化生产"模式创新？', options: ['未开展', '局部工序自动化', '产线级数据驱动优化', '工厂级知识/智能驱动优化', '跨企业生产能力生态协同'], perspective: '业务创新转型' },
+    { id: 54, text: '是否基于在线化平台，实现与合作伙伴的"网络化协同"？', options: ['未开展', '使用基础协作工具', '关键业务在线协同（如协同设计）', '建立社会化协同平台', '形成自演进的产业协同网络'], perspective: '业务创新转型' },
+    { id: 55, text: '是否沿产品链或供应链，基于数据集成提供"服务化延伸"（如远程运维、增值服务）？', options: ['未开展', '提供基础售后支持', '开展数据驱动的增值服务', '提供全场景、跨界融合服务', '构建服务共创生态'], perspective: '业务创新转型' },
+    { id: 56, text: '是否基于产品模块化与数字化，实现"个性化定制"？', options: ['未开展', '接受小批量订单', '基于配置器的有限定制', '用户深度参与的大规模个性化定制', '需求智能涌现与自组织满足的定制生态'], perspective: '业务创新转型' },
+    { id: 57, text: '是否对外提供数据查询、统计分析、数据处理等"数字信息服务"？', options: ['未提供', '内部数据报表对外分享', '形成标准化数据产品', '提供平台化数据服务', '运营数据要素市场或生态'], perspective: '业务创新转型' },
+    { id: 58, text: '是否将业务规则、方法知识化、模型化，对外提供"数字知识服务"（如解决方案、算法模型）？', options: ['未提供', '知识文档线上化', '提供标准化知识工具', '提供个性化知识模型服务', '构建开放知识共创平台'], perspective: '业务创新转型' },
+    { id: 59, text: '是否将核心业务能力（如研发、仿真、供应链管理）数字化、平台化，对外提供"数字能力服务"？', options: ['未提供', '能力局部对外输出', '关键能力封装为服务', '建立能力开放平台', '主导或共建能力交易生态'], perspective: '业务创新转型' },
+    { id: 60, text: '主营业务数字化的重点是否从提升动态响应，向一体化敏捷响应、平台化社会化赋能、生态化原始创新逐级演进？', options: ['未规划演进路径', '聚焦单点/单环节响应提升', '聚焦全企业一体化响应', '聚焦平台化社会化赋能', '聚焦生态化创新引领'], perspective: '业务创新转型' },
+    
+    // 61-70题
+    { id: 61, text: '在数字化转型初期，业务创新转型策划是否以提高主营业务动态响应水平为重点？', options: ['未明确重点', '重点不清晰', '明确以提升关键场景响应为重点', '系统规划响应能力建设', '响应体系已成为基础'], perspective: '业务创新转型' },
+    { id: 62, text: '在具备一定数字化基础后，是否以提升全企业一体化敏捷响应水平为重点开展策划？', options: ['未开展', '有初步设想', '沿资源链、价值链等维度策划集成', '实现主营业务全面集成融合', '集成能力向外赋能'], perspective: '业务创新转型' },
+    { id: 63, text: '在实现业务集成融合后，是否以打造平台企业、创新业务模式为重点开展策划？', options: ['未开展', '开始关注平台化', '系统策划平台化业务模式', '成功培育平台化新业务', '平台演进为创新生态基座'], perspective: '业务创新转型' },
+    { id: 64, text: '是否以构建价值生态为重点，覆盖企业全局及伙伴，策划数字业务与绿色可持续发展新业态？', options: ['未开展', '概念探讨阶段', '有专项生态化业务规划', '数字业务成为重要增长极', '引领产业生态绿色可持续发展'], perspective: '业务创新转型' },
+    { id: 65, text: '是否建立对业务创新转型成效（如新模式普及率、新业务收入占比）的跟踪、诊断与评价体系？', options: ['未建立', '人工零星统计', '建立关键指标定期评价', '建立数字化动态评价仪表盘', '智能评价与自主优化建议'], perspective: '业务创新转型' },
+    { id: 66, text: '产品/服务数字化是否实现了从状态感知、交互连接到智能决策与优化的进阶？', options: ['未实现', '具备基础感知或连接功能', '实现状态感知与数据交互', '具备边缘计算与智能决策', '产品具备自学习与进化能力'], perspective: '业务创新转型' },
+    { id: 67, text: '对于流程型制造企业，生产环节数字化是否覆盖工艺管理、生产营运、设备管理、安环管理、能源及公用工程等细分环节？', options: ['未覆盖', '覆盖1-2个细分环节', '覆盖主要细分环节', '全环节数字化集成', '实现智能自主运行与优化'], perspective: '业务创新转型' },
+    { id: 68, text: '对于服务业企业，服务提供环节数字化是否涵盖服务计划、过程管理、现场管理、知识管理等？', options: ['未涵盖', '局部流程线上化', '关键服务流程数字化管理', '全服务流程数字化贯通与优化', '智能预测与个性化服务生成'], perspective: '业务创新转型' },
+    { id: 69, text: '业务集成融合是否显著提升了订单交付周期、多品种小批量生产能力等关键运营指标？', options: ['未提升', '个别环节效率提升', '关键流程效率显著提升', '全链条效能整体优化', '生态协同创造新效能'], perspective: '业务创新转型' },
+    { id: 70, text: '业务模式创新（如网络化协同）是否降低了整体供应链/产业链成本，或提升了协同创新水平？', options: ['未体现', '局部成本节约', '显性化协同效益', '商业模式价值显著增长', '定义新的产业价值空间'], perspective: '业务创新转型' },
+    
+    // 71-80题
+    { id: 71, text: '数字业务发展是否开辟了新的收入来源或价值创造空间？', options: ['未开辟', '有零星数字收入', '数字业务成为补充收入', '数字业务成为重要板块', '数字业务驱动企业战略转型'], perspective: '业务创新转型' },
+    { id: 72, text: '是否形成了基于新型能力赋能、快速响应市场的业务创新转型体系？', options: ['未形成', '能力与业务初步结合', '能力有效支撑业务转型', '能力与业务创新深度融合循环', '能力与业务生态共生进化'], perspective: '业务创新转型' },
+    { id: 73, text: '业务创新转型活动是否与治理体系、系统性解决方案的建设过程紧密协同？', options: ['未协同', '被动响应业务需求', '有计划的协同项目', '机制化协同联动', '一体化自适应协同系统'], perspective: '业务创新转型' },
+    { id: 74, text: '是否通过业务创新转型，有效获取了可持续的竞争合作优势？', options: ['未获取', '获得局部或短期优势', '形成关键业务领域优势', '构建企业整体战略优势', '形成生态层面的群体优势'], perspective: '业务创新转型' },
+    { id: 75, text: '企业是否建立了系统化的方法，以持续推进业务升级和创新转型的迭代优化循环？', options: ['未建立', '有改进意识但无固定方法', '建立PDCA等过程方法', '形成组织级的创新转型管理体系', '实现智能驱动的自进化转型'], perspective: '业务创新转型' },
+    { id: 76, text: '业务数字化范围是否从单一功能点，向主业务环节、全企业、供应链网络、产业生态圈不断扩展？', options: ['未扩展', '停留在单点或单环节', '扩展至多个主业务环节', '扩展至全企业及供应链', '扩展至整个产业生态'], perspective: '业务创新转型' },
+    { id: 77, text: '业务数字化深度是否从信息技术工具应用，向数据驱动、知识赋能、智能自主不断深化？', options: ['未深化', '停留在信息系统应用/集成', '实现数据驱动业务响应', '实现知识赋能业务协同', '实现智能自主业务运行'], perspective: '业务创新转型' },
+    { id: 78, text: '在业务创新转型过程中，是否注重对不确定性需求的柔性响应能力建设？', options: ['未注重', '能响应确定性强需求', '能响应主业务环节多样化需求', '能响应全企业范围定制化需求', '能创造并响应生态化新需求'], perspective: '业务创新转型' },
+    { id: 79, text: '业务创新转型是否有效支持了企业价值体系（创造、传递、获取）的优化、创新与重构？', options: ['未支持', '支持运营效率提升（价值优化）', '支持新产品/服务创造（价值创新）', '支持新商业模式构建（价值重构）', '支持新价值生态形成（价值共创）'], perspective: '业务创新转型' },
+    { id: 80, text: '整个业务创新转型过程，是否以价值效益为导向进行策划、实施与评价？', options: ['未体现', '事后核算价值效益', '事前设定价值效益目标', '全过程动态监控价值效益', '以价值效益为核心驱动转型演进'], perspective: '业务创新转型' }
+],
+// 新型能力视角 (81-120题)
+'新型能力': [
+    { id: 81, text: '是否建立新型能力体系？', options: ['未建立', '识别个别能力', '覆盖主业务能力', '全企业能力体系', '生态化能力网络'], perspective: '新型能力' },
+    { id: 82, text: '是否构建数字化模型（信息/数字/知识/智能模型）？', options: ['未构建', '局部信息模型', '关键业务数字模型', '全企业知识模型', '生态智能模型'], perspective: '新型能力' },
+    { id: 83, text: '是否实现数据驱动的业务响应？', options: ['未实现', '局部数据辅助决策', '关键业务数据驱动', '全企业数据协同', '生态数据智能自治'], perspective: '新型能力' },
+    { id: 84, text: '是否实现能力模型的持续学习与优化？', options: ['未优化', '人工调优', '规则化迭代', '自动化学习', '自进化能力'], perspective: '新型能力' },
+    { id: 85, text: '是否开展能力模块化、平台化封装？', options: ['未开展', '局部模块化', '关键能力平台化', '全企业能力平台', '生态能力开放平台'], perspective: '新型能力' },
+    { id: 86, text: '企业是否构建了覆盖产品创新能力的数字化模型（如产品数字孪生）？', options: ['未构建', '简单产品信息模型', '关键产品数字化模型', '全产品线数字孪生体系', '智能产品生态认知模型'], perspective: '新型能力' },
+    { id: 87, text: '是否构建了覆盖生产与运营管控能力的数字化模型？', options: ['未构建', '局部生产数据模型', '关键工序数字模型', '全流程生产数字孪生', '自适应生产智能体网络'], perspective: '新型能力' },
+    { id: 88, text: '是否构建了覆盖用户服务能力的数字化模型？', options: ['未构建', '客户信息数据库', '用户画像与行为模型', '全生命周期服务数字孪生', '智能服务生态认知模型'], perspective: '新型能力' },
+    { id: 89, text: '是否构建了覆盖生态合作能力的数字化模型？', options: ['未构建', '合作伙伴信息库', '供应链协同数据模型', '产业生态数字孪生平台', '生态认知协同智能模型'], perspective: '新型能力' },
+    { id: 90, text: '是否构建了覆盖员工赋能能力的数字化模型？', options: ['未构建', '员工信息数据库', '岗位能力素质模型', '个人发展数字孪生', '组织智慧共生模型'], perspective: '新型能力' },
+    
+    // 91-100题
+    { id: 91, text: '是否构建了覆盖数据开发能力的数字化模型？', options: ['未构建', '基础数据仓库', '主题数据模型', '企业级数据资产图谱', '生态数据智能认知模型'], perspective: '新型能力' },
+    { id: 92, text: '能力模型是否能够处理多元异构数据（如结构化和非结构化数据）？', options: ['不能处理', '能处理单一类型数据', '能处理主要业务相关多元数据', '能处理全企业范围多元异构数据', '能智能处理生态内所有相关数据'], perspective: '新型能力' },
+    { id: 93, text: '能力模型是否能够处理关键业务活动的全面动态甚至实时数据？', options: ['不能处理', '能处理静态或批量数据', '能处理关键业务环节动态数据', '能处理全业务过程实时数据流', '能自主按需处理生态实时数据'], perspective: '新型能力' },
+    { id: 94, text: '能力模型是否能够在线甚至智能自主处理企业内外部及合作伙伴的数据？', options: ['不能处理', '只能处理企业内部离线数据', '能在线处理企业内部数据', '能在线处理企业间共享数据', '能智能自主处理生态全量数据'], perspective: '新型能力' },
+    { id: 95, text: '是否将产品创新的核心规则方法（如设计准则、仿真算法）算法化和数字化？', options: ['未实现', '部分规则文档化', '关键规则算法化', '全流程规则模型化', '规则自主生成与进化'], perspective: '新型能力' },
+    { id: 96, text: '是否将生产运营的核心规则方法（如排产算法、优化模型）算法化和数字化？', options: ['未实现', '部分规则经验化', '关键规则数字化', '全流程规则知识化', '规则自适应调整'], perspective: '新型能力' },
+    { id: 97, text: '是否将用户服务的核心规则方法（如服务流程、响应策略）算法化和数字化？', options: ['未实现', '服务标准文档化', '关键服务规则数字化', '全流程服务规则模型化', '服务规则智能生成'], perspective: '新型能力' },
+    { id: 98, text: '是否实现了相关业务规则方法的大幅增长，支持主要业务个性化按需应用？', options: ['未增长', '规则数量缓慢增长', '关键领域规则体系化增长', '全企业规则库规模增长', '规则生成式增长支持生态应用'], perspective: '新型能力' },
+    { id: 99, text: '是否实现了规则方法的生成式增长，支持平台化、社会化乃至智能自主应用？', options: ['未实现', '初步探索规则自动化', '关键领域规则自动生成', '跨领域规则智能生成', '生态级规则自主进化'], perspective: '新型能力' },
+    { id: 100, text: '新型能力模型是否具备响应和执行产品创新活动的特定功能？', options: ['不具备', '简单辅助功能', '关键创新活动支持功能', '全流程创新活动支撑功能', '智能自主创新功能'], perspective: '新型能力' },
+    
+    // 101-110题
+    { id: 101, text: '新型能力模型是否具备响应和执行生产运营活动的特定功能？', options: ['不具备', '单一环节执行功能', '关键生产运营执行功能', '全流程生产运营协同功能', '生产运营智能体功能'], perspective: '新型能力' },
+    { id: 102, text: '新型能力模型是否具备响应和执行用户服务活动的特定功能？', options: ['不具备', '简单查询应答功能', '关键服务流程执行功能', '全生命周期服务支撑功能', '预测性智能服务功能'], perspective: '新型能力' },
+    { id: 103, text: '新型能力模型是否实现了相关功能的大幅增长，支持主要业务个性化按需应用？', options: ['未增长', '功能点缓慢增加', '关键业务功能模块化增长', '全企业功能服务体系化增长', '功能生成式增长支持生态应用'], perspective: '新型能力' },
+    { id: 104, text: '是否实现了相关功能的生成式增长，支持平台化、社会化乃至智能自主应用？', options: ['未实现', '初步功能组合应用', '关键功能自动组合', '跨领域功能智能组合', '生态级功能自主演化'], perspective: '新型能力' },
+    { id: 105, text: '是否实现能力模型可处理数据的动态迭代和学习优化？', options: ['未实现', '手动更新数据源', '半自动数据质量提升', '自动化数据更新与优化', '智能数据自学习与进化'], perspective: '新型能力' },
+    { id: 106, text: '是否实现能力模型内嵌规则方法的动态迭代和学习优化？', options: ['未实现', '人工修订规则', '基于数据的规则调优', '规则自动更新与验证', '规则自主进化与创新'], perspective: '新型能力' },
+    { id: 107, text: '是否实现能力模型可实现功能的动态迭代和学习优化？', options: ['未实现', '功能版本人工升级', '基于反馈的功能优化', '功能自动化测试与发布', '功能自主演进与适应'], perspective: '新型能力' },
+    { id: 108, text: '是否应用生成式AI等技术，实现能力模型的平台化、社会化协同迭代优化？', options: ['未应用', '初步探索AI辅助', '关键环节AI驱动优化', '全流程AI协同优化', '生态级AI自主进化'], perspective: '新型能力' },
+    { id: 109, text: '是否建立新型能力（体系）的诊断、对标和评价体系？', options: ['未建立', '零星经验性评价', '关键能力定期评估', '体系化能力成熟度评估', '实时智能能力体检'], perspective: '新型能力' },
+    { id: 110, text: '是否对新型能力建设与运行的预期结果实现程度进行定期评价？', options: ['未评价', '事后结果检查', '关键指标定期监控', '全过程效果动态评估', '智能预测与自主调优'], perspective: '新型能力' },
+    
+    // 111-120题
+    { id: 111, text: '是否对治理体系、系统性解决方案与新型能力的适配性进行评价？', options: ['未评价', '问题出现后被动调整', '关键项目专项评估', '定期系统性适配评审', '实时动态适配度监控'], perspective: '新型能力' },
+    { id: 112, text: '是否建立新型能力（体系）的改进机制，形成改进和预防措施？', options: ['未建立', '问题驱动临时改进', '建立纠正预防流程', '持续改进管理体系', '智能自主优化机制'], perspective: '新型能力' },
+    { id: 113, text: '是否能够及时准确把握新型能力改进机会？', options: ['不能把握', '滞后发现改进点', '定期识别改进机会', '实时发现并响应改进点', '智能预测并提前预防'], perspective: '新型能力' },
+    { id: 114, text: '新型能力（体系）是否有效支撑了业务创新转型？', options: ['未支撑', '支撑局部业务优化', '支撑关键业务转型', '支撑全企业业务创新', '驱动生态业务共创'], perspective: '新型能力' },
+    { id: 115, text: '新型能力（体系）是否有效支撑了发展战略的实现？', options: ['未支撑', '支撑部分战略举措', '支撑关键战略目标', '支撑整体战略落地', '成为战略进化的核心引擎'], perspective: '新型能力' },
+    { id: 116, text: '是否按照数字化转型不同阶段（规范级到生态级）系统策划新型能力建设？', options: ['未系统策划', '零散能力建设', '按场景级需求策划', '按领域级体系策划', '按生态级愿景策划'], perspective: '新型能力' },
+    { id: 117, text: '在识别策划新型能力时，是否充分考虑资源条件与治理体系等约束？', options: ['未考虑', '粗略考虑资源', '系统评估可行性与资源', '动态平衡能力需求与约束', '智能寻优资源配置与能力规划'], perspective: '新型能力' },
+    { id: 118, text: '是否确保选取的新型能力（体系）能支撑业务创新转型并获取最大化价值效益？', options: ['未确保', '部分能力产生价值', '关键能力精准匹配业务价值点', '能力体系协同创造复合价值', '能力生态持续孵化新价值'], perspective: '新型能力' },
+    { id: 119, text: '是否按照深化发展要求，加速提升新型能力的战略性、前瞻性、系统性和全局性？', options: ['未提升', '关注当前运营需求', '兼顾短期与中期需求', '系统规划中长期能力布局', '引领未来生态能力范式'], perspective: '新型能力' },
+    { id: 120, text: '是否以新型能力过程联动方法为纽带，加强治理体系与系统性解决方案的协调融合？', options: ['未加强', '各自独立建设', '项目层面简单协同', '机制化协同联动', '一体化智能融合'], perspective: '新型能力' }
+], 
+// 治理体系视角 (121-160题)
+'治理体系': [
+    { id: 121, text: '是否建立数字化领导机制？', options: ['无专人负责', '信息化部门负责', '设立数字化专职岗位', '高层牵头、跨部门协同', '生态化共治机制'], perspective: '治理体系' },
+    { id: 122, text: '是否建立数字化治理制度？', options: ['无制度', '零星制度', '覆盖数据、技术等要素', '体系化治理框架', '生态化治理体系'], perspective: '治理体系' },
+    { id: 123, text: '是否建立数字化组织架构？', options: ['传统职能型', '设立数字化部门', '矩阵型协同组织', '流程型敏捷组织', '生态型自组织'], perspective: '治理体系' },
+    { id: 124, text: '是否建立数字化人才培养体系？', options: ['无体系', '零星培训', '系统化培训与考核', '全员数字化能力认证', '生态化人才共建'], perspective: '治理体系' },
+    { id: 125, text: '是否建立数字化文化？', options: ['无文化引导', '初步倡导', '形成行为规范', '全员参与创新', '生态价值观引领'], perspective: '治理体系' },
+    { id: 126, text: '企业是否建立了由一把手、决策层及生态伙伴领导共同参与的数字化协同领导和协调机制？', options: ['未建立', '信息化工作由技术部门负责', '高层分管领导负责制', '建立由主要领导牵头的数字化转型委员会', '形成与生态伙伴的数字化战略共商共治机制'], perspective: '治理体系' },
+    { id: 127, text: '是否建立了覆盖数字化转型战略活动全要素、全员、全过程的数字化动态跟踪、管控和优化机制？', options: ['未建立', '关键项目有阶段性报告', '建立战略举措的定期（如季度）复盘机制', '实现战略执行过程的数字化仪表盘与动态预警', '实现战略、能力、业务数据的智能关联分析与自适应调优'], perspective: '治理体系' },
+    { id: 128, text: '是否围绕数据、技术、流程、组织四要素的协同创新，建立了适宜的制度、标准规范和治理机制？', options: ['未建立', '各要素有独立的管理规定', '建立了跨要素的协同项目管理制度', '形成体系化的四要素互动创新治理框架', '建立了基于价值流的四要素动态协同与自优化规则'], perspective: '治理体系' },
+    { id: 129, text: '是否建立了全员数字化理念和技能培养体系，以及数字人才的绩效与成长激励制度？', options: ['未建立', '零星开展通用技能培训', '建立分层分类的数字化能力培训体系', '将数字化能力纳入全员绩效考核与晋升通道', '建立跨企业的人才共享、流动与价值共创平台'], perspective: '治理体系' },
+    { id: 130, text: '是否建立了围绕新型能力建设的数字化资金统筹、优化和精准核算机制？', options: ['未建立', '资金按部门或项目简单划拨', '设立数字化转型专项预算', '建立基于价值效益的数字化投资决策与动态调整机制', '实现资金投入与能力产出、价值回报的智能关联分析与精准配置'], perspective: '治理体系' },
+    
+    // 131-140题
+    { id: 131, text: '是否建立了完善的数据治理体系，包括数据制度、流程设计与运行管控，以提升数据驱动作用？', options: ['未建立', '有基础的数据管理规范', '建立主数据管理和数据质量标准', '建立覆盖数据全生命周期的治理体系并有效运行', '数据作为核心资产参与生态化流通、估值与价值分配'], perspective: '治理体系' },
+    { id: 132, text: '是否建立了完善的信息安全管理体系，并开展自主可控技术的研发与应用？', options: ['未建立', '基础网络安全防护', '建立等级保护制度并定期测评', '形成主动防御体系，关键系统实现安全可控', '建立覆盖生态的智能安全协同防御与可信计算环境'], perspective: '治理体系' },
+    { id: 133, text: '是否建立了与新型能力相匹配的柔性组织结构（如一体化、平台化、生态化）？', options: ['未建立，仍是传统科层制', '为数字化项目设立临时矩阵团队', '设立常态化的跨部门协同组织（如数字工厂、业务中台团队）', '形成以客户或流程为中心的流程型或平台型组织', '演进为与生态伙伴深度嵌套、动态自适应的网络型或生态型组织'], perspective: '治理体系' },
+    { id: 134, text: '是否建立了数据驱动型、知识驱动型或智能驱动型的组织结构动态优化机制？', options: ['未建立', '组织架构定期（如年度）评审调整', '基于业务数据反馈进行局部组织优化', '建立基于能力模型和业务场景的组织敏捷调整机制', '组织形态可根据生态数据智能感知与自主演化'], perspective: '治理体系' },
+    { id: 135, text: '是否建立了覆盖全过程和全员的职能职责动态分工与沟通协调机制？', options: ['未建立，职责固定', '关键流程有岗位职责说明', '建立基于项目的动态角色与职责定义', '实现个人工作任务与能力的数字化匹配与动态调度', '生态范围内基于智能合约的职责自主认领与协同'], perspective: '治理体系' },
+    { id: 136, text: '是否建立了企业内和企业间的数字化协作体系与运行机制？', options: ['未建立', '使用即时通讯等基础协作工具', '建立统一的内部协同办公平台', '与核心伙伴实现业务流程级在线协同', '构建产业生态级的开放式创新协作网络'], perspective: '治理体系' },
+    { id: 137, text: '是否推动管理范式从职能驱动向数据驱动、知识赋能或智能自主转变？', options: ['未转变，仍是职能驱动', '在局部场景试行数据辅助管理', '关键业务领域实现数据驱动的管理决策', '全企业范围推行知识赋能型管理，实现人机协同', '形成智能自主型管理范式，机器承担大量程序性管理工作'], perspective: '治理体系' },
+    { id: 138, text: '是否支持员工基于移动化、社交化、知识化的数字化平台履行职能，并激励自我管理与价值实现？', options: ['不支持', '提供基础办公软件', '提供集成化工作平台，支持远程协作', '平台提供知识推送与智能辅助，赋能员工高效工作', '员工成为平台上的自主创业者，按价值贡献获得激励'], perspective: '治理体系' },
+    { id: 139, text: '是否构建了开放包容、创新引领、主动求变、务求实效的数字化价值观？', options: ['未构建', '价值观中包含"创新"等一般性描述', '明确将数字化转型作为公司核心文化要素之一', '数字化价值观被广泛认同并体现在各类制度与行为中', '数字化价值观驱动生态伙伴形成共同的行为准则与发展愿景'], perspective: '治理体系' },
+    { id: 140, text: '是否制定了与数字化价值观相匹配的行为准则，并利用数字化工具支持其执行与优化？', options: ['未制定', '有零星的倡导性要求', '形成明确的数字化行为规范（如数据素养要求）', '通过平台将行为规范融入工作流程并进行量化评估', '行为准则在生态中演化，并通过技术手段实现共识与自律'], perspective: '治理体系' },
+    
+    // 141-150题
+    { id: 141, text: '治理体系的策划是否与新型能力建设、业务场景和价值模式的需求紧密联动？', options: ['未联动', '治理需求被动响应业务需求', '在新型能力策划时同步考虑治理要求', '治理体系作为顶层设计的一部分，与能力、业务同步策划', '治理、能力、业务在生态层面实现一体化动态策划与演进'], perspective: '治理体系' },
+    { id: 142, text: '是否制定了系统的数字化领导力提升、治理机制建设、组织调整、管理变革和文化建设方案？', options: ['未制定', '有零星改进计划', '针对重点领域有专项方案', '形成覆盖治理体系五大子视角的系统性建设规划', '治理体系演进本身成为一项基于数据和智能的持续性创新活动'], perspective: '治理体系' },
+    { id: 143, text: '治理体系的实施过程，是否组织相关方从数据、技术、流程、组织四要素入手协同推进？', options: ['未协同', '由单一部门（如IT）主导实施', '建立跨部门项目组联合推进', '建立常设的治理变革办公室，统筹四要素协同落地', '治理实施过程由智能体协调，各方基于共识自动执行'], perspective: '治理体系' },
+    { id: 144, text: '治理体系实施过程中，是否持续推动其与新型能力、业务创新转型的匹配性优化？', options: ['未优化', '问题出现后才进行补救性调整', '建立定期的匹配性回顾机制', '通过数字化手段实时监测匹配度并触发优化流程', '治理体系具备自适应能力，可随能力和业务动态调整'], perspective: '治理体系' },
+    { id: 145, text: '是否将治理体系建设的相关成果（如新的协作方式、决策机制）进行规范化和制度化？', options: ['未制度化', '优秀实践停留在经验层面', '关键实践被总结为新的制度或标准', '形成动态更新的数字化治理制度库', '制度本身以代码形式存在，可自动执行与验证'], perspective: '治理体系' },
+    { id: 146, text: '是否建立治理体系的诊断、对标和评价体系，对其作用成效进行动态跟踪与评判？', options: ['未建立', '依赖高层主观感受或外部审计', '建立关键治理指标的定期收集与评价机制', '建立治理成熟度模型，进行系统性评价', '实现治理效能实时智能评估与风险预警'], perspective: '治理体系' },
+    { id: 147, text: '是否识别治理体系持续改进的需求和机会，并推动其迭代优化？', options: ['未识别', '被动响应外部合规或审计要求', '主动收集内部反馈进行改进', '基于评价体系和数据分析，系统规划治理体系优化路线图', '治理体系具备自学习、自优化能力，持续进化'], perspective: '治理体系' },
+    { id: 148, text: '数字化领导力是否涵盖战略洞察、前瞻布局以及执行层面的协同能力？', options: ['未涵盖', '领导者仅关注技术采购', '领导者能提出数字化转型方向', '领导者能架构数字化转型蓝图并推动组织协同', '领导者致力于定义和塑造产业数字化生态的未来'], perspective: '治理体系' },
+    { id: 149, text: '数字化治理机制是否能有效保障新型能力建设、运行和优化过程中的资源协调与风险管控？', options: ['不能保障', '能提供基础资源，但协调不足', '能保障单个能力项目的资源与风险', '能统筹协调多能力建设项目，平衡资源与风险', '能智能预测并动态配置生态级能力建设所需资源与风险对冲'], perspective: '治理体系' },
+    { id: 150, text: '数字化组织是否具备足够的柔性，以快速响应日益动态和个性化的用户需求？', options: ['不具备', '响应速度慢，标准化服务为主', '能在单一业务线提供一定柔性响应', '全企业能协同实现快速、个性化的响应', '生态网络能实现需求的智能捕捉与资源的瞬时自适应组合'], perspective: '治理体系' },
+    
+    // 151-160题
+    { id: 151, text: '数字化管理是否有效推动了员工自组织、自学习和主动开展创造性工作？', options: ['未推动', '员工按指令执行标准化任务', '在创新项目中鼓励员工自主发挥', '建立广泛赋能的平台，支持员工自主发起和完成工作', '员工与智能体深度协同，共同探索和解决未知问题'], perspective: '治理体系' },
+    { id: 152, text: '数字化文化是否已内化为企业全员的自觉行为，主动支撑创新和变革？', options: ['未内化', '文化停留在口号层面', '核心团队能践行数字化文化', '数字化文化成为多数员工的行为习惯', '数字化文化成为生态伙伴的共同基因，驱动集体进化'], perspective: '治理体系' },
+    { id: 153, text: '治理体系的建设和优化是否被视为一个循序渐进的长期过程，并有系统规划？', options: ['未视为，是短期项目', '意识到是长期工作，但规划不足', '有长期的治理体系建设规划', '治理规划与业务战略规划同步滚动更新', '治理演进路径由实时数据和生态态势智能驱动'], perspective: '治理体系' },
+    { id: 154, text: '治理体系的策划是否明确了各方职责、支持条件、资源需求和推进路径？', options: ['未明确', '职责模糊，推进困难', '主要活动的职责和资源基本明确', '形成详细的治理变革路线图与责任矩阵', '治理任务基于智能合约自动分发、执行与验收'], perspective: '治理体系' },
+    { id: 155, text: '在治理体系实施中，数字化领导力、治理、组织、管理、文化五个方面是否协同匹配、相互加强？', options: ['不匹配，存在冲突', '局部匹配，整体协调性一般', '五个方面基本协同，形成合力', '五个方面深度融合，相互催化', '五个方面在生态智能中融为一体，不可分割'], perspective: '治理体系' },
+    { id: 156, text: '治理体系的诊断评价结果，是否有效地用于其持续改进循环？', options: ['未使用', '评价结果仅供参考', '评价结果用于指导下一阶段的重点工作', '评价结果直接触发预设的改进流程', '评价、诊断、改进构成一个实时闭环的智能系统'], perspective: '治理体系' },
+    { id: 157, text: '整个治理体系是否为企业打造新型能力、推进业务创新转型提供了坚实、灵活且可持续的管理保障？', options: ['未提供', '提供基础但僵化的管理支持', '能为特定转型项目提供有效保障', '能体系化、动态地支撑企业的全面数字化转型', '治理体系本身成为企业及生态的核心竞争优势和创新能力来源'], perspective: '治理体系' },
+    { id: 158, text: '治理体系的理念与实践，是否从以"控制"为核心，逐步演进至以"结果"、"敏捷"、"开放"、"创造"为核心？', options: ['未演进，仍以控制为主', '开始强调结果导向', '在多个领域实践敏捷与开放', '形成以开放、共创为核心的治理范式', '治理的终极目标是激发和保障生态的持续"创造"'], perspective: '治理体系' },
+    { id: 159, text: '治理体系是否有效应对了新一代信息技术（如AI）带来的新型治理挑战（如算法伦理、人机责权）？', options: ['未应对', '尚未遇到显著挑战', '已识别挑战，并开始研究讨论', '已制定相关原则与初步规则', '已建立适应技术快速演进的动态治理框架与伦理共识机制'], perspective: '治理体系' },
+    { id: 160, text: '治理体系是否成为企业吸引、保留和激发数字化人才的关键因素？', options: ['未成为', '人才主要受薪酬待遇吸引', '先进的治理理念对部分人才有吸引力', '透明、赋能、敏捷的治理环境成为人才的核心诉求之一', '企业因卓越的治理体系成为顶尖数字化人才和生态伙伴的首选平台'], perspective: '治理体系' }
+],
+// 系统性解决方案视角 (161-200题)
+'系统性解决方案': [
+    { id: 161, text: '是否建立数据采集与集成机制？', options: ['未建立', '局部手工采集', '自动化采集关键数据', '全企业数据集成', '生态数据智能采集'], perspective: '系统性解决方案' },
+    { id: 162, text: '是否建立技术架构与平台？', options: ['无规划', '局部系统建设', '统一技术平台', '云化、平台化架构', '生态化智能云平台'], perspective: '系统性解决方案' },
+    { id: 163, text: '是否开展流程数字化优化？', options: ['未优化', '局部流程信息化', '关键流程数字化', '端到端流程贯通', '智能流程自优化'], perspective: '系统性解决方案' },
+    { id: 164, text: '是否建立组织与职责适配机制？', options: ['未调整', '局部职责调整', '主业务流程职责明确', '全企业职责动态匹配', '生态职责自适配'], perspective: '系统性解决方案' },
+    { id: 165, text: '是否建立系统性解决方案的持续运维机制？', options: ['无运维机制', '被动运维', '预防性运维', '智能化运维', '自进化运维体系'], perspective: '系统性解决方案' },
+    { id: 166, text: '企业是否建立了体系化的数据采集机制，覆盖设备设施、业务活动、供应链乃至产业生态？', options: ['未建立', '关键设备人工抄录或离线导出', '主要设备和业务系统实现自动数据采集', '实现覆盖全企业（全领域）全过程数据的自动化采集', '实现生态圈内相关数据的智能按需自主采集'], perspective: '系统性解决方案' },
+    { id: 167, text: '是否积极推进数据集成与共享，并建立了相应的数据标准？', options: ['未推进', '部门内数据可有限共享', '建立企业级数据交换平台，实现关键系统间数据共享', '实现全企业多源异构数据的在线集成与标准化共享', '建立生态级数据开放共享标准与可信流通机制'], perspective: '系统性解决方案' },
+    { id: 168, text: '是否开展数据分析与应用，并构建了信息模型、数字模型、知识模型或智能模型？', options: ['未开展', '使用报表工具进行基础统计分析', '构建关键业务信息模型，支持规范化管理', '构建数字/知识模型，支持动态分析与优化决策', '构建生态级智能模型，支持认知协同与自学习进化'], perspective: '系统性解决方案' },
+    { id: 169, text: '是否有序开展生产/服务设备设施的自动化、数字化、网络化、智能化改造升级？', options: ['未开展', '部分设备具备单机自动化功能', '关键产线或服务环节实现数字化、网络化升级', '全企业主要设备设施完成智能化改造并互联互通', '生态合作伙伴设备设施实现认知协同与自适应优化'], perspective: '系统性解决方案' },
+    { id: 170, text: '是否部署了适宜的IT软硬件资源与系统集成架构，并推动其组件化、平台化？', options: ['未规划，烟囱式建设', '采用统一技术路线，但系统间集成度低', '建立企业级集成架构，核心系统实现有效集成', '形成云化、微服务化的平台架构，支持能力共享', 'IT资源成为社会化、智能化、按需供给的生态基座'], perspective: '系统性解决方案' },
+    
+    // 171-180题
+    { id: 171, text: '是否建设了统一的运营技术（OT）网络，并实现与IT网络、互联网的互联互通？', options: ['未建设，网络孤立', '生产网络与办公网络物理隔离', '实现OT与IT网络的安全互联与数据交换', '构建统一的工业互联网/产业互联网，支持内外部协同', '形成泛在互联、智能路由的生态级网络基础设施'], perspective: '系统性解决方案' },
+    { id: 172, text: '是否通过自建或应用第三方平台，推动基础资源和能力的模块化、平台化？', options: ['未推动', '使用公有云基础资源（IaaS）', '建设或引入特定领域的平台（如数据平台、开发平台）', '构建或参与综合性的企业级/产业级能力共享平台', '成为生态级能力共创平台的主导者或核心贡献者'], perspective: '系统性解决方案' },
+    { id: 173, text: '是否开展了跨部门、跨层级、跨企业的核心业务流程优化设计？', options: ['未开展', '部门内流程有局部优化', '完成关键端到端业务流程的优化设计', '实现全企业（全领域）业务流程的体系化重构与优化', '实现与生态合作伙伴间业务流程的协同设计与动态优化'], perspective: '系统性解决方案' },
+    { id: 174, text: '是否应用数字化手段对业务流程的运行状态进行跟踪、管控和动态优化？', options: ['未应用', '通过人工报表监控流程节点', '关键流程实现在线化运行与可视化管理', '全企业业务流程实现数字化动态监控与敏捷优化', '生态业务流程实现智能感知、自主调控与学习进化'], perspective: '系统性解决方案' },
+    { id: 175, text: '是否根据业务流程优化要求，系统性调整了相关的合作伙伴关系、部门职责和岗位职责？', options: ['未调整', '因系统上线被动调整个别岗位职责', '为适配新流程，主动调整相关部门和岗位职责', '建立与数字化流程相匹配的、动态适应的组织职责体系', '生态范围内形成基于价值贡献的自组织、自适应职责分工网络'], perspective: '系统性解决方案' },
+    { id: 176, text: '是否按照调整后的职能职责，开展员工胜任力分析、培养与优化配置？', options: ['未开展', '新岗位要求有简单说明', '建立关键数字化岗位的胜任力模型并开展培训', '实现全员数字化技能画像与个性化、精准化的赋能培养', '生态范围内实现人才的智能匹配、动态流动与共生成长'], perspective: '系统性解决方案' },
+    { id: 177, text: '系统性解决方案的策划，是否基于对数据、技术、流程、组织四要素现状的系统分析？', options: ['未基于分析，凭经验决策', '对单要素（如技术）有分析', '对多要素现状有综合分析', '建立四要素互动关系的架构模型并用于方案策划', '基于实时数据与智能算法对四要素进行动态协同策划'], perspective: '系统性解决方案' },
+    { id: 178, text: '所策划的系统性解决方案，是否明确了四要素之间的相互关系及实施路径、关键突破口？', options: ['未明确，方案要素孤立', '方案描述了各要素建设内容', '方案阐明了要素间的协同关系与实施顺序', '方案是基于价值流的四要素一体化设计蓝图', '方案是具备自适应能力的生态化智能构建脚本'], perspective: '系统性解决方案' },
+    { id: 179, text: '解决方案的实施，是否以业务流程为牵引，有序推进相关职能、技术、数据的协同落地？', options: ['未协同，分头实施', '技术实施为主，流程和调整滞后', '建立项目制，确保流程优化与技术改造同步', '建立常设机制，确保四要素在实施中持续互动、匹配优化', '实施过程由智能体协同调度，实现四要素的自组织、自适应融合'], perspective: '系统性解决方案' },
+    { id: 180, text: '在解决方案实施过程中，是否开展必要的试运行，以促进四要素的相互磨合与匹配优化？', options: ['未开展，直接上线', '在最终用户中做简单试用', '在典型场景或范围内进行系统性试运行', '建立分阶段、多轮次的迭代试运行与优化机制', '利用数字孪生技术进行大规模仿真测试与优化，再部署'], perspective: '系统性解决方案' },
+    
+    // 181-190题
+    { id: 181, text: '是否建立了系统性解决方案的运行维护机制，确保其持续有效运行？', options: ['未建立，救火式维护', '有基础的IT运维团队和流程', '建立覆盖数据、应用、技术的统一运维体系', '建立主动式、预测性智能运维平台，保障业务连续性', '运维体系自身具备自愈、自优化能力，并向生态伙伴赋能'], perspective: '系统性解决方案' },
+    { id: 182, text: '是否紧跟技术发展趋势与业务新要求，持续优化系统性解决方案？', options: ['未优化，建设即结束', '出现重大问题后被动优化', '建立定期的解决方案评估与优化机制', '基于业务价值反馈和数据洞察，持续迭代解决方案', '解决方案具备在线演进能力，能自动吸纳新技术、适应新需求'], perspective: '系统性解决方案' },
+    { id: 183, text: '数据、技术、流程、组织四要素在解决方案中是否实现了有效的互动创新与迭代优化？', options: ['未互动，各自独立发展', '在项目中偶有互动', '建立了促进四要素互动的流程与会议机制', '四要素的互动创新成为组织常态和核心工作方法', '四要素在生态智能环境中实现无缝、实时的协同进化'], perspective: '系统性解决方案' },
+    { id: 184, text: '系统性解决方案是否有效支持了治理体系的建设与完善？', options: ['未支持', '解决方案为治理提供基础技术工具', '解决方案嵌入并固化了部分治理规则', '解决方案是实现数字化治理的核心载体和使能平台', '解决方案与治理体系融合，共同构成生态的智能治理骨架'], perspective: '系统性解决方案' },
+    { id: 185, text: '系统性解决方案是否有效支撑了所需新型能力的打造、运行与持续优化？', options: ['未支撑', '提供了能力建设所需的部分技术组件', '是承载和运行新型能力的主要技术平台', '解决方案的持续优化直接驱动了新型能力的演进', '解决方案与新型能力共生共长，共同构成生态的智能本体'], perspective: '系统性解决方案' },
+    { id: 186, text: '系统性解决方案是否有效加速了业务创新转型的进程？', options: ['未加速', '解决了业务转型中的部分技术瓶颈', '为业务模式创新提供了可行的技术路径', '是催生和规模化推广新业务、新模式的关键赋能器', '是定义和创造全新业务生态的核心基础设施与创新源泉'], perspective: '系统性解决方案' },
+    { id: 187, text: '解决方案的策划、实施与运维过程，是否得到了各要素相关责任主体的认同与协同？', options: ['未得到，阻力大', '关键部门参与，但协同一般', '建立跨职能团队，获得主要干系人支持', '通过架构治理和协同机制，确保各方深度参与、责任共担', '基于透明规则和智能合约，生态各方自动、自主地参与贡献'], perspective: '系统性解决方案' },
+    { id: 188, text: '企业是否具备将业务需求（价值模式、业务场景）快速转化为系统性解决方案设计的能力？', options: ['不具备，转化周期长、质量不稳定', '依赖外部厂商或专家进行设计', '内部团队能完成局部或标准化的方案设计', '建立企业级架构方法论和资源库，能高效完成复杂方案设计', '具备生态化、智能化的需求-方案即时生成与验证能力'], perspective: '系统性解决方案' },
+    { id: 189, text: '在平台级和生态级阶段，系统性解决方案是否实现了从"企业级系统"向"社会化平台"和"生态基座"的跃迁？', options: ['未跃迁，仍是内部系统', '开始对外提供有限的API或服务', '建成支撑网络化协同的平台化解决方案', '解决方案成为产业互联网的核心组成部分', '解决方案演进为开放、智能、可进化的产业生态操作系统'], perspective: '系统性解决方案' },
+    { id: 190, text: '解决方案中的技术要素，是否充分释放了云计算、大数据、物联网、人工智能、区块链等新一代信息技术的赋能作用？', options: ['未释放，以传统技术为主', '零星应用了部分新技术', '在关键业务场景中成体系地应用了新一代信息技术', '新一代信息技术与业务深度融合，成为创新发展的核心驱动力', '引领或深度参与新一代信息技术在产业生态中的创新定义与范式构建'], perspective: '系统性解决方案' },
+    
+    // 191-200题
+    { id: 191, text: '对数据要素的管理与利用，是否从事后记录向实时分析、预测预警、智能决策不断深化？', options: ['未深化，数据主要用于记录和查询', '部分数据用于统计分析和报表', '关键业务实现基于数据的实时分析和辅助决策', '全企业范围实现数据驱动的预测预警和自动化决策', '生态级数据智能实现认知决策、群体智能与价值创造'], perspective: '系统性解决方案' },
+    { id: 192, text: '流程要素的优化是否从提高单个活动效率，向打通端到端流程、实现资源全局动态优化配置演进？', options: ['未演进，聚焦局部效率', '开始关注跨部门流程打通', '实现主价值链端到端流程贯通与协同', '实现全企业资源链、价值链的动态全局优化', '实现生态圈内跨主体流程的自适应编排与资源智能配置'], perspective: '系统性解决方案' },
+    { id: 193, text: '组织要素的调整是否从被动适配系统，向主动构建数字化组织、激发个体潜能、实现人机协同进化？', options: ['未进化，组织被动调整', '意识到需要调整组织以适应数字化', '主动设计并推行面向数字化转型的组织变革', '构建了充满活力、高度自适应的人机协同数字化组织', '组织边界模糊，演化为基于共同使命和智能合约的生态共生体'], perspective: '系统性解决方案' },
+    { id: 194, text: '整个系统性解决方案的建设与演进，是否遵循了"策划-实施-运行-评测-改进"的闭环过程方法？', options: ['未遵循，建设过程随意', '有基本的项目管理制度', '建立了覆盖解决方案全生命周期的标准过程体系', '过程方法实现数字化、敏捷化，并能动态优化', '过程本身实现智能化、自治化，形成自我强化的增强回路'], perspective: '系统性解决方案' },
+    { id: 195, text: '系统性解决方案最终是否成为企业构建数字化时代核心竞争优势的坚实底座和创新引擎？', options: ['未成为，是成本中心', '是支撑业务运营的必要条件', '成为提升运营效率和客户体验的关键推动力', '成为驱动业务创新和商业模式变革的核心能力平台', '成为定义产业规则、引领生态共创、获取可持续竞争优势的战略性资产'], perspective: '系统性解决方案' },
+    { id: 196, text: '是否建立了与数字化解决方案相匹配的技术安全、数据安全和网络安全保障体系？', options: ['未建立', '基础安全防护措施', '建立了等级保护制度并定期评估', '形成主动防御和智能安全运维体系', '构建了覆盖生态的可信计算环境与协同安全防御体系'], perspective: '系统性解决方案' },
+    { id: 197, text: '解决方案是否支持快速响应市场变化和业务需求的敏捷调整能力？', options: ['不支持，调整周期长', '支持局部功能调整', '支持主要业务流程的快速重构', '支持全企业业务模式的敏捷转型', '支持生态级业务场景的自适应重构与创新'], perspective: '系统性解决方案' },
+    { id: 198, text: '是否建立了基于数字孪生的虚拟仿真环境，支持解决方案的模拟验证和优化？', options: ['未建立', '局部功能的简单仿真', '关键业务环节的数字孪生应用', '全企业级数字孪生平台', '生态级数字孪生网络，支持协同仿真与优化'], perspective: '系统性解决方案' },
+    { id: 199, text: '解决方案是否实现了技术架构的松耦合、模块化和可扩展性？', options: ['未实现，紧耦合架构', '部分模块化设计', '微服务架构，支持模块化部署', '云原生架构，支持弹性扩展', '自适应架构，支持生态级扩展与演化'], perspective: '系统性解决方案' },
+    { id: 200, text: '是否形成了解决方案的知识管理体系，支持最佳实践的沉淀、复用和持续优化？', options: ['未形成', '零散的经验文档', '建立了解决方案知识库', '形成了系统化的解决方案方法论和知识体系', '构建了生态级解决方案知识共创与智能演化平台'], perspective: '系统性解决方案' }
+],
+            };
+            
+            // 成熟度等级描述
+            const maturityLevels = {
+                '规范级': {
+                    description: '企业开始关注并探索数字化转型，在局部业务环节应用信息技术工具，但尚未形成体系化、规范化的数字化转型管理。',
+                    stages: {
+                        1: '单点信息技术工具应用：在个别业务环节应用独立的信息技术工具',
+                        2: '单一细分业务环节信息系统应用：在单一细分业务环节实现信息系统应用',
+                        3: '跨细分业务环节信息系统集成：实现跨细分业务环节的信息系统集成',
+                        4: '主业务环节（主场景）数据驱动：在主业务环节实现数据驱动的业务管理'
+                    }
+                },
+                '场景级': {
+                    description: '企业基于主营业务数字化场景需求，开展数字技术应用，推动主营业务范围内关键业务环节的数字化、网络化改造。',
+                    stages: {
+                        5: '主业务环节数据驱动（数字场景）：在主业务环节实现数据驱动的数字化场景',
+                        6: '主业务环节知识赋能（知识场景）：在主业务环节实现知识赋能的数字化场景',
+                        7: '主业务环节智能自主（智能场景）：在主业务环节实现智能自主的数字化场景'
+                    }
+                },
+                '领域级': {
+                    description: '企业在全企业（组织）范围内，通过数据、技术、流程、组织四要素的系统性创新和持续优化，实现全企业范围内的数字化协同和智能化运行。',
+                    stages: {
+                        6: '全企业数据驱动（数字企业）：在全企业范围内实现数据驱动的业务管理',
+                        7: '全企业知识赋能（知识企业）：在全企业范围内实现知识赋能的业务管理',
+                        8: '全企业智能自主（智能企业）：在全企业范围内实现智能自主的业务管理'
+                    }
+                },
+                '平台级': {
+                    description: '企业基于数字化平台，与合作伙伴共同构建数字化供应链/产业链，实现跨企业的数据、业务和能力集成，开展社会化协作和资源配置。',
+                    stages: {
+                        7: '供应链/产业链网络数据驱动（数字平台）：在供应链/产业链网络中实现数据驱动的业务协同',
+                        8: '供应链/产业链网络知识赋能（知识平台）：在供应链/产业链网络中实现知识赋能的业务协同',
+                        9: '供应链/产业链网络智能自主（智能平台）：在供应链/产业链网络中实现智能自主的业务协同'
+                    }
+                },
+                '生态级': {
+                    description: '企业作为生态组织者，与生态合作伙伴共同构建数字化生态圈，实现生态圈内数据、业务和能力的开放共享和协同创新，引领产业数字化生态发展。',
+                    stages: {
+                        8: '产业生态圈数据驱动（数字生态）：在产业生态圈内实现数据驱动的协同创新',
+                        9: '产业生态圈知识赋能（知识生态）：在产业生态圈内实现知识赋能的协同创新',
+                        10: '产业生态圈智能自主（智能生态）：在产业生态圈内实现智能自主的协同创新'
+                    }
+                }
+            };
+            
+            // 初始化
+            init();
+            
+            function init() {
+                // 加载保存的数据
+                loadSavedData();
+                
+                // 初始化导航
+                initNavigation();
+                
+                // 初始化评估问卷
+                initAssessment();
+                
+                // 初始化按钮事件
+                initButtons();
+                
+                // 更新进度
+                updateProgress();
+                
+                // 加载历史记录
+                loadHistory();
+            }
+            
+            function initNavigation() {
+                // 导航菜单点击事件
+                const navLinks = document.querySelectorAll('.nav-link');
+                navLinks.forEach(link => {
+                    link.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        
+                        // 移除所有active类
+                        navLinks.forEach(l => l.classList.remove('active'));
+                        
+                        // 添加active类到当前链接
+                        this.classList.add('active');
+                        
+                        // 显示对应的内容区域
+                        const sectionId = this.getAttribute('data-section');
+                        const sections = document.querySelectorAll('.content-section');
+                        sections.forEach(section => {
+                            section.classList.remove('active');
+                        });
+                        
+                        document.getElementById(sectionId).classList.add('active');
+                        
+                        // 如果是结果页面，更新结果
+                        if (sectionId === 'results') {
+                            updateResults();
+                        }
+                        
+                        // 如果是历史页面，更新历史记录
+                        if (sectionId === 'history') {
+                            updateHistory();
+                        }
+                        
+                        // 如果是导出页面，更新导出内容
+                        if (sectionId === 'export') {
+                            updateExportContent();
+                        }
+                    });
+                });
+            }
+            
+            function initAssessment() {
+                // 生成问卷内容
+                generateQuestionnaire();
+                
+                // 更新页面指示器
+                updatePageIndicator();
+                
+                // 设置题目选项点击事件
+                setupQuestionEvents();
+            }
+            
+            function generateQuestionnaire() {
+                const questionnaireContent = document.getElementById('questionnaireContent');
+                questionnaireContent.innerHTML = '';
+                
+                // 计算当前页的题目范围
+                const startQuestion = (currentPage - 1) * questionsPerPage + 1;
+                const endQuestion = Math.min(startQuestion + questionsPerPage - 1, totalQuestions);
+                
+                // 生成题目
+                for (let i = startQuestion; i <= endQuestion; i++) {
+                    // 这里应该根据i找到对应的题目数据
+                    // 由于我们只有部分示例数据，这里使用占位符
+                    const question = getQuestionByNumber(i);
+                    if (question) {
+                        const questionCard = document.createElement('div');
+                        questionCard.className = 'question-card';
+                        questionCard.dataset.questionId = question.id;
+                        
+                        // 获取当前题目的已保存答案
+                        const savedAnswer = assessmentData[`q${question.id}`];
+                        
+                        questionCard.innerHTML = `
+                            <div style="display: flex; align-items: flex-start; margin-bottom: 1rem;">
+                                <div class="question-number">${question.id}</div>
+                                <div class="question-text">${question.text}</div>
+                            </div>
+                            <div class="options-container">
+                                ${question.options.map((option, index) => `
+                                    <label class="option-item ${savedAnswer === (index + 1).toString() ? 'selected' : ''}">
+                                        <input type="radio" name="q${question.id}" value="${index + 1}" class="option-radio" ${savedAnswer === (index + 1).toString() ? 'checked' : ''}>
+                                        <div class="option-text">${option}</div>
+                                        <div class="option-score">${index + 1}分</div>
+                                    </label>
+                                `).join('')}
+                            </div>
+                        `;
+                        
+                        questionnaireContent.appendChild(questionCard);
+                    }
+                }
+                
+                // 重新设置题目选项点击事件
+                setupQuestionEvents();
+            }
+            
+            function getQuestionByNumber(number) {
+                // 根据题号找到对应的题目
+                // 这里简化处理，实际应用中应该包含所有200道题目
+                for (const perspective in questionsData) {
+                    for (const question of questionsData[perspective]) {
+                        if (question.id === number) {
+                            return question;
+                        }
+                    }
+                }
+                // 如果找不到，返回一个默认题目
+                return {
+                    id: number,
+                    text: `问题 ${number}: 请根据企业实际情况选择最符合的选项`,
+                    options: ['选项1', '选项2', '选项3', '选项4', '选项5'],
+                    perspective: number <= 40 ? '发展战略' : 
+                                number <= 80 ? '业务创新转型' : 
+                                number <= 120 ? '新型能力' : 
+                                number <= 160 ? '治理体系' : '系统性解决方案'
+                };
+            }
+            
+            function setupQuestionEvents() {
+                // 设置选项点击事件
+                const optionItems = document.querySelectorAll('.option-item');
+                optionItems.forEach(item => {
+                    item.addEventListener('click', function() {
+                        // 移除同组其他选项的selected类
+                        const radioName = this.querySelector('input[type="radio"]').name;
+                        const sameGroupItems = document.querySelectorAll(`input[name="${radioName}"]`);
+                        sameGroupItems.forEach(input => {
+                            input.closest('.option-item').classList.remove('selected');
+                        });
+                        
+                        // 添加selected类到当前选项
+                        this.classList.add('selected');
+                        
+                        // 选中对应的radio
+                        const radio = this.querySelector('input[type="radio"]');
+                        radio.checked = true;
+                        
+                        // 保存答案
+                        saveAnswer(radio.name, radio.value);
+                        
+                        // 更新进度
+                        updateProgress();
+                    });
+                });
+                
+                // 设置企业基本信息输入事件
+                const companyInputs = document.querySelectorAll('#companyInfoSection input, #companyInfoSection select');
+                companyInputs.forEach(input => {
+                    input.addEventListener('change', function() {
+                        saveCompanyInfo(this.id, this.value);
+                        updateProgress();
+                    });
+                    
+                    input.addEventListener('input', function() {
+                        saveCompanyInfo(this.id, this.value);
+                        updateProgress();
+                    });
+                });
+                
+                // 设置企业基本信息单选按钮事件
+                const companyRadios = document.querySelectorAll('#companyInfoSection input[type="radio"]');
+                companyRadios.forEach(radio => {
+                    radio.addEventListener('change', function() {
+                        saveCompanyInfo(this.name, this.value);
+                        updateProgress();
+                    });
+                });
+            }
+            
+            function saveAnswer(questionName, answer) {
+                assessmentData[questionName] = answer;
+                localStorage.setItem('digitalTransformationAssessment', JSON.stringify(assessmentData));
+            }
+            
+            function saveCompanyInfo(fieldName, value) {
+                assessmentData[fieldName] = value;
+                localStorage.setItem('digitalTransformationAssessment', JSON.stringify(assessmentData));
+            }
+            
+            function loadSavedData() {
+                const savedData = localStorage.getItem('digitalTransformationAssessment');
+                if (savedData) {
+                    assessmentData = JSON.parse(savedData);
+                    
+                    // 恢复企业基本信息
+                    if (assessmentData.companyName) {
+                        document.getElementById('companyName').value = assessmentData.companyName;
+                    }
+                    
+                    if (assessmentData.industry) {
+                        document.getElementById('industry').value = assessmentData.industry;
+                    }
+                    
+                    if (assessmentData.companySize) {
+                        const radios = document.getElementsByName('companySize');
+                        for (const radio of radios) {
+                            if (radio.value === assessmentData.companySize) {
+                                radio.checked = true;
+                                radio.closest('.option-item').classList.add('selected');
+                                break;
+                            }
+                        }
+                    }
+                    
+                    if (assessmentData.revenue) {
+                        document.getElementById('revenue').value = assessmentData.revenue;
+                    }
+                    
+                    if (assessmentData.digitalTransformationStart) {
+                        document.getElementById('digitalTransformationStart').value = assessmentData.digitalTransformationStart;
+                    }
+                    
+                    if (assessmentData.digitalLeader) {
+                        document.getElementById('digitalLeader').value = assessmentData.digitalLeader;
+                    }
+                    
+                    if (assessmentData.hasDigitalStrategy) {
+                        const radios = document.getElementsByName('hasDigitalStrategy');
+                        for (const radio of radios) {
+                            if (radio.value === assessmentData.hasDigitalStrategy) {
+                                radio.checked = true;
+                                radio.closest('.option-item').classList.add('selected');
+                                break;
+                            }
+                        }
+                    }
+                    
+                    if (assessmentData.hasDigitalTeam) {
+                        const radios = document.getElementsByName('hasDigitalTeam');
+                        for (const radio of radios) {
+                            if (radio.value === assessmentData.hasDigitalTeam) {
+                                radio.checked = true;
+                                radio.closest('.option-item').classList.add('selected');
+                                break;
+                            }
+                        }
+                    }
+                    
+                    if (assessmentData.digitalInvestment) {
+                        const radios = document.getElementsByName('digitalInvestment');
+                        for (const radio of radios) {
+                            if (radio.value === assessmentData.digitalInvestment) {
+                                radio.checked = true;
+                                radio.closest('.option-item').classList.add('selected');
+                                break;
+                            }
+                        }
+                    }
+                    
+                    if (assessmentData.hasDigitalCertification) {
+                        const radios = document.getElementsByName('hasDigitalCertification');
+                        for (const radio of radios) {
+                            if (radio.value === assessmentData.hasDigitalCertification) {
+                                radio.checked = true;
+                                radio.closest('.option-item').classList.add('selected');
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            function updateProgress() {
+                // 计算已回答的问题数量
+                let answeredCount = 0;
+                const totalCount = 10 + totalQuestions; // 10个基本信息 + 200个问题
+                
+                // 检查基本信息
+                const companyInfoFields = [
+                    'companyName', 'industry', 'companySize', 'revenue', 
+                    'digitalTransformationStart', 'digitalLeader', 'hasDigitalStrategy',
+                    'hasDigitalTeam', 'digitalInvestment', 'hasDigitalCertification'
+                ];
+                
+                companyInfoFields.forEach(field => {
+                    if (assessmentData[field] && assessmentData[field].toString().trim() !== '') {
+                        answeredCount++;
+                    }
+                });
+                
+                // 检查问题答案
+                for (let i = 1; i <= totalQuestions; i++) {
+                    if (assessmentData[`q${i}`]) {
+                        answeredCount++;
+                    }
+                }
+                
+                // 更新进度条
+                const progressPercentage = Math.round((answeredCount / totalCount) * 100);
+                document.getElementById('progressFill').style.width = `${progressPercentage}%`;
+                
+                // 更新状态文本
+                const statusElement = document.getElementById('currentStatus');
+                if (progressPercentage === 0) {
+                    statusElement.textContent = '未开始评测';
+                } else if (progressPercentage < 100) {
+                    statusElement.textContent = `评测中 (${progressPercentage}%)`;
+                } else {
+                    statusElement.textContent = '评测已完成';
+                }
+                
+                // 如果是最后一页且所有问题已回答，显示提交按钮
+                if (currentPage === totalPages && progressPercentage === 100) {
+                    document.getElementById('submitAssessmentBtn').style.display = 'block';
+                } else {
+                    document.getElementById('submitAssessmentBtn').style.display = 'none';
+                }
+                
+                return progressPercentage;
+            }
+            
+            function updatePageIndicator() {
+                document.getElementById('currentPageIndicator').textContent = `第 ${currentPage} 页 / 共 ${totalPages} 页`;
+            }
+            
+            function initButtons() {
+                // 上一页按钮
+                document.getElementById('prevPageBtn').addEventListener('click', function() {
+                    if (currentPage > 1) {
+                        currentPage--;
+                        generateQuestionnaire();
+                        updatePageIndicator();
+                        updateProgress();
+                    }
+                });
+                
+                // 下一页按钮
+                document.getElementById('nextPageBtn').addEventListener('click', function() {
+                    if (currentPage < totalPages) {
+                        currentPage++;
+                        generateQuestionnaire();
+                        updatePageIndicator();
+                        updateProgress();
+                    }
+                });
+                
+                // 提交评估按钮
+                document.getElementById('submitAssessmentBtn').addEventListener('click', function() {
+                    calculateResults();
+                    document.getElementById('completionModal').classList.add('active');
+                    
+                    // 保存评估结果到历史记录
+                    saveToHistory();
+                });
+                
+                // 保存进度按钮
+                document.getElementById('saveProgressBtn').addEventListener('click', function() {
+                    // 显示保存成功提示
+                    showNotification('进度已保存到本地', 'success');
+                });
+                
+                // 开始评测按钮
+                document.getElementById('startAssessmentBtn').addEventListener('click', function() {
+                    document.querySelector('.nav-link[data-section="assessment"]').click();
+                });
+                
+                // 查看示例报告按钮
+                document.getElementById('viewDemoBtn').addEventListener('click', function() {
+                    // 加载示例数据
+                    loadDemoData();
+                    showNotification('示例数据已加载，请查看评估结果', 'info');
+                });
+                
+                // 生成PDF报告按钮
+                document.getElementById('generateReportBtn').addEventListener('click', function() {
+                    generatePDFReport();
+                });
+                
+                // 清空历史按钮
+                document.getElementById('clearHistoryBtn').addEventListener('click', function() {
+                    document.getElementById('confirmClearModal').classList.add('active');
+                });
+                
+                // 确认清空历史按钮
+                document.getElementById('confirmClearBtn').addEventListener('click', function() {
+                    clearHistory();
+                    document.getElementById('confirmClearModal').classList.remove('active');
+                    showNotification('历史记录已清空', 'success');
+                });
+                
+                // 取消清空历史按钮
+                document.getElementById('cancelClearBtn').addEventListener('click', function() {
+                    document.getElementById('confirmClearModal').classList.remove('active');
+                });
+                
+                // 关闭确认模态框
+                document.getElementById('closeConfirmModal').addEventListener('click', function() {
+                    document.getElementById('confirmClearModal').classList.remove('active');
+                });
+                
+                // 查看结果按钮（完成模态框）
+                document.getElementById('viewResultsBtn').addEventListener('click', function() {
+                    document.getElementById('completionModal').classList.remove('active');
+                    document.querySelector('.nav-link[data-section="results"]').click();
+                });
+                
+                // 导出结果按钮（完成模态框）
+                document.getElementById('exportResultsBtn').addEventListener('click', function() {
+                    document.getElementById('completionModal').classList.remove('active');
+                    document.querySelector('.nav-link[data-section="export"]').click();
+                });
+                
+                // 关闭完成模态框
+                document.getElementById('closeCompletionModal').addEventListener('click', function() {
+                    document.getElementById('completionModal').classList.remove('active');
+                });
+                
+                // 文件选择按钮
+                document.getElementById('selectFileBtn').addEventListener('click', function() {
+                    document.getElementById('excelFile').click();
+                });
+                
+                // 文件输入变化事件
+                document.getElementById('excelFile').addEventListener('change', function(e) {
+                    handleFileSelect(e);
+                });
+                
+                // 拖放文件事件
+                const dropArea = document.getElementById('dropArea');
+                dropArea.addEventListener('dragover', function(e) {
+                    e.preventDefault();
+                    dropArea.style.borderColor = 'var(--primary-color)';
+                    dropArea.style.backgroundColor = '#f0f9ff';
+                });
+                
+                dropArea.addEventListener('dragleave', function(e) {
+                    e.preventDefault();
+                    dropArea.style.borderColor = '#cbd5e1';
+                    dropArea.style.backgroundColor = '';
+                });
+                
+                dropArea.addEventListener('drop', function(e) {
+                    e.preventDefault();
+                    dropArea.style.borderColor = '#cbd5e1';
+                    dropArea.style.backgroundColor = '';
+                    
+                    const files = e.dataTransfer.files;
+                    if (files.length > 0) {
+                        handleExcelFile(files[0]);
+                    }
+                });
+                
+                // 下载模板按钮
+                document.getElementById('downloadTemplateBtn').addEventListener('click', function() {
+                    downloadTemplate();
+                });
+                
+                // 导出报告按钮
+                document.getElementById('exportSummaryBtn').addEventListener('click', function() {
+                    generatePDFReport('summary');
+                });
+                
+                document.getElementById('exportDetailedBtn').addEventListener('click', function() {
+                    generatePDFReport('detailed');
+                });
+                
+                document.getElementById('exportComparisonBtn').addEventListener('click', function() {
+                    generatePDFReport('comparison');
+                });
+            }
+            
+            function calculateResults() {
+                // 根据GB/T 45341-2025标准计算成熟度
+                const perspectiveScores = {
+                    '发展战略': { total: 0, count: 0, average: 0 },
+                    '业务创新转型': { total: 0, count: 0, average: 0 },
+                    '新型能力': { total: 0, count: 0, average: 0 },
+                    '治理体系': { total: 0, count: 0, average: 0 },
+                    '系统性解决方案': { total: 0, count: 0, average: 0 }
+                };
+                
+                // 计算每个视角的平均分
+                for (let i = 1; i <= totalQuestions; i++) {
+                    const answer = assessmentData[`q${i}`];
+                    if (answer) {
+                        const question = getQuestionByNumber(i);
+                        const perspective = question.perspective;
+                        if (perspectiveScores[perspective]) {
+                            perspectiveScores[perspective].total += parseInt(answer);
+                            perspectiveScores[perspective].count++;
+                        }
+                    }
+                }
+                
+                // 计算平均分
+                for (const perspective in perspectiveScores) {
+                    if (perspectiveScores[perspective].count > 0) {
+                        perspectiveScores[perspective].average = perspectiveScores[perspective].total / perspectiveScores[perspective].count;
+                    }
+                }
+                
+                // 计算总平均分
+                let totalScore = 0;
+                let perspectiveCount = 0;
+                for (const perspective in perspectiveScores) {
+                    if (perspectiveScores[perspective].count > 0) {
+                        totalScore += perspectiveScores[perspective].average;
+                        perspectiveCount++;
+                    }
+                }
+                const overallAverage = totalScore / perspectiveCount;
+                
+                // 确定每个视角的等级
+                const perspectiveLevels = {};
+                for (const perspective in perspectiveScores) {
+                    const score = perspectiveScores[perspective].average;
+                    perspectiveLevels[perspective] = getLevelByScore(score);
+                }
+                
+                // 确定整体等级（木桶原理）
+                let overallLevel = '规范级';
+                const levelOrder = ['规范级', '场景级', '领域级', '平台级', '生态级'];
+                for (const perspective in perspectiveLevels) {
+                    const levelIndex = levelOrder.indexOf(perspectiveLevels[perspective]);
+                    const overallIndex = levelOrder.indexOf(overallLevel);
+                    if (levelIndex < overallIndex) {
+                        overallLevel = perspectiveLevels[perspective];
+                    }
+                }
+                
+                // 确定档次
+                const stage = getStageByScore(overallLevel, overallAverage);
+                
+                // 保存结果
+                assessmentResults = {
+                    date: new Date().toLocaleString('zh-CN'),
+                    perspectiveScores: perspectiveScores,
+                    overallAverage: overallAverage,
+                    overallLevel: overallLevel,
+                    stage: stage,
+                    companyInfo: {
+                        name: assessmentData.companyName || '未填写',
+                        industry: assessmentData.industry || '未填写',
+                        size: getCompanySizeText(assessmentData.companySize),
+                        revenue: assessmentData.revenue || '未填写'
+                    }
+                };
+                
+                // 保存到localStorage
+                localStorage.setItem('digitalTransformationResults', JSON.stringify(assessmentResults));
+            }
+            
+            function getLevelByScore(score) {
+                if (score >= 4.5) return '生态级';
+                if (score >= 4.1) return '平台级';
+                if (score >= 3.1) return '领域级';
+                if (score >= 2.1) return '场景级';
+                return '规范级';
+            }
+            
+            function getStageByScore(level, score) {
+                const stages = maturityLevels[level].stages;
+                const stageKeys = Object.keys(stages).map(Number);
+                
+                // 根据分数确定档次
+                let stage = 1;
+                if (level === '规范级') {
+                    if (score >= 1.75) stage = 4;
+                    else if (score >= 1.5) stage = 3;
+                    else if (score >= 1.25) stage = 2;
+                    else stage = 1;
+                } else if (level === '场景级') {
+                    if (score >= 2.7) stage = 7;
+                    else if (score >= 2.4) stage = 6;
+                    else stage = 5;
+                } else if (level === '领域级') {
+                    if (score >= 3.7) stage = 8;
+                    else if (score >= 3.4) stage = 7;
+                    else stage = 6;
+                } else if (level === '平台级') {
+                    if (score >= 4.7) stage = 9;
+                    else if (score >= 4.4) stage = 8;
+                    else stage = 7;
+                } else if (level === '生态级') {
+                    if (score >= 4.83) stage = 10;
+                    else if (score >= 4.67) stage = 9;
+                    else stage = 8;
+                }
+                
+                return stage;
+            }
+            
+            function getCompanySizeText(sizeValue) {
+                switch(sizeValue) {
+                    case '1': return '50人以下';
+                    case '2': return '50-300人';
+                    case '3': return '300-1000人';
+                    case '4': return '1000-5000人';
+                    case '5': return '5000人以上';
+                    default: return '未填写';
+                }
+            }
+            
+            function updateResults() {
+                const resultsContent = document.getElementById('resultsContent');
+                const resultsLoader = document.getElementById('resultsLoader');
+                
+                // 显示加载器
+                resultsLoader.classList.add('active');
+                
+                // 延迟显示结果，模拟计算过程
+                setTimeout(() => {
+                    // 隐藏加载器
+                    resultsLoader.classList.remove('active');
+                    
+                    // 检查是否有评估结果
+                    const savedResults = localStorage.getItem('digitalTransformationResults');
+                    if (!savedResults) {
+                        resultsContent.innerHTML = `
+                            <div style="text-align: center; padding: 3rem 1rem;">
+                                <div style="font-size: 4rem; color: #cbd5e1; margin-bottom: 1rem;">
+                                    <i class="fas fa-chart-line"></i>
+                                </div>
+                                <h3 style="font-size: 1.5rem; margin-bottom: 0.5rem; color: var(--dark-color);">暂无评估结果</h3>
+                                <p style="color: var(--gray-color); margin-bottom: 1.5rem;">请先完成数字化转型成熟度评估问卷</p>
+                                <button class="btn btn-primary" id="goToAssessmentBtn">
+                                    <i class="fas fa-clipboard-check btn-icon"></i>
+                                    开始评估
+                                </button>
+                            </div>
+                        `;
+                        
+                        document.getElementById('goToAssessmentBtn').addEventListener('click', function() {
+                            document.querySelector('.nav-link[data-section="assessment"]').click();
+                        });
+                        return;
+                    }
+                    
+                    // 解析结果
+                    assessmentResults = JSON.parse(savedResults);
+                    
+                    // 生成结果页面
+                    resultsContent.innerHTML = `
+                        <div class="result-card">
+                            <div class="result-level">${assessmentResults.overallLevel}</div>
+                            <div class="result-stage">第${assessmentResults.stage}档 - ${maturityLevels[assessmentResults.overallLevel].stages[assessmentResults.stage]}</div>
+                            <div class="result-description">
+                                <h4>等级特征描述</h4>
+                                <p>${maturityLevels[assessmentResults.overallLevel].description}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="perspective-scores">
+                            <div class="perspective-score-card">
+                                <div class="perspective-name">发展战略</div>
+                                <div class="perspective-value">${assessmentResults.perspectiveScores['发展战略'].average.toFixed(2)}</div>
+                                <div class="perspective-level">${getLevelByScore(assessmentResults.perspectiveScores['发展战略'].average)}</div>
+                            </div>
+                            <div class="perspective-score-card">
+                                <div class="perspective-name">业务创新转型</div>
+                                <div class="perspective-value">${assessmentResults.perspectiveScores['业务创新转型'].average.toFixed(2)}</div>
+                                <div class="perspective-level">${getLevelByScore(assessmentResults.perspectiveScores['业务创新转型'].average)}</div>
+                            </div>
+                            <div class="perspective-score-card">
+                                <div class="perspective-name">新型能力</div>
+                                <div class="perspective-value">${assessmentResults.perspectiveScores['新型能力'].average.toFixed(2)}</div>
+                                <div class="perspective-level">${getLevelByScore(assessmentResults.perspectiveScores['新型能力'].average)}</div>
+                            </div>
+                            <div class="perspective-score-card">
+                                <div class="perspective-name">治理体系</div>
+                                <div class="perspective-value">${assessmentResults.perspectiveScores['治理体系'].average.toFixed(2)}</div>
+                                <div class="perspective-level">${getLevelByScore(assessmentResults.perspectiveScores['治理体系'].average)}</div>
+                            </div>
+                            <div class="perspective-score-card">
+                                <div class="perspective-name">系统性解决方案</div>
+                                <div class="perspective-value">${assessmentResults.perspectiveScores['系统性解决方案'].average.toFixed(2)}</div>
+                                <div class="perspective-level">${getLevelByScore(assessmentResults.perspectiveScores['系统性解决方案'].average)}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="charts-container">
+                            <div class="chart-card">
+                                <div class="chart-title">五个视角得分对比</div>
+                                <canvas id="resultsChart" height="250"></canvas>
+                            </div>
+                            <div class="chart-card">
+                                <div class="chart-title">成熟度等级分布</div>
+                                <canvas id="levelChart" height="250"></canvas>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-top: 2rem;">
+                            <h3 style="font-weight: 600; margin-bottom: 1rem; color: var(--dark-color);">企业基本信息</h3>
+                            <div style="background-color: #f8fafc; padding: 1.5rem; border-radius: var(--border-radius);">
+                                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem;">
+                                    <div>
+                                        <div style="font-weight: 600; margin-bottom: 0.25rem; color: var(--dark-color);">企业名称</div>
+                                        <div>${assessmentResults.companyInfo.name}</div>
+                                    </div>
+                                    <div>
+                                        <div style="font-weight: 600; margin-bottom: 0.25rem; color: var(--dark-color);">所属行业</div>
+                                        <div>${assessmentResults.companyInfo.industry}</div>
+                                    </div>
+                                    <div>
+                                        <div style="font-weight: 600; margin-bottom: 0.25rem; color: var(--dark-color);">企业规模</div>
+                                        <div>${assessmentResults.companyInfo.size}</div>
+                                    </div>
+                                    <div>
+                                        <div style="font-weight: 600; margin-bottom: 0.25rem; color: var(--dark-color);">营业收入</div>
+                                        <div>${assessmentResults.companyInfo.revenue} 万元</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-top: 2rem;">
+                            <h3 style="font-weight: 600; margin-bottom: 1rem; color: var(--dark-color);">改进建议</h3>
+                            <div style="background-color: #f8fafc; padding: 1.5rem; border-radius: var(--border-radius);">
+                                <p style="margin-bottom: 1rem;">基于您的评估结果，我们为您提供以下改进建议：</p>
+                                <ul style="margin-left: 1.5rem; margin-bottom: 1rem;">
+                                    <li>加强数字化转型战略的制定与执行，确保战略与业务深度融合</li>
+                                    <li>提升数据采集、集成与分析能力，建立数据驱动的决策机制</li>
+                                    <li>优化数字化治理体系，建立跨部门协同机制</li>
+                                    <li>加大数字化人才培养和引进力度，提升全员数字化素养</li>
+                                    <li>推动业务流程的数字化重构，实现端到端的数字化贯通</li>
+                                </ul>
+                                <p>建议定期（每半年或每年）进行成熟度评估，跟踪数字化转型进展。</p>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // 绘制图表
+                    drawResultsChart();
+                    drawLevelChart();
+                }, 500);
+            }
+            
+            function drawResultsChart() {
+                const ctx = document.getElementById('resultsChart').getContext('2d');
+                
+                const perspectives = ['发展战略', '业务创新转型', '新型能力', '治理体系', '系统性解决方案'];
+                const scores = perspectives.map(p => assessmentResults.perspectiveScores[p].average);
+                
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: perspectives,
+                        datasets: [{
+                            label: '得分',
+                            data: scores,
+                            backgroundColor: [
+                                'rgba(37, 99, 235, 0.7)',
+                                'rgba(16, 185, 129, 0.7)',
+                                'rgba(245, 158, 11, 0.7)',
+                                'rgba(239, 68, 68, 0.7)',
+                                'rgba(139, 92, 246, 0.7)'
+                            ],
+                            borderColor: [
+                                'rgb(37, 99, 235)',
+                                'rgb(16, 185, 129)',
+                                'rgb(245, 158, 11)',
+                                'rgb(239, 68, 68)',
+                                'rgb(139, 92, 246)'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 5,
+                                title: {
+                                    display: true,
+                                    text: '得分'
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
+            }
+            
+            function drawLevelChart() {
+                const ctx = document.getElementById('levelChart').getContext('2d');
+                
+                const levelOrder = ['规范级', '场景级', '领域级', '平台级', '生态级'];
+                const currentLevelIndex = levelOrder.indexOf(assessmentResults.overallLevel);
+                
+                const data = [0, 0, 0, 0, 0];
+                data[currentLevelIndex] = 1;
+                
+                new Chart(ctx, {
+                    type: 'radar',
+                    data: {
+                        labels: levelOrder,
+                        datasets: [{
+                            label: '成熟度等级',
+                            data: data,
+                            backgroundColor: 'rgba(37, 99, 235, 0.2)',
+                            borderColor: 'rgb(37, 99, 235)',
+                            pointBackgroundColor: 'rgb(37, 99, 235)',
+                            pointBorderColor: '#fff',
+                            pointHoverBackgroundColor: '#fff',
+                            pointHoverBorderColor: 'rgb(37, 99, 235)'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            r: {
+                                beginAtZero: true,
+                                max: 1,
+                                ticks: {
+                                    display: false
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            
+            function saveToHistory() {
+                // 加载现有历史记录
+                loadHistory();
+                
+                // 添加新记录
+                historyData.push({
+                    id: Date.now(),
+                    date: assessmentResults.date,
+                    level: assessmentResults.overallLevel,
+                    stage: assessmentResults.stage,
+                    score: assessmentResults.overallAverage,
+                    companyName: assessmentResults.companyInfo.name
+                });
+                
+                // 保存到localStorage
+                localStorage.setItem('digitalTransformationHistory', JSON.stringify(historyData));
+                
+                // 更新历史记录显示
+                updateHistory();
+            }
+            
+            function loadHistory() {
+                const savedHistory = localStorage.getItem('digitalTransformationHistory');
+                if (savedHistory) {
+                    historyData = JSON.parse(savedHistory);
+                }
+            }
+            
+            function updateHistory() {
+                const historyList = document.getElementById('historyList');
+                
+                if (historyData.length === 0) {
+                    historyList.innerHTML = `
+                        <div style="text-align: center; padding: 3rem 1rem;">
+                            <div style="font-size: 4rem; color: #cbd5e1; margin-bottom: 1rem;">
+                                <i class="fas fa-history"></i>
+                            </div>
+                            <h3 style="font-size: 1.5rem; margin-bottom: 0.5rem; color: var(--dark-color);">暂无历史记录</h3>
+                            <p style="color: var(--gray-color); margin-bottom: 1.5rem;">完成评估后，您的评估记录将显示在这里</p>
+                        </div>
+                    `;
+                    
+                    document.getElementById('historyChartContainer').style.display = 'none';
+                    return;
+                }
+                
+                // 显示历史记录
+                historyList.innerHTML = '';
+                
+                // 按日期倒序排序
+                const sortedHistory = [...historyData].sort((a, b) => b.id - a.id);
+                
+                sortedHistory.forEach(record => {
+                    const historyItem = document.createElement('div');
+                    historyItem.className = 'history-item';
+                    historyItem.innerHTML = `
+                        <div class="history-date">${record.date} - ${record.companyName || '未命名企业'}</div>
+                        <div>
+                            <span class="history-level level-${record.level}">${record.level}</span>
+                            <span class="history-score">第${record.stage}档 | 平均分: ${record.score.toFixed(2)}</span>
+                        </div>
+                    `;
+                    
+                    historyItem.addEventListener('click', function() {
+                        // 加载该历史记录到当前评估
+                        loadHistoryRecord(record.id);
+                        showNotification('历史记录已加载到当前评估', 'info');
+                    });
+                    
+                    historyList.appendChild(historyItem);
+                });
+                
+                // 显示图表容器
+                document.getElementById('historyChartContainer').style.display = 'block';
+                
+                // 绘制历史趋势图
+                drawHistoryChart();
+            }
+            
+            function loadHistoryRecord(recordId) {
+                // 这里应该从历史记录中加载具体的评估数据
+                // 由于我们只保存了摘要，这里简化处理
+                const record = historyData.find(r => r.id === recordId);
+                if (record) {
+                    // 显示通知
+                    showNotification(`已加载 ${record.date} 的评估记录`, 'info');
+                    
+                    // 导航到结果页面
+                    document.querySelector('.nav-link[data-section="results"]').click();
+                }
+            }
+            
+            function drawHistoryChart() {
+                const ctx = document.getElementById('historyChart').getContext('2d');
+                
+                // 按日期排序
+                const sortedHistory = [...historyData].sort((a, b) => a.id - b.id);
+                
+                const labels = sortedHistory.map(r => {
+                    const date = new Date(r.id);
+                    return `${date.getMonth()+1}/${date.getDate()}`;
+                });
+                
+                const scores = sortedHistory.map(r => r.score);
+                
+                // 等级映射为数值
+                const levelValues = {
+                    '规范级': 1,
+                    '场景级': 2,
+                    '领域级': 3,
+                    '平台级': 4,
+                    '生态级': 5
+                };
+                
+                const levels = sortedHistory.map(r => levelValues[r.level] || 0);
+                
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: '平均分',
+                                data: scores,
+                                borderColor: 'rgb(37, 99, 235)',
+                                backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                                yAxisID: 'y',
+                                tension: 0.3
+                            },
+                            {
+                                label: '等级',
+                                data: levels,
+                                borderColor: 'rgb(16, 185, 129)',
+                                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                                yAxisID: 'y1',
+                                tension: 0.3
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        interaction: {
+                            mode: 'index',
+                            intersect: false
+                        },
+                        scales: {
+                            y: {
+                                type: 'linear',
+                                display: true,
+                                position: 'left',
+                                title: {
+                                    display: true,
+                                    text: '平均分'
+                                },
+                                min: 1,
+                                max: 5
+                            },
+                            y1: {
+                                type: 'linear',
+                                display: true,
+                                position: 'right',
+                                title: {
+                                    display: true,
+                                    text: '等级'
+                                },
+                                min: 1,
+                                max: 5,
+                                grid: {
+                                    drawOnChartArea: false
+                                },
+                                ticks: {
+                                    callback: function(value) {
+                                        const levelMap = {
+                                            1: '规范级',
+                                            2: '场景级',
+                                            3: '领域级',
+                                            4: '平台级',
+                                            5: '生态级'
+                                        };
+                                        return levelMap[value] || value;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            
+            function clearHistory() {
+                historyData = [];
+                localStorage.removeItem('digitalTransformationHistory');
+                updateHistory();
+            }
+            
+            function updateExportContent() {
+                // 更新导出页面的内容
+                const savedResults = localStorage.getItem('digitalTransformationResults');
+                if (savedResults) {
+                    const results = JSON.parse(savedResults);
+                    
+                    document.getElementById('exportLevel').textContent = results.overallLevel;
+                    document.getElementById('exportStage').textContent = `第${results.stage}档 - ${maturityLevels[results.overallLevel].stages[results.stage]}`;
+                    
+                    // 绘制导出图表
+                    drawExportChart(results);
+                }
+            }
+            
+            function drawExportChart(results) {
+                const ctx = document.getElementById('exportChart').getContext('2d');
+                
+                const perspectives = ['发展战略', '业务创新转型', '新型能力', '治理体系', '系统性解决方案'];
+                const scores = perspectives.map(p => results.perspectiveScores[p].average);
+                
+                new Chart(ctx, {
+                    type: 'polarArea',
+                    data: {
+                        labels: perspectives,
+                        datasets: [{
+                            label: '得分',
+                            data: scores,
+                            backgroundColor: [
+                                'rgba(37, 99, 235, 0.7)',
+                                'rgba(16, 185, 129, 0.7)',
+                                'rgba(245, 158, 11, 0.7)',
+                                'rgba(239, 68, 68, 0.7)',
+                                'rgba(139, 92, 246, 0.7)'
+                            ],
+                            borderColor: [
+                                'rgb(37, 99, 235)',
+                                'rgb(16, 185, 129)',
+                                'rgb(245, 158, 11)',
+                                'rgb(239, 68, 68)',
+                                'rgb(139, 92, 246)'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            r: {
+                                beginAtZero: true,
+                                max: 5
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                position: 'right'
+                            }
+                        }
+                    }
+                });
+            }
+            
+            function generatePDFReport(type = 'detailed') {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF('p', 'mm', 'a4');
+                
+                // 获取评估结果
+                const savedResults = localStorage.getItem('digitalTransformationResults');
+                if (!savedResults) {
+                    showNotification('请先完成评估再生成报告', 'error');
+                    return;
+                }
+                
+                const results = JSON.parse(savedResults);
+                
+                // 添加标题
+                doc.setFontSize(20);
+                doc.setTextColor(37, 99, 235);
+                doc.text('企业数字化转型成熟度评估报告', 105, 20, { align: 'center' });
+                
+                doc.setFontSize(12);
+                doc.setTextColor(100, 116, 139);
+                doc.text(`基于GB/T 45341-2025《数字化转型管理参考架构》与T/AIITRE 10004-2023《数字化转型成熟度模型》`, 105, 28, { align: 'center' });
+                
+                doc.setFontSize(10);
+                doc.text(`评估日期：${results.date}`, 105, 35, { align: 'center' });
+                
+                // 添加分隔线
+                doc.setDrawColor(200, 200, 200);
+                doc.line(20, 40, 190, 40);
+                
+                let yPosition = 50;
+                
+                // 添加企业基本信息
+                doc.setFontSize(14);
+                doc.setTextColor(30, 41, 59);
+                doc.text('一、企业基本信息', 20, yPosition);
+                yPosition += 10;
+                
+                doc.setFontSize(10);
+                doc.setTextColor(0, 0, 0);
+                doc.text(`企业名称：${results.companyInfo.name}`, 20, yPosition);
+                yPosition += 7;
+                doc.text(`所属行业：${results.companyInfo.industry}`, 20, yPosition);
+                yPosition += 7;
+                doc.text(`企业规模：${results.companyInfo.size}`, 20, yPosition);
+                yPosition += 7;
+                doc.text(`营业收入：${results.companyInfo.revenue} 万元`, 20, yPosition);
+                yPosition += 15;
+                
+                // 添加评估结果
+                doc.setFontSize(14);
+                doc.setTextColor(30, 41, 59);
+                doc.text('二、评估结果', 20, yPosition);
+                yPosition += 10;
+                
+                doc.setFontSize(12);
+                doc.setTextColor(37, 99, 235);
+                doc.text(`成熟度等级：${results.overallLevel}`, 20, yPosition);
+                yPosition += 7;
+                
+                doc.setFontSize(10);
+                doc.setTextColor(0, 0, 0);
+                doc.text(`具体档次：第${results.stage}档 - ${maturityLevels[results.overallLevel].stages[results.stage]}`, 20, yPosition);
+                yPosition += 7;
+                doc.text(`综合平均分：${results.overallAverage.toFixed(2)}`, 20, yPosition);
+                yPosition += 10;
+                
+                // 添加各视角得分
+                doc.setFontSize(12);
+                doc.setTextColor(30, 41, 59);
+                doc.text('各视角得分情况：', 20, yPosition);
+                yPosition += 10;
+                
+                const perspectives = ['发展战略', '业务创新转型', '新型能力', '治理体系', '系统性解决方案'];
+                const perspectiveData = perspectives.map(p => [
+                    p,
+                    results.perspectiveScores[p].average.toFixed(2),
+                    getLevelByScore(results.perspectiveScores[p].average)
+                ]);
+                
+                doc.autoTable({
+                    startY: yPosition,
+                    head: [['视角', '平均分', '等级']],
+                    body: perspectiveData,
+                    theme: 'striped',
+                    headStyles: { fillColor: [37, 99, 235] },
+                    margin: { left: 20, right: 20 }
+                });
+                
+                yPosition = doc.lastAutoTable.finalY + 15;
+                
+                // 添加等级特征描述
+                doc.setFontSize(12);
+                doc.setTextColor(30, 41, 59);
+                doc.text('等级特征描述：', 20, yPosition);
+                yPosition += 7;
+                
+                doc.setFontSize(10);
+                doc.setTextColor(0, 0, 0);
+                const description = maturityLevels[results.overallLevel].description;
+                const splitDescription = doc.splitTextToSize(description, 170);
+                doc.text(splitDescription, 20, yPosition);
+                yPosition += splitDescription.length * 5 + 10;
+                
+                // 添加改进建议
+                doc.setFontSize(12);
+                doc.setTextColor(30, 41, 59);
+                doc.text('三、改进建议', 20, yPosition);
+                yPosition += 10;
+                
+                doc.setFontSize(10);
+                doc.setTextColor(0, 0, 0);
+                const suggestions = [
+                    '1. 加强数字化转型战略的制定与执行，确保战略与业务深度融合',
+                    '2. 提升数据采集、集成与分析能力，建立数据驱动的决策机制',
+                    '3. 优化数字化治理体系，建立跨部门协同机制',
+                    '4. 加大数字化人才培养和引进力度，提升全员数字化素养',
+                    '5. 推动业务流程的数字化重构，实现端到端的数字化贯通',
+                    '6. 定期（每半年或每年）进行成熟度评估，跟踪数字化转型进展'
+                ];
+                
+                suggestions.forEach(suggestion => {
+                    const splitSuggestion = doc.splitTextToSize(suggestion, 170);
+                    doc.text(splitSuggestion, 20, yPosition);
+                    yPosition += splitSuggestion.length * 5 + 5;
+                });
+                
+                // 添加页脚
+                doc.setFontSize(8);
+                doc.setTextColor(100, 116, 139);
+                doc.text('本报告基于GB/T 45341-2025与T/AIITRE 10004-2023标准生成，仅供参考。', 105, 280, { align: 'center' });
+                
+                // 保存PDF
+                const fileName = `数字化转型成熟度评估报告_${results.companyInfo.name || '企业'}_${results.date.replace(/[/:\\]/g, '-')}.pdf`;
+                doc.save(fileName);
+                
+                showNotification('PDF报告已生成并开始下载', 'success');
+            }
+            
+            function handleFileSelect(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    handleExcelFile(file);
+                }
+            }
+            
+            function handleExcelFile(file) {
+                // 检查文件类型
+                if (!file.name.match(/\.(xlsx|xls)$/)) {
+                    showNotification('请选择Excel文件（.xlsx或.xls格式）', 'error');
+                    return;
+                }
+                
+                // 显示文件信息
+                const fileInfo = document.getElementById('fileInfo');
+                fileInfo.style.display = 'block';
+                fileInfo.innerHTML = `
+                    <div class="file-selected">
+                        <div>
+                            <div class="file-name">${file.name}</div>
+                            <div class="file-size">${(file.size / 1024).toFixed(2)} KB</div>
+                        </div>
+                        <button class="btn btn-secondary" id="removeFileBtn" style="padding: 0.25rem 0.5rem; font-size: 0.85rem;">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                `;
+                
+                // 移除文件按钮事件
+                document.getElementById('removeFileBtn').addEventListener('click', function() {
+                    fileInfo.style.display = 'none';
+                    document.getElementById('excelFile').value = '';
+                });
+                
+                // 显示导入状态
+                const importStatus = document.getElementById('importStatus');
+                importStatus.style.display = 'flex';
+                document.getElementById('statusMessage').textContent = '正在读取Excel文件...';
+                document.getElementById('statusMessage').className = 'status-message';
+                
+                // 读取Excel文件
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const data = new Uint8Array(e.target.result);
+                        const workbook = XLSX.read(data, { type: 'array' });
+                        
+                        // 获取第一个工作表
+                        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                        
+                        // 转换为JSON
+                        const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+                        
+                        // 处理导入的数据
+                        processImportedData(jsonData);
+                        
+                    } catch (error) {
+                        document.getElementById('statusMessage').textContent = '读取Excel文件失败: ' + error.message;
+                        document.getElementById('statusMessage').className = 'status-message status-error';
+                    }
+                };
+                
+                reader.readAsArrayBuffer(file);
+            }
+            
+            function processImportedData(data) {
+                // 这里应该根据Excel文件的结构处理数据
+                // 假设Excel有两列：题号和答案
+                
+                let importedCount = 0;
+                let errorCount = 0;
+                
+                data.forEach(row => {
+                    const questionNum = row['题号'];
+                    const answer = row['答案'];
+                    
+                    if (questionNum && answer) {
+                        // 处理企业基本信息
+                        if (questionNum === 'companyName') {
+                            assessmentData.companyName = answer;
+                            document.getElementById('companyName').value = answer;
+                            importedCount++;
+                        } else if (questionNum === 'industry') {
+                            assessmentData.industry = answer;
+                            document.getElementById('industry').value = answer;
+                            importedCount++;
+                        } else if (questionNum === 'revenue') {
+                            assessmentData.revenue = answer;
+                            document.getElementById('revenue').value = answer;
+                            importedCount++;
+                        } else if (!isNaN(questionNum)) {
+                            // 处理题目答案
+                            const questionId = parseInt(questionNum);
+                            if (questionId >= 1 && questionId <= totalQuestions) {
+                                assessmentData[`q${questionId}`] = answer.toString();
+                                importedCount++;
+                            } else {
+                                errorCount++;
+                            }
+                        }
+                    }
+                });
+                
+                // 保存数据
+                localStorage.setItem('digitalTransformationAssessment', JSON.stringify(assessmentData));
+                
+                // 更新状态
+                const statusMessage = document.getElementById('statusMessage');
+                if (errorCount === 0) {
+                    statusMessage.textContent = `成功导入 ${importedCount} 条数据`;
+                    statusMessage.className = 'status-message status-success';
+                    
+                    // 重新加载问卷页面以更新答案
+                    generateQuestionnaire();
+                    updateProgress();
+                    
+                    showNotification('Excel数据导入成功', 'success');
+                } else {
+                    statusMessage.textContent = `导入完成，成功 ${importedCount} 条，失败 ${errorCount} 条`;
+                    statusMessage.className = 'status-message status-warning';
+                    
+                    showNotification('Excel数据导入完成，部分数据可能存在格式问题', 'warning');
+                }
+            }
+            
+            function downloadTemplate() {
+                // 创建模板数据
+                const templateData = [];
+                
+                // 添加企业基本信息
+                templateData.push({ 题号: 'companyName', 答案: '示例企业' });
+                templateData.push({ 题号: 'industry', 答案: '制造业' });
+                templateData.push({ 题号: 'companySize', 答案: '3' });
+                templateData.push({ 题号: 'revenue', 答案: '50000' });
+                templateData.push({ 题号: 'digitalTransformationStart', 答案: '2020年' });
+                templateData.push({ 题号: 'digitalLeader', 答案: '首席数字官' });
+                templateData.push({ 题号: 'hasDigitalStrategy', 答案: '1' });
+                templateData.push({ 题号: 'hasDigitalTeam', 答案: '1' });
+                templateData.push({ 题号: 'digitalInvestment', 答案: '3' });
+                templateData.push({ 题号: 'hasDigitalCertification', 答案: '0' });
+                
+                // 添加题目答案示例
+                for (let i = 1; i <= 20; i++) {
+                    templateData.push({ 题号: i, 答案: Math.floor(Math.random() * 5) + 1 });
+                }
+                
+                // 创建工作表
+                const ws = XLSX.utils.json_to_sheet(templateData);
+                
+                // 创建工作簿
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, '评估数据');
+                
+                // 生成Excel文件
+                XLSX.writeFile(wb, '数字化转型评估导入模板.xlsx');
+                
+                showNotification('模板文件已开始下载', 'success');
+            }
+            
+            function loadDemoData() {
+                // 加载示例数据
+                assessmentData = {
+                    companyName: '示例科技有限公司',
+                    industry: '信息技术',
+                    companySize: '3',
+                    revenue: '80000',
+                    digitalTransformationStart: '2019年',
+                    digitalLeader: '首席技术官',
+                    hasDigitalStrategy: '1',
+                    hasDigitalTeam: '1',
+                    digitalInvestment: '3',
+                    hasDigitalCertification: '0'
+                };
+                
+                // 为部分题目添加示例答案
+                for (let i = 1; i <= 50; i++) {
+                    assessmentData[`q${i}`] = (Math.floor(Math.random() * 5) + 1).toString();
+                }
+                
+                // 保存数据
+                localStorage.setItem('digitalTransformationAssessment', JSON.stringify(assessmentData));
+                
+                // 重新加载表单
+                loadSavedData();
+                generateQuestionnaire();
+                updateProgress();
+                
+                // 计算示例结果
+                calculateResults();
+            }
+            
+            function showNotification(message, type = 'info') {
+                // 创建通知元素
+                const notification = document.createElement('div');
+                notification.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    padding: 1rem 1.5rem;
+                    border-radius: var(--border-radius);
+                    background-color: ${type === 'success' ? '#d1fae5' : 
+                                     type === 'error' ? '#fee2e2' : 
+                                     type === 'warning' ? '#fef3c7' : '#dbeafe'};
+                    color: ${type === 'success' ? '#065f46' : 
+                            type === 'error' ? '#991b1b' : 
+                            type === 'warning' ? '#92400e' : '#1e40af'};
+                    border-left: 4px solid ${type === 'success' ? '#10b981' : 
+                                         type === 'error' ? '#ef4444' : 
+                                         type === 'warning' ? '#f59e0b' : '#3b82f6'};
+                    box-shadow: var(--box-shadow);
+                    z-index: 1000;
+                    max-width: 350px;
+                    display: flex;
+                    align-items: center;
+                    animation: slideIn 0.3s ease;
+                `;
+                
+                notification.innerHTML = `
+                    <i class="fas ${type === 'success' ? 'fa-check-circle' : 
+                                   type === 'error' ? 'fa-exclamation-circle' : 
+                                   type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle'}" 
+                       style="margin-right: 0.75rem; font-size: 1.2rem;"></i>
+                    <div>${message}</div>
+                `;
+                
+                document.body.appendChild(notification);
+                
+                // 3秒后移除通知
+                setTimeout(() => {
+                    notification.style.animation = 'slideOut 0.3s ease';
+                    setTimeout(() => {
+                        if (notification.parentNode) {
+                            notification.parentNode.removeChild(notification);
+                        }
+                    }, 300);
+                }, 3000);
+                
+                // 添加CSS动画
+                if (!document.querySelector('#notification-styles')) {
+                    const style = document.createElement('style');
+                    style.id = 'notification-styles';
+                    style.textContent = `
+                        @keyframes slideIn {
+                            from { transform: translateX(100%); opacity: 0; }
+                            to { transform: translateX(0); opacity: 1; }
+                        }
+                        @keyframes slideOut {
+                            from { transform: translateX(0); opacity: 1; }
+                            to { transform: translateX(100%); opacity: 0; }
+                        }
+                    `;
+                    document.head.appendChild(style);
+                }
+            }
+        });
+    </script>
+</body>
+</html>

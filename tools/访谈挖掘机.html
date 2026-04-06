@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>咨询访谈 · 智慧纪要工具</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        body {
+            background: #f3f6fb;
+            margin: 0;
+            min-height: 100vh;
+            padding: 2rem 1.5rem;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            max-width: 1300px;
+            width: 100%;
+        }
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        h1 {
+            font-weight: 600;
+            font-size: 1.8rem;
+            color: #0b2b4f;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        h1 span {
+            background: #d9e9fa;
+            padding: 0.2rem 0.8rem;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #1a5c9e;
+        }
+        .add-panel {
+            background: white;
+            padding: 0.8rem 1.2rem;
+            border-radius: 60px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+            display: flex;
+            gap: 0.6rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .add-panel input {
+            border: none;
+            background: #f0f4fa;
+            padding: 0.7rem 1.2rem;
+            border-radius: 40px;
+            width: 260px;
+            font-size: 0.95rem;
+            outline: none;
+            border: 1px solid transparent;
+            transition: 0.15s;
+        }
+        .add-panel input:focus {
+            border-color: #2b7ed7;
+            background: white;
+        }
+        .btn {
+            border: none;
+            background: white;
+            padding: 0.6rem 1.4rem;
+            border-radius: 40px;
+            font-weight: 500;
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+            transition: 0.1s ease;
+            border: 1px solid #dee7f0;
+            color: #1a3b5e;
+        }
+        .btn-primary {
+            background: #1f4e8c;
+            border-color: #1f4e8c;
+            color: white;
+            box-shadow: 0 4px 10px rgba(27,78,141,0.2);
+        }
+        .btn-primary:hover {
+            background: #15427c;
+        }
+        .btn-outline {
+            background: white;
+            border: 1px solid #cbd6e4;
+        }
+        .btn-outline:hover {
+            background: #edf3fa;
+        }
+        .btn-sm {
+            padding: 0.3rem 1rem;
+            font-size: 0.85rem;
+        }
+        .btn-icon {
+            background: transparent;
+            border: none;
+            box-shadow: none;
+            color: #6f7f94;
+            font-size: 1.2rem;
+            padding: 0.2rem 0.5rem;
+        }
+        .btn-icon:hover {
+            color: #cc3b3b;
+            background: #ffeeee;
+        }
+        .btn:active {
+            transform: scale(0.97);
+        }
+        .interview-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+        .card {
+            background: white;
+            border-radius: 24px;
+            padding: 1.5rem 1.8rem;
+            box-shadow: 0 12px 28px rgba(0,27,55,0.05);
+            border: 1px solid #e2ebf6;
+            transition: 0.1s;
+        }
+        .card-header {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+        }
+        .unit-info {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+        .unit-name {
+            font-weight: 600;
+            font-size: 1.4rem;
+            color: #10355e;
+            letter-spacing: -0.3px;
+        }
+        .status-selector {
+            background: #edf2f9;
+            padding: 0.2rem;
+            border-radius: 40px;
+            display: inline-flex;
+            border: 1px solid #ccdcee;
+        }
+        .status-option {
+            padding: 0.3rem 1.2rem;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            transition: 0.1s;
+            color: #446688;
+        }
+        .status-option.active {
+            background: white;
+            color: #0a2f54;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+            font-weight: 600;
+            border: 1px solid #b7d0ea;
+        }
+        .delete-btn {
+            color: #9aabbb;
+            background: none;
+            border: none;
+            font-size: 1.6rem;
+            line-height: 1;
+            cursor: pointer;
+            padding: 0 0.5rem;
+            border-radius: 40px;
+        }
+        .delete-btn:hover {
+            color: #c00;
+            background: #fff1f1;
+        }
+        .section-label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            font-weight: 600;
+            color: #58789c;
+            margin-bottom: 0.4rem;
+        }
+        .transcript-area {
+            background: #f7faff;
+            border-radius: 18px;
+            padding: 1rem 1.3rem;
+            border: 1px solid #dbe4f0;
+            margin: 1rem 0 1.2rem 0;
+        }
+        .flex-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        textarea, input[type="text"] {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border-radius: 16px;
+            border: 1px solid #d2dfef;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            background: white;
+            resize: vertical;
+            font-family: inherit;
+            transition: 0.1s;
+        }
+        textarea:focus, input:focus {
+            border-color: #2f7ed4;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(42,121,216,0.1);
+        }
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .insight-card {
+            background: #fafcff;
+            padding: 1rem 1.2rem;
+            border-radius: 20px;
+            border: 1px solid #e4edf8;
+        }
+        .insight-card .section-label {
+            margin-bottom: 0.6rem;
+        }
+        .action-bar {
+            margin-top: 2rem;
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .report-download {
+            background: #1d3d5c;
+            color: white;
+            border: none;
+            padding: 0.9rem 2.2rem;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 1rem;
+            box-shadow: 0 8px 18px rgba(18,52,93,0.15);
+            cursor: pointer;
+            transition: 0.1s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+        .report-download:hover {
+            background: #0f2c44;
+        }
+        .footer-note {
+            margin-top: 2.5rem;
+            font-size: 0.8rem;
+            color: #7b93af;
+            text-align: right;
+            border-top: 1px dashed #c9d9ec;
+            padding-top: 1rem;
+        }
+        .badge {
+            background: #e2ecfe;
+            color: #1b5a9c;
+            border-radius: 30px;
+            padding: 0.2rem 0.9rem;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        .mock-voice-note {
+            color: #3f6990;
+            font-style: italic;
+        }
+        .btn-group {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+    </style>
+    <!-- 模拟字体 (无实际加载) -->
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>
+            📋 访谈挖掘机
+            <span>咨询前期·智能纪要与总结</span>
+        </h1>
+        <div class="add-panel">
+            <input type="text" id="newUnitName" placeholder="部门/分子公司名称，例如 战略规划部" value="市场洞察中心">
+            <button class="btn btn-primary" id="addPlanBtn">➕ 新增访谈计划</button>
+        </div>
+    </header>
+
+    <!-- 访谈卡片列表容器 -->
+    <div id="interviewList" class="interview-grid"></div>
+
+    <!-- 底部操作栏 -->
+    <div class="action-bar">
+        <button class="btn btn-outline" id="mockDataBtn" title="快速填充两条示例访谈">📋 插入示例</button>
+        <button class="report-download" id="completeAllBtn">📄 全部完成 & 生成汇总报告</button>
+    </div>
+    <div class="footer-note">
+        * 点击「语音转文字」可模拟或使用真实麦克风 (Chrome/Edge) ；AI 纪要根据 DeepSeek (模拟) 生成痛点·需求·建议
+    </div>
+</div>
+
+<script>
+    (function() {
+        // ----- 初始数据模型 -----
+        let plans = [];
+
+        // 用于生成唯一ID
+        function generateId() {
+            return Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+        }
+
+        // 创建一个空白访谈计划
+        function createEmptyPlan(name) {
+            return {
+                id: generateId(),
+                name: name || '新部门',
+                status: 'plan',          // 'plan', 'ongoing', 'completed'
+                transcript: '',
+                summary: '',              // 访谈纪要 (AI生成)
+                pain: '',
+                demand: '',
+                suggestion: ''
+            };
+        }
+
+        // 初始化两条示例数据，方便演示
+        function initSamplePlans() {
+            plans = [
+                {
+                    id: 'sample1',
+                    name: '产品研发中心',
+                    status: 'ongoing',
+                    transcript: '目前研发流程中跨部门协作有些混乱，经常因为信息不同步导致延期。希望引入更敏捷的协作工具，并且每周同步会。',
+                    summary: '研发团队反馈协作效率待提升，信息同步不及时。建议采用Jira+Confluence并规范例会。',
+                    pain: '跨部门信息不同步，延期频繁；需求变更沟通成本高。',
+                    demand: '需要统一协作平台，实时同步进度；建立需求变更流程。',
+                    suggestion: '引入敏捷管理工具，每周两次站会；设立变更委员会评估影响。'
+                },
+                {
+                    id: 'sample2',
+                    name: '华南分公司',
+                    status: 'plan',
+                    transcript: '华南区客户反馈售后响应慢，备件库存管理混乱。希望总部给更多权限，本地化决策。',
+                    summary: '售后响应时效是主要痛点，库存系统与总部脱节。需要授权本地仓以及优化CRM。',
+                    pain: '售后响应超过48小时，备件无法追踪。',
+                    demand: '库存系统实时同步，一线人员有少量备件决策权。',
+                    suggestion: '建立区域备件中心，授权区域经理审批；上线移动端报修。'
+                }
+            ];
+        }
+        initSamplePlans();
+
+        // ----- 渲染函数 (完全基于plans数组) -----
+        const listContainer = document.getElementById('interviewList');
+
+        function render() {
+            if (!listContainer) return;
+            let html = '';
+            plans.forEach((plan, index) => {
+                // 状态中文字符
+                const statusText = { plan: '计划', ongoing: '进行中', completed: '已结束' }[plan.status] || '计划';
+                // 生成卡片
+                html += `
+                    <div class="card" data-id="${plan.id}">
+                        <div class="card-header">
+                            <div class="unit-info">
+                                <span class="unit-name">${escapeHtml(plan.name)}</span>
+                                <div class="status-selector">
+                                    <button class="status-option ${plan.status === 'plan' ? 'active' : ''}" data-index="${index}" data-status="plan">计划</button>
+                                    <button class="status-option ${plan.status === 'ongoing' ? 'active' : ''}" data-index="${index}" data-status="ongoing">进行中</button>
+                                    <button class="status-option ${plan.status === 'completed' ? 'active' : ''}" data-index="${index}" data-status="completed">已结束</button>
+                                </div>
+                                <span class="badge">${statusText}</span>
+                            </div>
+                            <button class="delete-btn" data-index="${index}" title="删除访谈计划">✕</button>
+                        </div>
+
+                        <!-- 语音转文字区块 + 纪要生成 -->
+                        <div class="transcript-area">
+                            <div class="section-label">🎤 访谈转录 (支持语音输入)</div>
+                            <textarea class="transcript-input" data-index="${index}" rows="2" placeholder="点击下方语音按钮，或直接输入对话内容...">${escapeHtml(plan.transcript)}</textarea>
+                            <div class="flex-row">
+                                <button class="btn btn-sm btn-outline voice-btn" data-index="${index}">🎙️ 语音转文字</button>
+                                <button class="btn btn-sm btn-outline ai-summary-btn" data-index="${index}">⚡ 调用DeepSeek生成纪要+总结</button>
+                                <span style="margin-left:auto; font-size:0.8rem; color:#3f6ca0;">${plan.summary ? '✅ 纪要已生成' : '⏳ 待生成'}</span>
+                            </div>
+                            <div style="margin-top:10px;">
+                                <div class="section-label">📝 访谈纪要 (AI生成/可编辑)</div>
+                                <textarea class="summary-input" data-index="${index}" rows="2" placeholder="访谈纪要...">${escapeHtml(plan.summary)}</textarea>
+                            </div>
+                        </div>
+
+                        <!-- 痛点·需求·建议 三栏 -->
+                        <div class="grid-3">
+                            <div class="insight-card">
+                                <div class="section-label">🔻 痛点</div>
+                                <textarea class="pain-input" data-index="${index}" rows="3" placeholder例如沟通不畅、流程滞后...">${escapeHtml(plan.pain)}</textarea>
+                            </div>
+                            <div class="insight-card">
+                                <div class="section-label">✨ 需求</div>
+                                <textarea class="demand-input" data-index="${index}" rows="3" placeholder="明确需要什么...">${escapeHtml(plan.demand)}</textarea>
+                            </div>
+                            <div class="insight-card">
+                                <div class="section-label">💡 建议</div>
+                                <textarea class="suggestion-input" data-index="${index}" rows="3" placeholder="初步解决思路...">${escapeHtml(plan.suggestion)}</textarea>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            listContainer.innerHTML = html;
+
+            // 如果plans为空，显示占位提示
+            if (plans.length === 0) {
+                listContainer.innerHTML = `<div style="background: #f0f7ff; border-radius: 40px; padding: 3rem; text-align: center; color: #547599;">📭 暂无访谈计划，点击上方「新增访谈计划」开始</div>`;
+            }
+
+            // ----- 绑定所有动态事件 (通过监听父容器委托或者单独绑定) 这里使用委托最干净 -----
+            // 但为了清晰，我们在外部使用事件委托统一处理。事件监听挂在listContainer上。
+        }
+
+        // 辅助转义 (防止XSS)
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str).replace(/[&<>"]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                if (m === '"') return '&quot;';
+                return m;
+            });
+        }
+
+        // 更新模型字段 (通用)
+        function updatePlanField(index, field, value) {
+            if (plans[index]) {
+                plans[index][field] = value;
+            }
+        }
+
+        // 事件委托处理所有卡片内交互
+        listContainer.addEventListener('click', (e) => {
+            const target = e.target;
+            // 处理状态切换按钮 (status-option)
+            if (target.classList.contains('status-option')) {
+                const index = target.getAttribute('data-index');
+                const status = target.getAttribute('data-status');
+                if (index !== null && status && plans[index]) {
+                    plans[index].status = status;
+                    render(); // 重新渲染更新active样式
+                }
+                e.preventDefault();
+            }
+
+            // 删除按钮
+            if (target.classList.contains('delete-btn')) {
+                const index = target.getAttribute('data-index');
+                if (index !== null && confirm('确定删除该访谈计划吗？')) {
+                    plans.splice(index, 1);
+                    render();
+                }
+                e.preventDefault();
+            }
+
+            // 语音转文字按钮
+            if (target.classList.contains('voice-btn')) {
+                const index = target.getAttribute('data-index');
+                if (index !== null && plans[index]) {
+                    handleVoiceInput(index);
+                }
+                e.preventDefault();
+            }
+
+            // AI生成纪要按钮
+            if (target.classList.contains('ai-summary-btn')) {
+                const index = target.getAttribute('data-index');
+                if (index !== null && plans[index]) {
+                    callMockDeepSeek(index);
+                }
+                e.preventDefault();
+            }
+        });
+
+        // 监听输入事件 (text areas) 通过input委托
+        listContainer.addEventListener('input', (e) => {
+            const target = e.target;
+            const index = target.getAttribute('data-index');
+            if (index === null) return;
+
+            if (target.classList.contains('transcript-input')) {
+                plans[index].transcript = target.value;
+            } else if (target.classList.contains('summary-input')) {
+                plans[index].summary = target.value;
+            } else if (target.classList.contains('pain-input')) {
+                plans[index].pain = target.value;
+            } else if (target.classList.contains('demand-input')) {
+                plans[index].demand = target.value;
+            } else if (target.classList.contains('suggestion-input')) {
+                plans[index].suggestion = target.value;
+            }
+        });
+
+        // 语音转文字实现（使用Web Speech API，如果不支持则模拟prompt）
+        function handleVoiceInput(index) {
+            const plan = plans[index];
+            if (!plan) return;
+
+            // 检测是否支持语音识别
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                // 降级处理：模拟输入框
+                const mockText = prompt('【模拟语音输入】请输入访谈对话内容 (您的浏览器不支持语音识别，这是模拟方式):', plan.transcript || '');
+                if (mockText !== null) {
+                    plan.transcript = mockText;
+                    render();
+                }
+                return;
+            }
+
+            // 使用Web Speech API
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'zh-CN';
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+
+            // 简单UI反馈 (可通过临时类，但不影响)
+            const btn = document.querySelector(`.voice-btn[data-index="${index}"]`);
+            if (btn) {
+                const originalText = btn.innerText;
+                btn.innerText = '🎙️ 聆听中...';
+                btn.disabled = true;
+            }
+
+            recognition.start();
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                plan.transcript = (plan.transcript ? plan.transcript + '\n' : '') + transcript; // 追加
+                render();
+            };
+
+            recognition.onerror = (event) => {
+                alert('语音识别出错: ' + event.error);
+            };
+
+            recognition.onend = () => {
+                if (btn) {
+                    btn.innerText = '🎙️ 语音转文字';
+                    btn.disabled = false;
+                }
+            };
+        }
+
+        // 模拟DeepSeek AI生成纪要、痛点、需求、建议 (基于transcript)
+        function callMockDeepSeek(index) {
+            const plan = plans[index];
+            if (!plan) return;
+            const transcript = plan.transcript.trim() || '暂无详细对话，请填写访谈内容。';
+
+            // 模拟AI处理延迟
+            const btn = document.querySelector(`.ai-summary-btn[data-index="${index}"]`);
+            if (btn) {
+                btn.innerText = '⏳ 思考中...';
+                btn.disabled = true;
+            }
+
+            setTimeout(() => {
+                // 模拟生成的内容 —— 根据transcript制作一些模板
+                const mockSummary = `【AI纪要】基于访谈: "${transcript.substring(0,40)}…" 总结核心: 主要讨论了流程效率、资源协调等问题。`;
+                const mockPain = `• 沟通延迟\n• 信息孤岛\n• 反馈机制缺失`.replace(/•/g, '▪️');
+                const mockDemand = `• 统一协作平台\n• 实时数据同步\n• 快速响应通道`;
+                const mockSuggestion = `• 引入周会+看板\n• 建立SLA\n• 试点自动化工具`;
+
+                // 稍微根据原文动态一下
+                let painGen = plan.pain || mockPain;
+                let demandGen = plan.demand || mockDemand;
+                let suggestionGen = plan.suggestion || mockSuggestion;
+                if (!plan.summary) plan.summary = mockSummary;
+                if (!plan.pain) plan.pain = painGen;
+                if (!plan.demand) plan.demand = demandGen;
+                if (!plan.suggestion) plan.suggestion = suggestionGen;
+
+                // 如果字段为空则填入，否则追加
+                if (plan.transcript.includes('售后') || transcript.includes('售后')) {
+                    plan.pain = '售后响应慢，客户抱怨升级。';
+                    plan.demand = '需要售后工单系统，备件预测。';
+                    plan.suggestion = '上线售后APP，设置区域备件仓。';
+                } else if (plan.transcript.includes('研发') || transcript.includes('开发')) {
+                    plan.pain = '需求变更频繁，开发资源被拉扯。';
+                    plan.demand = '需求优先级排序，版本规划流程。';
+                    plan.suggestion = 'Scrum细化，产品负责人终审。';
+                }
+
+                // 生成纪要
+                plan.summary = `【模拟DeepSeek】受访者提到：${plan.transcript.substring(0,60)}。痛点集中在${plan.pain.substring(0,20)}，建议${plan.suggestion.substring(0,20)}。`;
+
+                // 重新渲染
+                render();
+
+                if (btn) {
+                    btn.innerText = '⚡ 调用DeepSeek生成纪要+总结';
+                    btn.disabled = false;
+                }
+            }, 600);
+        }
+
+        // ----- 添加计划 -----
+        document.getElementById('addPlanBtn').addEventListener('click', () => {
+            const input = document.getElementById('newUnitName');
+            let name = input.value.trim();
+            if (!name) name = '新部门/公司';
+            const newPlan = createEmptyPlan(name);
+            plans.push(newPlan);
+            render();
+            input.value = ''; // 清空便于再次输入
+        });
+
+        // 插入示例 (调用初始示例，但避免重复)
+        document.getElementById('mockDataBtn').addEventListener('click', () => {
+            // 检查是否已有数据太多，简单合并示例，保留原有
+            const sample1 = createEmptyPlan('财务共享中心');
+            sample1.transcript = '财务审批流程过长，每月关账压力大，希望自动化。';
+            sample1.summary = '财务手工环节多，系统间数据不通。';
+            sample1.pain = '审批节点多，周期5-7天；手工对账易错。';
+            sample1.demand = '电子流程自动化，银企直连。';
+            sample1.suggestion = '引入RPA自动对账，简化审批层级。';
+            const sample2 = createEmptyPlan('人力资源部');
+            sample2.transcript = '员工入职流程涉及多个系统，手动开通账号繁琐。';
+            sample2.summary = 'HR希望统一门户，自动开通权限。';
+            sample2.pain = '入职流程耗时3小时，易遗漏账号。';
+            sample2.demand = '与OA、邮箱、门禁联动。';
+            sample2.suggestion = '上线HR机器人，表单自动派发。';
+            plans.push(sample1, sample2);
+            render();
+        });
+
+        // 全部完成 & 生成报告
+        document.getElementById('completeAllBtn').addEventListener('click', () => {
+            if (plans.length === 0) {
+                alert('暂无访谈计划，请先添加。');
+                return;
+            }
+            // 将所有访谈状态设为“已结束”
+            plans.forEach(p => p.status = 'completed');
+            render();
+
+            // 生成汇总报告 (txt)
+            generateReport();
+        });
+
+        function generateReport() {
+            let reportContent = `访谈总结报告\n生成时间：${new Date().toLocaleString('zh-CN')}\n=====================================\n\n`;
+            plans.forEach((plan, idx) => {
+                reportContent += `【访谈单位】${plan.name}\n`;
+                reportContent += `【状  态】已完成\n`;
+                reportContent += `【访谈转录】\n${plan.transcript || '无'}\n`;
+                reportContent += `【访谈纪要】\n${plan.summary || '无'}\n`;
+                reportContent += `【痛点】\n${plan.pain || '无'}\n`;
+                reportContent += `【需求】\n${plan.demand || '无'}\n`;
+                reportContent += `【建议】\n${plan.suggestion || '无'}\n`;
+                reportContent += `-------------------------------------\n\n`;
+            });
+
+            reportContent += `\n——— 报告结束 ———`;
+
+            // 下载文件
+            const blob = new Blob([reportContent], { type: 'text/plain;charset=utf-8' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `访谈汇总_${new Date().toISOString().slice(0,10)}.txt`;
+            link.click();
+            URL.revokeObjectURL(link.href);
+        }
+
+        // 初始渲染
+        render();
+    })();
+</script>
+</body>
+</html>
