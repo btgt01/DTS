@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>应用架构设计 - 企业数字化转型规划系统</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Microsoft YaHei", "PingFang SC", sans-serif; background: #f5f7fa; color: #1a1a2e; }
+    
+    .header { background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%); color: white; padding: 1.5rem 2rem; }
+    .header h1 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+    .header p { opacity: 0.9; font-size: 0.9rem; }
+    
+    .container { max-width: 1400px; margin: 2rem auto; padding: 0 1rem; }
+    
+    .card { background: white; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); margin-bottom: 1.5rem; overflow: hidden; }
+    .card-header { padding: 1rem 1.5rem; border-bottom: 1px solid #eee; background: #fafbfc; display: flex; justify-content: space-between; align-items: center; }
+    .card-header h2 { font-size: 1.1rem; color: #7c3aed; }
+    .card-body { padding: 1.5rem; }
+    
+    .btn { padding: 0.6rem 1.2rem; border: none; border-radius: 6px; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; }
+    .btn-primary { background: #7c3aed; color: white; }
+    .btn-primary:hover { background: #6d28d9; }
+    .btn-secondary { background: #6b7280; color: white; }
+    .btn-outline { background: white; color: #7c3aed; border: 1px solid #7c3aed; }
+    
+    /* 应用矩阵表格 */
+    .app-table { width: 100%; border-collapse: collapse; }
+    .app-table th, .app-table td { border: 1px solid #e5e7eb; padding: 0.75rem; text-align: left; }
+    .app-table th { background: #f8fafc; font-weight: 600; color: #374151; }
+    .app-table tr:hover { background: #f9fafb; }
+    .app-table input, .app-table select { width: 100%; padding: 0.5rem; border: 1px solid #e5e7eb; border-radius: 4px; }
+    .app-table select { cursor: pointer; }
+    
+    .status-tag { display: inline-block; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 500; }
+    .status-new { background: #dbeafe; color: #1e40af; }
+    .status-upgrade { background: #fef3c7; color: #92400e; }
+    .status-integrate { background: #d1fae5; color: #065f46; }
+    .status-replace { background: #fee2e2; color: #991b1b; }
+    .status-keep { background: #e5e7eb; color: #374151; }
+    
+    .add-row { background: #f9fafb; }
+    .add-row td { text-align: center; }
+    
+    /* 功能模块树 */
+    .module-tree { border: 1px solid #e5e7eb; border-radius: 8px; padding: 1rem; max-height: 400px; overflow-y: auto; }
+    .tree-item { padding: 0.5rem 0; }
+    .tree-item.group { font-weight: 600; color: #7c3aed; margin-top: 1rem; border-bottom: 1px dashed #e5e7eb; padding-bottom: 0.5rem; }
+    .tree-item.child { padding-left: 1.5rem; color: #374151; font-size: 0.9rem; }
+    .tree-item.child:hover { color: #7c3aed; cursor: pointer; }
+    
+    /* 系统关系图 */
+    .relation-canvas { background: #fafbfc; border: 1px solid #e5e7eb; border-radius: 8px; min-height: 400px; position: relative; }
+    .relation-node { position: absolute; background: white; border: 2px solid #7c3aed; border-radius: 8px; padding: 0.75rem 1rem; font-size: 0.85rem; cursor: move; min-width: 120px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    .relation-node:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+    .relation-node.core { background: #7c3aed; color: white; border-color: #6d28d9; }
+    .relation-node.external { background: #fef3c7; border-color: #f59e0b; }
+    
+    /* 集成关系 */
+    .integration-list { display: grid; gap: 0.75rem; }
+    .integration-item { display: flex; align-items: center; gap: 1rem; padding: 1rem; background: #f9fafb; border-radius: 8px; }
+    .integration-item .system-a, .integration-item .system-b { flex: 1; padding: 0.5rem; background: white; border: 1px solid #e5e7eb; border-radius: 6px; text-align: center; }
+    .integration-item .arrow { color: #7c3aed; font-size: 1.5rem; }
+    .integration-item .type { width: 100px; text-align: center; font-size: 0.85rem; color: #6b7280; }
+    
+    /* 统计卡片 */
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+    .stat-card { background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%); color: white; padding: 1.25rem; border-radius: 12px; text-align: center; }
+    .stat-card .number { font-size: 2rem; font-weight: 700; }
+    .stat-card .label { font-size: 0.85rem; opacity: 0.9; }
+    
+    .tab-nav { display: flex; gap: 0.5rem; margin-bottom: 1rem; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.5rem; }
+    .tab-nav button { padding: 0.5rem 1rem; border: none; background: none; cursor: pointer; font-size: 0.9rem; color: #6b7280; border-bottom: 2px solid transparent; margin-bottom: -0.5rem; }
+    .tab-nav button.active { color: #7c3aed; border-bottom-color: #7c3aed; font-weight: 600; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    
+    .export-section { text-align: center; margin-top: 2rem; padding-top: 2rem; border-top: 1px solid #e5e7eb; }
+    
+    @media (max-width: 768px) {
+      .app-table { font-size: 0.8rem; }
+      .app-table th, .app-table td { padding: 0.5rem; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>🖥️ 应用架构设计</h1>
+    <p>基于华为4A方法论，规划企业应用系统架构与集成关系</p>
+  </div>
+  
+  <div class="container">
+    <!-- 统计概览 -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="number" id="totalApps">0</div>
+        <div class="label">应用系统总数</div>
+      </div>
+      <div class="stat-card">
+        <div class="number" id="newApps">0</div>
+        <div class="label">新增系统</div>
+      </div>
+      <div class="stat-card">
+        <div class="number" id="upgradeApps">0</div>
+        <div class="label">升级改造</div>
+      </div>
+      <div class="stat-card">
+        <div class="number" id="integrationCount">0</div>
+        <div class="label">集成接口数</div>
+      </div>
+    </div>
+    
+    <!-- 标签页 -->
+    <div class="card">
+      <div class="tab-nav">
+        <button class="active" onclick="switchTab('matrix')">📋 应用系统矩阵</button>
+        <button onclick="switchTab('modules')">🧱 功能模块规划</button>
+        <button onclick="switchTab('relation')">🔗 集成关系设计</button>
+      </div>
+      
+      <!-- 应用系统矩阵 -->
+      <div class="tab-content active" id="tab-matrix">
+        <div style="margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <input type="text" id="searchApp" placeholder="搜索应用系统..." style="padding: 0.5rem 1rem; border: 1px solid #e5e7eb; border-radius: 6px; width: 250px;">
+          </div>
+          <button class="btn btn-primary" onclick="addAppRow()">+ 添加应用系统</button>
+        </div>
+        
+        <table class="app-table" id="appTable">
+          <thead>
+            <tr>
+              <th style="width: 40px;">序号</th>
+              <th>系统名称</th>
+              <th>系统英文名</th>
+              <th>所属领域</th>
+              <th>核心功能</th>
+              <th>建设方式</th>
+              <th>优先级</th>
+              <th style="width: 80px;">操作</th>
+            </tr>
+          </thead>
+          <tbody id="appTableBody">
+            <tr>
+              <td>1</td>
+              <td><input type="text" placeholder="如：ERP系统"></td>
+              <td><input type="text" placeholder="如：SAP S/4HANA"></td>
+              <td>
+                <select>
+                  <option value="">请选择</option>
+                  <option value="finance">财务管理</option>
+                  <option value="hr">人力资源</option>
+                  <option value="supply">供应链</option>
+                  <option value="production">生产制造</option>
+                  <option value="sales">营销销售</option>
+                  <option value="customer">客户服务</option>
+                  <option value="data">数据平台</option>
+                  <option value="infra">基础设施</option>
+                </select>
+              </td>
+              <td><input type="text" placeholder="核心功能描述"></td>
+              <td>
+                <select>
+                  <option value="new">新建</option>
+                  <option value="upgrade">升级</option>
+                  <option value="integrate">集成</option>
+                  <option value="replace">替换</option>
+                  <option value="keep">利旧</option>
+                </select>
+              </td>
+              <td>
+                <select>
+                  <option value="high">高</option>
+                  <option value="medium">中</option>
+                  <option value="low">低</option>
+                </select>
+              </td>
+              <td><button class="btn btn-secondary" onclick="deleteRow(this)">删除</button></td>
+            </tr>
+          </tbody>
+        </table>
+        
+        <div class="export-section">
+          <button class="btn btn-primary" onclick="exportAppMatrix()">📥 导出应用架构文档</button>
+        </div>
+      </div>
+      
+      <!-- 功能模块规划 -->
+      <div class="tab-content" id="tab-modules">
+        <div class="module-tree" id="moduleTree">
+          <div class="tree-item group" onclick="toggleGroup(this)">📊 经营管理 <span style="float:right;">▼</span></div>
+          <div class="tree-item child">战略管理</div>
+          <div class="tree-item child">计划预算</div>
+          <div class="tree-item child">绩效考核</div>
+          
+          <div class="tree-item group" onclick="toggleGroup(this)">💰 财务管理 <span style="float:right;">▼</span></div>
+          <div class="tree-item child">总账管理</div>
+          <div class="tree-item child">应收应付</div>
+          <div class="tree-item child">成本管理</div>
+          <div class="tree-item child">资金管理</div>
+          
+          <div class="tree-item group" onclick="toggleGroup(this)">👥 人力资源 <span style="float:right;">▼</span></div>
+          <div class="tree-item child">组织管理</div>
+          <div class="tree-item child">招聘配置</div>
+          <div class="tree-item child">薪酬福利</div>
+          <div class="tree-item child">绩效管理</div>
+          
+          <div class="tree-item group" onclick="toggleGroup(this)">🏭 生产制造 <span style="float:right;">▼</span></div>
+          <div class="tree-item child">生产计划</div>
+          <div class="tree-item child">工艺管理</div>
+          <div class="tree-item child">质量管理</div>
+          <div class="tree-item child">设备管理</div>
+          
+          <div class="tree-item group" onclick="toggleGroup(this)">📦 供应链管理 <span style="float:right;">▼</span></div>
+          <div class="tree-item child">采购管理</div>
+          <div class="tree-item child">库存管理</div>
+          <div class="tree-item child">销售物流</div>
+          
+          <div class="tree-item group" onclick="toggleGroup(this)">🎯 营销销售 <span style="float:right;">▼</span></div>
+          <div class="tree-item child">客户管理</div>
+          <div class="tree-item child">营销管理</div>
+          <div class="tree-item child">订单管理</div>
+          
+          <div class="tree-item group" onclick="toggleGroup(this)">🔧 技术研发 <span style="float:right;">▼</span></div>
+          <div class="tree-item child">项目管理</div>
+          <div class="tree-item child">产品管理</div>
+          <div class="tree-item child">研发设计</div>
+        </div>
+        
+        <div style="margin-top: 1rem;">
+          <button class="btn btn-primary" onclick="addModuleGroup()">+ 添加模块分组</button>
+          <button class="btn btn-secondary" onclick="saveModuleTree()">💾 保存模块规划</button>
+        </div>
+      </div>
+      
+      <!-- 集成关系设计 -->
+      <div class="tab-content" id="tab-relation">
+        <div style="margin-bottom: 1rem;">
+          <button class="btn btn-primary" onclick="addIntegration()">+ 添加集成关系</button>
+        </div>
+        
+        <div class="integration-list" id="integrationList">
+          <div class="integration-item">
+            <div class="system-a">ERP系统</div>
+            <div class="type">数据同步</div>
+            <div class="arrow">⟷</div>
+            <div class="system-b">MES系统</div>
+            <button class="btn btn-secondary" onclick="deleteIntegration(this)">删除</button>
+          </div>
+        </div>
+        
+        <div class="export-section">
+          <button class="btn btn-primary" onclick="exportIntegration()">📥 导出集成架构文档</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    let appRowCount = 1;
+    
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-nav button').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+      document.querySelector(`[onclick="switchTab('${tabId}')"]`).classList.add('active');
+      document.getElementById('tab-' + tabId).classList.add('active');
+      updateStats();
+    }
+    
+    function addAppRow() {
+      const tbody = document.getElementById('appTableBody');
+      appRowCount++;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${appRowCount}</td>
+        <td><input type="text" placeholder="如：CRM系统"></td>
+        <td><input type="text" placeholder="如：Salesforce"></td>
+        <td>
+          <select>
+            <option value="">请选择</option>
+            <option value="finance">财务管理</option>
+            <option value="hr">人力资源</option>
+            <option value="supply">供应链</option>
+            <option value="production">生产制造</option>
+            <option value="sales">营销销售</option>
+            <option value="customer">客户服务</option>
+            <option value="data">数据平台</option>
+            <option value="infra">基础设施</option>
+          </select>
+        </td>
+        <td><input type="text" placeholder="核心功能描述"></td>
+        <td>
+          <select>
+            <option value="new">新建</option>
+            <option value="upgrade">升级</option>
+            <option value="integrate">集成</option>
+            <option value="replace">替换</option>
+            <option value="keep">利旧</option>
+          </select>
+        </td>
+        <td>
+          <select>
+            <option value="high">高</option>
+            <option value="medium">中</option>
+            <option value="low">低</option>
+          </select>
+        </td>
+        <td><button class="btn btn-secondary" onclick="deleteRow(this)">删除</button></td>
+      `;
+      tbody.appendChild(tr);
+      updateStats();
+    }
+    
+    function deleteRow(btn) {
+      if (confirm('确定删除此行？')) {
+        btn.closest('tr').remove();
+        updateRowNumbers();
+        updateStats();
+      }
+    }
+    
+    function updateRowNumbers() {
+      const rows = document.querySelectorAll('#appTableBody tr');
+      rows.forEach((row, index) => {
+        row.cells[0].textContent = index + 1;
+      });
+      appRowCount = rows.length;
+    }
+    
+    function updateStats() {
+      const rows = document.querySelectorAll('#appTableBody tr');
+      document.getElementById('totalApps').textContent = rows.length;
+      
+      let newCount = 0, upgradeCount = 0;
+      rows.forEach(row => {
+        const select = row.querySelector('select:nth-child(6)');
+        if (select) {
+          if (select.value === 'new') newCount++;
+          if (select.value === 'upgrade') upgradeCount++;
+        }
+      });
+      
+      document.getElementById('newApps').textContent = newCount;
+      document.getElementById('upgradeApps').textContent = upgradeCount;
+      document.getElementById('integrationCount').textContent = document.querySelectorAll('.integration-item').length;
+    }
+    
+    function toggleGroup(el) {
+      const next = el.nextElementSibling;
+      if (next && next.classList.contains('child')) {
+        let hidden = next.style.display === 'none';
+        while (next && next.classList.contains('child')) {
+          next.style.display = hidden ? 'block' : 'none';
+          next = next.nextElementSibling;
+        }
+        el.querySelector('span').textContent = hidden ? '▼' : '▶';
+      }
+    }
+    
+    function addModuleGroup() {
+      const groupName = prompt('请输入分组名称（如：质量管理）：');
+      if (groupName) {
+        const tree = document.getElementById('moduleTree');
+        const div = document.createElement('div');
+        div.className = 'tree-item group';
+        div.onclick = function() { toggleGroup(this); };
+        div.innerHTML = groupName + ' <span style="float:right;">▼</span>';
+        tree.appendChild(div);
+        
+        const moduleName = prompt('请输入模块名称：');
+        if (moduleName) {
+          const modDiv = document.createElement('div');
+          modDiv.className = 'tree-item child';
+          modDiv.textContent = moduleName;
+          tree.appendChild(modDiv);
+        }
+      }
+    }
+    
+    function saveModuleTree() {
+      const data = {
+        modules: [],
+        timestamp: new Date().toISOString()
+      };
+      localStorage.setItem('app_arch_modules', JSON.stringify(data));
+      alert('✅ 模块规划已保存');
+    }
+    
+    function addIntegration() {
+      const systemA = prompt('请输入源系统名称：');
+      if (!systemA) return;
+      const systemB = prompt('请输入目标系统名称：');
+      if (!systemB) return;
+      const type = prompt('请输入集成类型（API/数据同步/消息队列/文件传输）：');
+      
+      const list = document.getElementById('integrationList');
+      const div = document.createElement('div');
+      div.className = 'integration-item';
+      div.innerHTML = `
+        <div class="system-a">${systemA}</div>
+        <div class="type">${type || '数据同步'}</div>
+        <div class="arrow">⟷</div>
+        <div class="system-b">${systemB}</div>
+        <button class="btn btn-secondary" onclick="deleteIntegration(this)">删除</button>
+      `;
+      list.appendChild(div);
+      updateStats();
+    }
+    
+    function deleteIntegration(btn) {
+      if (confirm('确定删除此集成关系？')) {
+        btn.closest('.integration-item').remove();
+        updateStats();
+      }
+    }
+    
+    function exportAppMatrix() {
+      var docx = '\uFEFF<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n';
+      docx += '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">\n<w:body>\n';
+      docx += '<w:p><w:r><w:rPr><w:b/><w:sz w:val="40"/></w:rPr><w:t>企业应用架构规划</w:t></w:r></w:p>\n';
+      docx += '<w:p><w:r><w:rPr><w:color w:val="888888"/></w:rPr><w:t>生成日期：' + new Date().toLocaleDateString('zh-CN') + '</w:t></w:r></w:p>\n';
+      docx += '<w:p><w:r><w:rPr><w:b/><w:sz w:val="28"/></w:rPr><w:t>一、应用系统规划</w:t></w:r></w:p>\n';
+      
+      const rows = document.querySelectorAll('#appTableBody tr');
+      docx += '<w:tbl><w:tr>';
+      ['序号', '系统名称', '系统英文名', '所属领域', '核心功能', '建设方式', '优先级'].forEach(h => {
+        docx += '<w:tc><w:p><w:r><w:rPr><w:b/></w:rPr><w:t>' + h + '</w:t></w:r></w:p></w:tc>';
+      });
+      docx += '</w:tr>';
+      
+      rows.forEach((row, index) => {
+        docx += '<w:tr>';
+        docx += '<w:tc><w:p><w:r><w:t>' + (index + 1) + '</w:t></w:r></w:p></w:tc>';
+        const inputs = row.querySelectorAll('input');
+        inputs.forEach(input => {
+          docx += '<w:tc><w:p><w:r><w:t>' + (input.value || '') + '</w:t></w:r></w:p></w:tc>';
+        });
+        const selects = row.querySelectorAll('select');
+        selects.forEach(select => {
+          docx += '<w:tc><w:p><w:r><w:t>' + (select.options[select.selectedIndex].text) + '</w:t></w:r></w:p></w:tc>';
+        });
+        docx += '</w:tr>';
+      });
+      docx += '</w:tbl>';
+      
+      docx += '</w:body></w:document>';
+      
+      var blob = new Blob([docx], {type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = '应用架构规划.docx';
+      a.click();
+    }
+    
+    function exportIntegration() {
+      alert('集成架构文档导出功能开发中...');
+    }
+    
+    // 初始化
+    updateStats();
+  </script>
+</body>
+</html>

@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>系统功能模块规划 - 企业数字化转型规划系统</title>
+  <style>
+    :root {
+      --primary: #1a56db;
+      --primary-dark: #1e40af;
+      --secondary: #6366f1;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --white: #ffffff;
+      --gray-50: #f9fafb;
+      --gray-100: #f3f4f6;
+      --gray-200: #e5e7eb;
+      --gray-300: #d1d5db;
+      --gray-400: #9ca3af;
+      --gray-500: #6b7280;
+      --gray-600: #4b5563;
+      --gray-700: #374151;
+      --gray-800: #1f2937;
+      --border: #e5e7eb;
+      --shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Microsoft YaHei", "PingFang SC", "Helvetica Neue", Arial, sans-serif; background: #f5f7fa; color: var(--gray-800); line-height: 1.6; }
+    
+    .header { background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); color: white; padding: 1.5rem 2rem; }
+    .header h1 { font-size: 1.5rem; font-weight: 600; margin-bottom: 0.5rem; }
+    .header p { opacity: 0.9; font-size: 0.9rem; }
+    
+    .container { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; }
+    
+    .card { background: var(--white); border-radius: 12px; box-shadow: var(--shadow); margin-bottom: 1.5rem; overflow: hidden; }
+    .card-header { padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); background: var(--gray-50); display: flex; justify-content: space-between; align-items: center; }
+    .card-header h2 { font-size: 1.1rem; color: var(--primary); font-weight: 600; }
+    .card-body { padding: 1.5rem; }
+    
+    .btn { padding: 0.6rem 1.2rem; border: none; border-radius: 8px; font-size: 0.9rem; cursor: pointer; transition: all 0.2s; font-weight: 500; }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-secondary { background: var(--gray-100); color: var(--gray-700); }
+    .btn-secondary:hover { background: var(--gray-200); }
+    .btn-danger { background: var(--danger); color: white; }
+    .btn-sm { padding: 0.4rem 0.8rem; font-size: 0.85rem; }
+    
+    .module-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
+    .module-card { background: var(--gray-50); border: 2px solid var(--border); border-radius: 12px; padding: 1.25rem; transition: all 0.2s; cursor: pointer; }
+    .module-card:hover { border-color: var(--primary); transform: translateY(-2px); box-shadow: var(--shadow); }
+    .module-card .header { background: none; padding: 0; margin-bottom: 0.75rem; color: var(--primary); display: flex; justify-content: space-between; align-items: center; }
+    .module-card .header h3 { font-size: 1rem; }
+    .module-card .desc { color: var(--gray-500); font-size: 0.85rem; margin-bottom: 0.75rem; }
+    .module-card .funcs { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+    .module-card .func-tag { background: var(--gray-200); color: var(--gray-600); padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.75rem; }
+    .module-card .edit-area { display: none; margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px dashed var(--border); }
+    .module-card.editing .edit-area { display: block; }
+    .module-card.editing .funcs { display: none; }
+    .edit-area input, .edit-area textarea { width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; margin-bottom: 0.5rem; font-size: 0.85rem; }
+    .edit-area textarea { min-height: 60px; resize: vertical; }
+    
+    .stats-row { display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+    .stat-box { background: var(--white); border-radius: 8px; padding: 1rem 1.5rem; box-shadow: var(--shadow); flex: 1; min-width: 150px; }
+    .stat-box .number { font-size: 2rem; font-weight: 700; color: var(--primary); }
+    .stat-box .label { color: var(--gray-500); font-size: 0.85rem; }
+    
+    .export-section { text-align: center; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border); }
+    
+    .empty-state { text-align: center; padding: 3rem; color: var(--gray-500); }
+    
+    @media (max-width: 768px) {
+      .module-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>🖥️ 系统功能模块规划</h1>
+    <p>规划企业数字化转型涉及的系统功能模块</p>
+  </div>
+  
+  <div class="container">
+    <div class="stats-row">
+      <div class="stat-box">
+        <div class="number" id="totalModules">0</div>
+        <div class="label">系统总数</div>
+      </div>
+      <div class="stat-box">
+        <div class="number" id="totalFuncs">0</div>
+        <div class="label">功能项总数</div>
+      </div>
+      <div class="stat-box">
+        <div class="number" id="totalCost">0</div>
+        <div class="label">估算投资(万)</div>
+      </div>
+    </div>
+    
+    <div class="card">
+      <div class="card-header">
+        <h2>系统模块列表</h2>
+        <div>
+          <button class="btn btn-secondary btn-sm" onclick="loadFromStorage()">📂 加载</button>
+          <button class="btn btn-primary btn-sm" onclick="saveToStorage()">💾 保存</button>
+          <button class="btn btn-primary btn-sm" onclick="addModule()">+ 添加系统</button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="module-grid" id="moduleGrid">
+          <!-- 动态生成 -->
+        </div>
+        
+        <div id="emptyState" class="empty-state" style="display: none;">
+          <div style="font-size: 3rem; margin-bottom: 1rem;">📦</div>
+          <p>暂无系统模块，请点击"添加系统"开始规划</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="export-section">
+      <button class="btn btn-secondary" onclick="exportExcel()">📊 导出Excel</button>
+      <button class="btn btn-primary" onclick="exportWord()">📥 导出Word</button>
+    </div>
+  </div>
+  
+  <script>
+    let modules = [
+      { id: 1, name: 'ERP系统', desc: '企业核心业务系统', color: '#dbeafe', functions: ['财务管理', '采购管理', '库存管理', '生产计划'], cost: 400 },
+      { id: 2, name: 'CRM系统', desc: '客户关系管理系统', color: '#d1fae5', functions: ['客户管理', '销售自动化', '服务管理'], cost: 300 },
+      { id: 3, name: 'MES系统', desc: '生产执行系统', color: '#fef3c7', functions: ['生产执行', '工艺管理', '质量追溯'], cost: 600 },
+      { id: 4, name: '数据中台', desc: '数据资产管理平台', color: '#ede9fe', functions: ['数据采集', '数据治理', '数据分析', '数据服务'], cost: 500 }
+    ];
+    
+    let nextId = 5;
+    
+    function renderModules() {
+      const grid = document.getElementById('moduleGrid');
+      const emptyState = document.getElementById('emptyState');
+      
+      if (modules.length === 0) {
+        grid.style.display = 'none';
+        emptyState.style.display = 'block';
+        updateStats();
+        return;
+      }
+      
+      grid.style.display = 'grid';
+      emptyState.style.display = 'none';
+      
+      grid.innerHTML = modules.map(m => `
+        <div class="module-card" id="module-${m.id}" onclick="toggleEdit(${m.id})">
+          <div class="header">
+            <h3>${m.name}</h3>
+            <div onclick="event.stopPropagation()">
+              <button class="btn btn-danger btn-sm" onclick="deleteModule(${m.id})" style="padding: 0.25rem 0.5rem;">删除</button>
+            </div>
+          </div>
+          <div class="desc">${m.desc}</div>
+          <div class="funcs">
+            ${m.functions.map(f => `<span class="func-tag">${f}</span>`).join('')}
+          </div>
+          <div class="edit-area" onclick="event.stopPropagation()">
+            <input type="text" value="${m.name}" placeholder="系统名称" onchange="updateModule(${m.id}, 'name', this.value)">
+            <input type="text" value="${m.desc}" placeholder="系统描述" onchange="updateModule(${m.id}, 'desc', this.value)">
+            <textarea placeholder="功能列表（每行一个）" onchange="updateModule(${m.id}, 'functions', this.value)">${m.functions.join('\n')}</textarea>
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+              <label style="font-size: 0.85rem;">估算投资(万)：</label>
+              <input type="number" value="${m.cost}" style="width: 100px;" onchange="updateModule(${m.id}, 'cost', this.value)">
+            </div>
+          </div>
+        </div>
+      `).join('');
+      
+      updateStats();
+    }
+    
+    function toggleEdit(id) {
+      const card = document.getElementById('module-' + id);
+      card.classList.toggle('editing');
+    }
+    
+    function updateModule(id, field, value) {
+      const module = modules.find(m => m.id === id);
+      if (module) {
+        if (field === 'functions') {
+          module.functions = value.split('\n').filter(f => f.trim());
+        } else if (field === 'cost') {
+          module.cost = parseInt(value) || 0;
+        } else {
+          module[field] = value;
+        }
+        renderModules();
+      }
+    }
+    
+    function addModule() {
+      const name = prompt('输入系统名称（如：SCM系统）：');
+      if (!name) return;
+      const desc = prompt('输入系统描述：');
+      
+      modules.push({
+        id: nextId++,
+        name: name,
+        desc: desc || '',
+        color: getRandomColor(),
+        functions: [],
+        cost: 0
+      });
+      
+      renderModules();
+    }
+    
+    function deleteModule(id) {
+      if (confirm('确定删除该系统？')) {
+        modules = modules.filter(m => m.id !== id);
+        renderModules();
+      }
+    }
+    
+    function getRandomColor() {
+      const colors = ['#dbeafe', '#d1fae5', '#fef3c7', '#ede9fe', '#fce7f3', '#e0e7ff', '#fee2e2', '#f0fdf4'];
+      return colors[Math.floor(Math.random() * colors.length)];
+    }
+    
+    function updateStats() {
+      document.getElementById('totalModules').textContent = modules.length;
+      document.getElementById('totalFuncs').textContent = modules.reduce((sum, m) => sum + m.functions.length, 0);
+      document.getElementById('totalCost').textContent = modules.reduce((sum, m) => sum + (m.cost || 0), 0);
+    }
+    
+    function saveToStorage() {
+      localStorage.setItem('modules_data', JSON.stringify(modules));
+      alert('✅ 系统模块规划已保存');
+    }
+    
+    function loadFromStorage() {
+      const saved = localStorage.getItem('modules_data');
+      if (saved) {
+        modules = JSON.parse(saved);
+        renderModules();
+        alert('✅ 已加载草稿');
+      } else {
+        alert('没有找到保存的草稿');
+      }
+    }
+    
+    function exportWord() {
+      var docx = '\uFEFF<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n';
+      docx += '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">\n<w:body>\n';
+      docx += '<w:p><w:r><w:rPr><w:b/><w:sz w:val="40"/></w:rPr><w:t>系统功能模块规划</w:t></w:r></w:p>\n';
+      docx += '<w:p><w:r><w:rPr><w:color w:val="888888"/></w:rPr><w:t>生成日期：' + new Date().toLocaleDateString('zh-CN') + '</w:t></w:r></w:p>\n';
+      
+      docx += '<w:p><w:r><w:rPr><w:b/><w:sz w:val="28"/></w:rPr><w:t>一、系统模块清单</w:t></w:r></w:p>\n';
+      modules.forEach((m, i) => {
+        docx += '<w:p><w:r><w:rPr><w:b/></w:rPr><w:t>' + (i+1) + '. ' + m.name + '</w:t></w:r></w:p>\n';
+        docx += '<w:p><w:r><w:t>描述：' + m.desc + '</w:t></w:r></w:p>\n';
+        docx += '<w:p><w:r><w:t>核心功能：' + m.functions.join('、') + '</w:t></w:r></w:p>\n';
+      });
+      
+      docx += '</w:body></w:document>';
+      
+      var blob = new Blob([docx], {type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = '系统功能模块规划.docx';
+      a.click();
+    }
+    
+    function exportExcel() {
+      alert('Excel导出功能开发中，可先使用Word导出');
+    }
+    
+    renderModules();
+  </script>
+</body>
+</html>

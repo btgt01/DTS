@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>实施路径报告 - 数字化转型规划系统</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Inter','Microsoft YaHei',sans-serif;background:#f8fafc;color:#1e293b;line-height:1.6;padding:1.5rem}
+    .page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;padding-bottom:1rem;border-bottom:2px solid #e2e8f0}
+    h1{font-size:1.4rem;font-weight:700;color:#0f172a}
+    .btn{padding:.6rem 1.2rem;border-radius:8px;font-size:.85rem;font-weight:500;cursor:pointer;border:none;transition:all .2s}
+    .btn-primary{background:#1a56db;color:#fff}
+    .btn-primary:hover{background:#1e40af}
+    .btn-outline{background:#fff;color:#1a56db;border:1.5px solid #1a56db}
+    .btn-outline:hover{background:#eff6ff}
+    .btn-sm{padding:.4rem .8rem;font-size:.8rem}
+    .card{background:#fff;border-radius:12px;border:1px solid #e2e8f0;padding:1.25rem;margin-bottom:1.25rem;box-shadow:0 2px 8px rgba(0,0,0,.03)}
+    .card h3{font-size:1rem;font-weight:600;color:#0f172a;margin-bottom:1rem;padding-bottom:.5rem;border-bottom:1px solid #e2e8f0}
+    .timeline{position:relative;padding-left:2rem}
+    .timeline::before{content:'';position:absolute;left:.6rem;top:0;bottom:0;width:2px;background:#e2e8f0}
+    .phase{margin-bottom:1.5rem;position:relative}
+    .phase::before{content:'';position:absolute;left:-1.6rem;top:.25rem;width:12px;height:12px;border-radius:50%;background:#1a56db;border:3px solid #fff;box-shadow:0 0 0 2px #1a56db}
+    .phase-header{display:flex;align-items:center;gap:.75rem;margin-bottom:.5rem}
+    .phase-title{font-size:1rem;font-weight:600;color:#0f172a}
+    .phase-year{font-size:.75rem;color:#64748b;background:#f1f5f9;padding:.2rem .5rem;border-radius:4px}
+    .phase-content{background:#f8fafc;border-radius:8px;padding:1rem;font-size:.85rem}
+    .phase-content ul{margin:0;padding-left:1.25rem}
+    .phase-content li{margin-bottom:.4rem}
+    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1rem}
+    .stat{text-align:center;padding:1rem;background:#f8fafc;border-radius:8px}
+    .stat .value{font-size:1.5rem;font-weight:700;color:#1a56db}
+    .stat .label{font-size:.75rem;color:#64748b}
+    table{width:100%;border-collapse:collapse;margin-top:1rem}
+    th,td{padding:.75rem;text-align:left;border-bottom:1px solid #e2e8f0;font-size:.85rem}
+    th{background:#f8fafc;font-weight:600;color:#475569}
+    .tag{display:inline-block;padding:.2rem .5rem;border-radius:4px;font-size:.7rem}
+    .tag-phase1{background:#dbeafe;color:#1e40af}
+    .tag-phase2{background:#dcfce7;color:#166534}
+    .tag-phase3{background:#fef3c7;color:#92400e}
+    .tag-phase4{background:#fce7f3;color:#9d174d}
+    .tag-phase5{background:#f3e8ff;color:#7c3aed}
+    .alert{padding:1rem;border-radius:8px;margin-bottom:1rem;font-size:.9rem}
+    .alert-info{background:#dbeafe;color:#1e40af}
+  </style>
+</head>
+<body>
+  <div class="page-header">
+    <h1>🛤️ 实施路径报告</h1>
+    <button class="btn btn-outline btn-sm" onclick="exportReport()">📥 导出报告</button>
+  </div>
+
+  <div class="card">
+    <h3>实施概览</h3>
+    <div class="stats">
+      <div class="stat">
+        <div class="value" id="totalYears">5</div>
+        <div class="label">规划周期</div>
+      </div>
+      <div class="stat">
+        <div class="value" id="totalPhases">5</div>
+        <div class="label">实施阶段</div>
+      </div>
+      <div class="stat">
+        <div class="value" id="totalProjects">-</div>
+        <div class="label">项目数量</div>
+      </div>
+      <div class="stat">
+        <div class="value" id="totalInvestment">-</div>
+        <div class="label">总投资(万)</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>五年实施路线图</h3>
+    <div class="timeline" id="timelineContent">
+      <div class="phase">
+        <div class="phase-header">
+          <span class="phase-title">第一阶段：基础建设期</span>
+          <span class="phase-year">2026</span>
+        </div>
+        <div class="phase-content">
+          <ul>
+            <li>完成数字化成熟度评估</li>
+            <li>建立数据治理体系</li>
+            <li>部署核心业务系统</li>
+            <li>培养数字化人才队伍</li>
+          </ul>
+        </div>
+      </div>
+      <div class="phase">
+        <div class="phase-header">
+          <span class="phase-title">第二阶段：能力提升期</span>
+          <span class="phase-year">2027</span>
+        </div>
+        <div class="phase-content">
+          <ul>
+            <li>推进业务流程数字化</li>
+            <li>建设数据分析平台</li>
+            <li>优化客户体验</li>
+            <li>建立敏捷组织架构</li>
+          </ul>
+        </div>
+      </div>
+      <div class="phase">
+        <div class="phase-header">
+          <span class="phase-title">第三阶段：创新突破期</span>
+          <span class="phase-year">2028</span>
+        </div>
+        <div class="phase-content">
+          <ul>
+            <li>探索智能化应用场景</li>
+            <li>建设技术创新平台</li>
+            <li>推动商业模式创新</li>
+            <li>构建生态合作体系</li>
+          </ul>
+        </div>
+      </div>
+      <div class="phase">
+        <div class="phase-header">
+          <span class="phase-title">第四阶段：深化转型期</span>
+          <span class="phase-year">2029</span>
+        </div>
+        <div class="phase-content">
+          <ul>
+            <li>实现核心业务智能化</li>
+            <li>构建数据驱动决策体系</li>
+            <li>打造数字化运营能力</li>
+            <li>建立持续优化机制</li>
+          </ul>
+        </div>
+      </div>
+      <div class="phase">
+        <div class="phase-header">
+          <span class="phase-title">第五阶段：卓越引领期</span>
+          <span class="phase-year">2030</span>
+        </div>
+        <div class="phase-content">
+          <ul>
+            <li>实现全面数字化转型</li>
+            <li>成为行业数字化标杆</li>
+            <li>构建创新生态系统</li>
+            <li>持续引领行业发展</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>关键里程碑</h3>
+    <div id="milestonesContent">
+      <div class="alert alert-info">暂无自定义里程碑数据</div>
+    </div>
+  </div>
+
+  <script>
+    function loadData() {
+      const timeline = JSON.parse(localStorage.getItem('impl_timeline') || '[]');
+      const modules = JSON.parse(localStorage.getItem('sys_modules') || '[]');
+      const investment = JSON.parse(localStorage.getItem('investment_data') || '[]');
+      return {timeline, modules, investment};
+    }
+
+    function renderStats() {
+      const {modules, investment} = loadData();
+      document.getElementById('totalProjects').textContent = modules.length || '0';
+      const total = investment.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+      document.getElementById('totalInvestment').textContent = total > 0 ? total.toFixed(0) : '-';
+    }
+
+    function renderMilestones() {
+      const {timeline} = loadData();
+      if (timeline.length === 0) return;
+      const container = document.getElementById('milestonesContent');
+      container.innerHTML = '<table><thead><tr><th>里程碑</th><th>阶段</th><th>时间</th><th>状态</th></tr></thead><tbody>' +
+        timeline.map(t => `<tr><td>${t.name}</td><td><span class="tag tag-${t.year - 2025}">第${t.year - 2025}阶段</span></td><td>${t.year}年</td><td>${t.status === 'completed' ? '✅已完成' : t.status === 'inprogress' ? '🔄进行中' : '⏳待启动'}</td></tr>`).join('') +
+        '</tbody></table>';
+    }
+
+    function exportReport() {
+      let content = '数字化转型实施路径报告\n\n';
+      content += '一、实施概览\n';
+      const {modules, investment} = loadData();
+      content += `规划周期：5年（2026-2030）\n`;
+      content += `实施阶段：5个阶段\n`;
+      content += `项目数量：${modules.length || 0}个\n`;
+      const total = investment.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+      content += `总投资：${total > 0 ? total.toFixed(2) : '待定'}万元\n\n`;
+
+      content += '二、五年实施路线图\n\n';
+      const phases = [
+        {year: 2026, title: '基础建设期', items: ['完成数字化成熟度评估', '建立数据治理体系', '部署核心业务系统', '培养数字化人才队伍']},
+        {year: 2027, title: '能力提升期', items: ['推进业务流程数字化', '建设数据分析平台', '优化客户体验', '建立敏捷组织架构']},
+        {year: 2028, title: '创新突破期', items: ['探索智能化应用场景', '建设技术创新平台', '推动商业模式创新', '构建生态合作体系']},
+        {year: 2029, title: '深化转型期', items: ['实现核心业务智能化', '构建数据驱动决策体系', '打造数字化运营能力', '建立持续优化机制']},
+        {year: 2030, title: '卓越引领期', items: ['实现全面数字化转型', '成为行业数字化标杆', '构建创新生态系统', '持续引领行业发展']}
+      ];
+      phases.forEach(p => {
+        content += `${p.year}年 - ${p.title}\n`;
+        p.items.forEach(item => content += `  • ${item}\n`);
+        content += '\n';
+      });
+
+      downloadText(content, '实施路径报告.txt');
+    }
+
+    function downloadText(text, filename) {
+      const blob = new Blob([text], {type: 'text/plain'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = filename;
+      a.click();
+    }
+
+    renderStats();
+    renderMilestones();
+  </script>
+</body>
+</html>

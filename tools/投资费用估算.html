@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>投资费用估算 - 企业数字化转型规划系统</title>
+  <style>
+    :root {
+      --primary: #1a56db;
+      --primary-dark: #1e40af;
+      --secondary: #6366f1;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --white: #ffffff;
+      --gray-50: #f9fafb;
+      --gray-100: #f3f4f6;
+      --gray-200: #e5e7eb;
+      --gray-300: #d1d5db;
+      --gray-500: #6b7280;
+      --gray-600: #4b5563;
+      --gray-700: #374151;
+      --gray-800: #1f2937;
+      --border: #e5e7eb;
+      --shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Microsoft YaHei", "PingFang SC", "Helvetica Neue", Arial, sans-serif; background: #f5f7fa; color: var(--gray-800); line-height: 1.6; }
+    
+    .header { background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); color: white; padding: 1.5rem 2rem; }
+    .header h1 { font-size: 1.5rem; font-weight: 600; margin-bottom: 0.5rem; }
+    .header p { opacity: 0.9; font-size: 0.9rem; }
+    
+    .container { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; }
+    
+    .card { background: var(--white); border-radius: 12px; box-shadow: var(--shadow); margin-bottom: 1.5rem; overflow: hidden; }
+    .card-header { padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); background: var(--gray-50); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; }
+    .card-header h2 { font-size: 1.1rem; color: var(--primary); font-weight: 600; }
+    .card-body { padding: 1.5rem; }
+    
+    .btn { padding: 0.6rem 1.2rem; border: none; border-radius: 8px; font-size: 0.9rem; cursor: pointer; transition: all 0.2s; font-weight: 500; }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-secondary { background: var(--gray-100); color: var(--gray-700); }
+    .btn-secondary:hover { background: var(--gray-200); }
+    .btn-danger { background: var(--danger); color: white; }
+    .btn-sm { padding: 0.4rem 0.8rem; font-size: 0.85rem; }
+    
+    /* 统计概览 */
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+    .stat-card { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; border-radius: 12px; padding: 1.25rem; text-align: center; }
+    .stat-card .number { font-size: 2rem; font-weight: 700; }
+    .stat-card .label { font-size: 0.85rem; opacity: 0.9; }
+    .stat-card.warning { background: linear-gradient(135deg, var(--warning), #d97706); }
+    .stat-card.success { background: linear-gradient(135deg, var(--success), #059669); }
+    
+    /* 表格 */
+    .table-container { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    th, td { padding: 0.85rem; text-align: left; border-bottom: 1px solid var(--border); }
+    th { background: var(--gray-50); font-weight: 600; color: var(--gray-700); white-space: nowrap; }
+    tr:hover { background: var(--gray-50); }
+    
+    td input, td select { width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; font-size: 0.9rem; }
+    td input[type="number"] { text-align: right; }
+    
+    .priority-high { background: #fee2e2; color: #991b1b; padding: 0.2rem 0.6rem; border-radius: 10px; font-size: 0.75rem; }
+    .priority-medium { background: #fef3c7; color: #92400e; padding: 0.2rem 0.6rem; border-radius: 10px; font-size: 0.75rem; }
+    .priority-low { background: #d1fae5; color: #065f46; padding: 0.2rem 0.6rem; border-radius: 10px; font-size: 0.75rem; }
+    
+    .cost-total { background: var(--gray-100); font-weight: 600; }
+    .cost-total td { border-top: 2px solid var(--primary); }
+    
+    .btn-icon { background: none; border: none; cursor: pointer; font-size: 1rem; color: var(--gray-400); }
+    .btn-icon:hover { color: var(--danger); }
+    
+    /* 年度分布图 */
+    .chart-container { display: flex; align-items: flex-end; gap: 1rem; height: 200px; padding: 1rem 0; }
+    .chart-bar { flex: 1; display: flex; flex-direction: column; align-items: center; }
+    .chart-bar .bar { width: 100%; background: linear-gradient(to top, var(--primary), var(--secondary)); border-radius: 4px 4px 0 0; min-height: 10px; transition: height 0.3s; }
+    .chart-bar .label { margin-top: 0.5rem; font-size: 0.85rem; color: var(--gray-600); }
+    .chart-bar .value { font-weight: 600; color: var(--primary); margin-bottom: 0.25rem; }
+    
+    /* 备注 */
+    textarea { width: 100%; min-height: 120px; padding: 1rem; border: 1px solid var(--border); border-radius: 8px; font-size: 0.95rem; resize: vertical; }
+    
+    .export-section { text-align: center; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border); }
+    
+    @media (max-width: 768px) {
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .table-container { font-size: 0.85rem; }
+      th, td { padding: 0.6rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>💰 项目建设投资费用估算</h1>
+    <p>规划数字化转型项目的投资预算和年度分配</p>
+  </div>
+  
+  <div class="container">
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="number" id="totalCost">0</div>
+        <div class="label">总投资估算(万)</div>
+      </div>
+      <div class="stat-card warning">
+        <div class="number" id="year1Cost">0</div>
+        <div class="label">第1年投资(万)</div>
+      </div>
+      <div class="stat-card warning">
+        <div class="number" id="year2Cost">0</div>
+        <div class="label">第2年投资(万)</div>
+      </div>
+      <div class="stat-card warning">
+        <div class="number" id="year3Cost">0</div>
+        <div class="label">第3年投资(万)</div>
+      </div>
+    </div>
+    
+    <div class="card">
+      <div class="card-header">
+        <h2>投资明细</h2>
+        <div>
+          <button class="btn btn-secondary btn-sm" onclick="loadFromStorage()">📂 加载</button>
+          <button class="btn btn-primary btn-sm" onclick="saveToStorage()">💾 保存</button>
+          <button class="btn btn-primary btn-sm" onclick="addItem()">+ 添加项目</button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 50px;">序号</th>
+                <th>项目名称</th>
+                <th style="width: 80px;">优先级</th>
+                <th style="width: 100px;">估算投资(万)</th>
+                <th>实施周期</th>
+                <th>投资说明</th>
+                <th style="width: 60px;">操作</th>
+              </tr>
+            </thead>
+            <tbody id="costTableBody">
+              <!-- 动态生成 -->
+            </tbody>
+            <tfoot>
+              <tr class="cost-total">
+                <td colspan="3"><strong>合计总投资</strong></td>
+                <td style="text-align: right;"><strong id="footerTotal">0</strong></td>
+                <td colspan="3"></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card">
+      <div class="card-header">
+        <h2>年度投资分布</h2>
+      </div>
+      <div class="card-body">
+        <div class="chart-container" id="chart">
+          <!-- 动态生成 -->
+        </div>
+      </div>
+    </div>
+    
+    <div class="card">
+      <div class="card-header">
+        <h2>备注说明</h2>
+      </div>
+      <div class="card-body">
+        <textarea id="notes" placeholder="输入投资估算的其他说明，如：&#10;- 投资金额为估算值，实际投资需根据企业规模和具体需求进行调整&#10;- 建议分年度滚动规划，每年进行投资效益评估...">以上为估算金额，实际投资需根据企业规模、现有系统状况及具体需求进行调整。建议分年度滚动规划，每年进行投资效益评估。</textarea>
+      </div>
+    </div>
+    
+    <div class="export-section">
+      <button class="btn btn-secondary" onclick="exportExcel()">📊 导出Excel</button>
+      <button class="btn btn-primary" onclick="exportWord()">📥 导出Word</button>
+    </div>
+  </div>
+  
+  <script>
+    let items = [
+      { id: 1, name: '基础设施云化', priority: 'high', cost: 500, period: '第1年', desc: '云平台建设、服务器虚拟化' },
+      { id: 2, name: 'ERP系统升级', priority: 'high', cost: 400, period: '第1-2年', desc: 'ERP系统升级与定制开发' },
+      { id: 3, name: '数据中台建设', priority: 'high', cost: 500, period: '第2年', desc: '数据采集、治理、分析平台' },
+      { id: 4, name: 'MES系统', priority: 'medium', cost: 600, period: '第2-3年', desc: '生产执行系统实施' },
+      { id: 5, name: 'CRM系统', priority: 'medium', cost: 300, period: '第3年', desc: '客户关系管理系统' },
+      { id: 6, name: 'BI与AI平台', priority: 'medium', cost: 400, period: '第3-4年', desc: '商业智能与人工智能平台' },
+      { id: 7, name: '数字化运营平台', priority: 'low', cost: 300, period: '第4-5年', desc: '统一运营管理平台' }
+    ];
+    
+    let nextId = 8;
+    
+    function renderTable() {
+      const tbody = document.getElementById('costTableBody');
+      tbody.innerHTML = items.map((item, index) => `
+        <tr>
+          <td>${index + 1}</td>
+          <td><input type="text" value="${item.name}" onchange="updateItem(${item.id}, 'name', this.value)"></td>
+          <td>
+            <select onchange="updateItem(${item.id}, 'priority', this.value)">
+              <option value="high" ${item.priority === 'high' ? 'selected' : ''}>高</option>
+              <option value="medium" ${item.priority === 'medium' ? 'selected' : ''}>中</option>
+              <option value="low" ${item.priority === 'low' ? 'selected' : ''}>低</option>
+            </select>
+          </td>
+          <td><input type="number" value="${item.cost}" onchange="updateItem(${item.id}, 'cost', this.value)"></td>
+          <td><input type="text" value="${item.period}" onchange="updateItem(${item.id}, 'period', this.value)"></td>
+          <td><input type="text" value="${item.desc}" onchange="updateItem(${item.id}, 'desc', this.value)"></td>
+          <td><button class="btn-icon" onclick="deleteItem(${item.id})">🗑️</button></td>
+        </tr>
+      `).join('');
+      
+      updateStats();
+    }
+    
+    function updateItem(id, field, value) {
+      const item = items.find(i => i.id === id);
+      if (item) {
+        if (field === 'cost') {
+          item.cost = parseInt(value) || 0;
+        } else {
+          item[field] = value;
+        }
+        renderTable();
+      }
+    }
+    
+    function addItem() {
+      const name = prompt('输入项目名称：');
+      if (!name) return;
+      const cost = prompt('输入估算投资(万)：');
+      
+      items.push({
+        id: nextId++,
+        name: name,
+        priority: 'medium',
+        cost: parseInt(cost) || 0,
+        period: '第1年',
+        desc: ''
+      });
+      
+      renderTable();
+    }
+    
+    function deleteItem(id) {
+      if (confirm('确定删除该项目？')) {
+        items = items.filter(i => i.id !== id);
+        renderTable();
+      }
+    }
+    
+    function updateStats() {
+      const total = items.reduce((sum, i) => sum + (i.cost || 0), 0);
+      const year1 = items.filter(i => i.period.includes('1')).reduce((sum, i) => sum + (i.cost || 0), 0);
+      const year2 = items.filter(i => i.period.includes('2')).reduce((sum, i) => sum + (i.cost || 0), 0);
+      const year3 = items.filter(i => i.period.includes('3')).reduce((sum, i) => sum + (i.cost || 0), 0);
+      
+      document.getElementById('totalCost').textContent = total.toLocaleString();
+      document.getElementById('year1Cost').textContent = year1.toLocaleString();
+      document.getElementById('year2Cost').textContent = year2.toLocaleString();
+      document.getElementById('year3Cost').textContent = year3.toLocaleString();
+      document.getElementById('footerTotal').textContent = total.toLocaleString();
+      
+      renderChart();
+    }
+    
+    function renderChart() {
+      const chart = document.getElementById('chart');
+      const years = ['第1年', '第2年', '第3年', '第4年', '第5年'];
+      const costs = years.map((year, i) => {
+        return items.filter(item => item.period.includes(String(i + 1))).reduce((sum, item) => sum + (item.cost || 0), 0);
+      });
+      
+      const maxCost = Math.max(...costs, 1);
+      
+      chart.innerHTML = years.map((year, i) => `
+        <div class="chart-bar">
+          <div class="value">${costs[i].toLocaleString()}</div>
+          <div class="bar" style="height: ${(costs[i] / maxCost) * 150}px;"></div>
+          <div class="label">${year}</div>
+        </div>
+      `).join('');
+    }
+    
+    function saveToStorage() {
+      const data = { items, notes: document.getElementById('notes').value };
+      localStorage.setItem('investment_data', JSON.stringify(data));
+      alert('✅ 投资估算已保存');
+    }
+    
+    function loadFromStorage() {
+      const saved = localStorage.getItem('investment_data');
+      if (saved) {
+        const data = JSON.parse(saved);
+        items = data.items || items;
+        document.getElementById('notes').value = data.notes || '';
+        renderTable();
+        alert('✅ 已加载草稿');
+      } else {
+        alert('没有找到保存的草稿');
+      }
+    }
+    
+    function exportWord() {
+      var docx = '\uFEFF<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n';
+      docx += '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">\n<w:body>\n';
+      docx += '<w:p><w:r><w:rPr><w:b/><w:sz w:val="40"/></w:rPr><w:t>项目建设投资费用估算</w:t></w:r></w:p>\n';
+      docx += '<w:p><w:r><w:rPr><w:color w:val="888888"/></w:rPr><w:t>生成日期：' + new Date().toLocaleDateString('zh-CN') + '</w:t></w:r></w:p>\n';
+      
+      docx += '<w:p><w:r><w:rPr><w:b/><w:sz w:val="28"/></w:rPr><w:t>一、投资明细</w:t></w:r></w:p>\n';
+      docx += '<w:tbl><w:tr>';
+      ['序号', '项目名称', '优先级', '投资(万)', '实施周期'].forEach(h => {
+        docx += '<w:tc><w:p><w:r><w:rPr><w:b/></w:rPr><w:t>' + h + '</w:t></w:r></w:p></w:tc>';
+      });
+      docx += '</w:tr>';
+      
+      const priorityMap = { high: '高', medium: '中', low: '低' };
+      const total = items.reduce((sum, i) => sum + (i.cost || 0), 0);
+      
+      items.forEach((item, i) => {
+        docx += '<w:tr>';
+        docx += '<w:tc><w:p><w:r><w:t>' + (i+1) + '</w:t></w:r></w:p></w:tc>';
+        docx += '<w:tc><w:p><w:r><w:t>' + item.name + '</w:t></w:r></w:p></w:tc>';
+        docx += '<w:tc><w:p><w:r><w:t>' + (priorityMap[item.priority] || '中') + '</w:t></w:r></w:p></w:tc>';
+        docx += '<w:tc><w:p><w:r><w:t>' + (item.cost || 0) + '</w:t></w:r></w:p></w:tc>';
+        docx += '<w:tc><w:p><w:r><w:t>' + item.period + '</w:t></w:r></w:p></w:tc>';
+        docx += '</w:tr>';
+      });
+      
+      docx += '<w:tr>';
+      docx += '<w:tc colspan="2"><w:p><w:r><w:rPr><w:b/></w:rPr><w:t>合计</w:t></w:r></w:p></w:tc>';
+      docx += '<w:tc><w:p><w:r><w:rPr><w:b/></w:rPr><w:t>' + total + '</w:t></w:r></w:p></w:tc>';
+      docx += '<w:tc colspan="2"></w:tc>';
+      docx += '</w:tr>';
+      docx += '</w:tbl>';
+      
+      docx += '</w:body></w:document>';
+      
+      var blob = new Blob([docx], {type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = '投资费用估算.docx';
+      a.click();
+    }
+    
+    function exportExcel() {
+      alert('Excel导出功能开发中，可先使用Word导出');
+    }
+    
+    renderTable();
+  </script>
+</body>
+</html>

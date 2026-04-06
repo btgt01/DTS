@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>转型愿景设计 - 企业数字化转型规划系统</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Microsoft YaHei", "PingFang SC", sans-serif; background: #f5f7fa; color: #1a1a2e; }
+    
+    .header { background: linear-gradient(135deg, #1a56db 0%, #0d47a1 100%); color: white; padding: 1.5rem 2rem; }
+    .header h1 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+    .header p { opacity: 0.9; font-size: 0.9rem; }
+    
+    .container { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; }
+    
+    .card { background: white; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); margin-bottom: 1.5rem; overflow: hidden; }
+    .card-header { padding: 1rem 1.5rem; border-bottom: 1px solid #eee; background: #fafbfc; }
+    .card-header h2 { font-size: 1.1rem; color: #1a56db; display: flex; align-items: center; gap: 0.5rem; }
+    .card-body { padding: 1.5rem; }
+    
+    .form-group { margin-bottom: 1.5rem; }
+    .form-group label { display: block; font-weight: 600; margin-bottom: 0.5rem; color: #374151; }
+    .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 0.75rem; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 0.95rem; transition: border-color 0.2s; }
+    .form-group input:focus, .form-group textarea:focus, .form-group select:focus { outline: none; border-color: #1a56db; box-shadow: 0 0 0 3px rgba(26,86,219,0.1); }
+    .form-group textarea { min-height: 100px; resize: vertical; }
+    .form-hint { font-size: 0.8rem; color: #6b7280; margin-top: 0.25rem; }
+    
+    .btn { padding: 0.75rem 1.5rem; border: none; border-radius: 8px; font-size: 0.95rem; cursor: pointer; transition: all 0.2s; }
+    .btn-primary { background: #1a56db; color: white; }
+    .btn-primary:hover { background: #1e40af; }
+    .btn-secondary { background: #6b7280; color: white; }
+    .btn-secondary:hover { background: #4b5563; }
+    .btn-success { background: #10b981; color: white; }
+    .btn-success:hover { background: #059669; }
+    
+    .vision-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-top: 1.5rem; }
+    .vision-item { background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.5rem; }
+    .vision-item h3 { color: #1e40af; margin-bottom: 1rem; font-size: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+    .vision-item textarea { background: white; }
+    
+    .drivers-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; }
+    .driver-item { background: #fff7ed; border: 1px solid #fed7aa; border-radius: 8px; padding: 1rem; cursor: pointer; transition: all 0.2s; }
+    .driver-item:hover { background: #ffedd5; transform: translateY(-2px); }
+    .driver-item.selected { background: #1a56db; color: white; border-color: #1a56db; }
+    .driver-item input { margin-top: 0.5rem; width: 100%; padding: 0.5rem; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 0.85rem; }
+    
+    .timeline { position: relative; padding-left: 2rem; margin-top: 1.5rem; }
+    .timeline::before { content: ''; position: absolute; left: 7px; top: 0; bottom: 0; width: 2px; background: #e5e7eb; }
+    .timeline-item { position: relative; margin-bottom: 1.5rem; }
+    .timeline-item::before { content: ''; position: absolute; left: -1.8rem; top: 0.5rem; width: 12px; height: 12px; border-radius: 50%; background: #1a56db; border: 2px solid white; box-shadow: 0 0 0 2px #1a56db; }
+    .timeline-item.completed::before { background: #10b981; box-shadow: 0 0 0 2px #10b981; }
+    .timeline-content { background: #f8fafc; border-radius: 8px; padding: 1rem; }
+    .timeline-content h4 { color: #374151; margin-bottom: 0.5rem; }
+    .timeline-content p { color: #6b7280; font-size: 0.9rem; }
+    
+    .export-section { text-align: center; margin-top: 2rem; padding-top: 2rem; border-top: 1px solid #e5e7eb; }
+    
+    .preview-card { background: linear-gradient(135deg, #1a56db 0%, #7c3aed 100%); color: white; border-radius: 16px; padding: 2rem; margin-top: 1.5rem; }
+    .preview-card h2 { margin-bottom: 1.5rem; font-size: 1.3rem; }
+    .preview-item { background: rgba(255,255,255,0.15); border-radius: 8px; padding: 1rem; margin-bottom: 0.75rem; }
+    .preview-item h4 { font-size: 0.9rem; opacity: 0.8; margin-bottom: 0.25rem; }
+    .preview-item p { font-size: 1rem; }
+    
+    @media (max-width: 768px) {
+      .container { padding: 0 0.5rem; }
+      .vision-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>🎯 转型愿景设计</h1>
+    <p>基于TOGAF ADM方法论，规划企业数字化转型的战略愿景与目标</p>
+  </div>
+  
+  <div class="container">
+    <!-- 第一步：选择业务驱动因素 -->
+    <div class="card">
+      <div class="card-header">
+        <h2>📋 第一步：明确业务驱动因素</h2>
+      </div>
+      <div class="card-body">
+        <p style="margin-bottom: 1rem; color: #6b7280;">选择企业数字化转型的核心驱动因素（可多选）：</p>
+        <div class="drivers-list" id="driversList">
+          <div class="driver-item" onclick="toggleDriver(this, 'market')">
+            <strong>📈 市场竞争力提升</strong>
+            <p style="font-size: 0.85rem; color: #6b7280; margin-top: 0.5rem;">应对竞争对手，扩展新市场</p>
+            <input type="text" placeholder="具体描述..." style="display:none;">
+          </div>
+          <div class="driver-item" onclick="toggleDriver(this, 'customer')">
+            <strong>👥 客户体验优化</strong>
+            <p style="font-size: 0.85rem; color: #6b7280; margin-top: 0.5rem;">提升客户满意度和服务质量</p>
+            <input type="text" placeholder="具体描述..." style="display:none;">
+          </div>
+          <div class="driver-item" onclick="toggleDriver(this, 'efficiency')">
+            <strong>⚡ 运营效率提升</strong>
+            <p style="font-size: 0.85rem; color: #6b7280; margin-top: 0.5rem;">优化流程，降低成本</p>
+            <input type="text" placeholder="具体描述..." style="display:none;">
+          </div>
+          <div class="driver-item" onclick="toggleDriver(this, 'innovation')">
+            <strong>💡 业务模式创新</strong>
+            <p style="font-size: 0.85rem; color: #6b7280; margin-top: 0.5rem;">探索新的商业模式和收入来源</p>
+            <input type="text" placeholder="具体描述..." style="display:none;">
+          </div>
+          <div class="driver-item" onclick="toggleDriver(this, 'data')">
+            <strong>📊 数据驱动决策</strong>
+            <p style="font-size: 0.85rem; color: #6b7280; margin-top: 0.5rem;">构建数据资产，支撑科学决策</p>
+            <input type="text" placeholder="具体描述..." style="display:none;">
+          </div>
+          <div class="driver-item" onclick="toggleDriver(this, 'compliance')">
+            <strong>🛡️ 合规与风险管理</strong>
+            <p style="font-size: 0.85rem; color: #6b7280; margin-top: 0.5rem;">满足监管要求，降低风险</p>
+            <input type="text" placeholder="具体描述..." style="display:none;">
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 第二步：定义愿景使命 -->
+    <div class="card">
+      <div class="card-header">
+        <h2>🚀 第二步：定义转型愿景与使命</h2>
+      </div>
+      <div class="card-body">
+        <div class="vision-grid">
+          <div class="vision-item">
+            <h3>🎯 愿景</h3>
+            <div class="form-group">
+              <textarea id="visionStatement" placeholder="例如：成为行业领先的数字化标杆企业，以数据驱动业务增长，以创新引领行业发展"></textarea>
+              <p class="form-hint">愿景描述企业数字化转型的长远目标和期望状态</p>
+            </div>
+          </div>
+          <div class="vision-item">
+            <h3>📜 使命</h3>
+            <div class="form-group">
+              <textarea id="missionStatement" placeholder="例如：赋能业务敏捷，驱动价值创造，打造以客户为中心的数字化运营体系"></textarea>
+              <p class="form-hint">使命阐明数字化转型的核心价值和责任担当</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 第三步：设定战略目标 -->
+    <div class="card">
+      <div class="card-header">
+        <h2>🏆 第三步：设定战略目标</h2>
+      </div>
+      <div class="card-body">
+        <div class="form-group">
+          <label>战略主题（可添加多个）</label>
+          <div id="strategicThemes">
+            <div class="theme-item" style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem;">
+              <input type="text" placeholder="输入战略主题，如：客户体验、运营效率..." style="flex: 1;">
+              <select style="width: 120px;">
+                <option value="1year">1年内</option>
+                <option value="3year">3年内</option>
+                <option value="5year">5年内</option>
+              </select>
+              <button class="btn btn-secondary" onclick="removeTheme(this)">删除</button>
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="addTheme()" style="margin-top: 0.5rem;">+ 添加战略主题</button>
+        </div>
+        
+        <div class="form-group">
+          <label>关键成功因素</label>
+          <div id="criticalFactors">
+            <div class="factor-item" style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem;">
+              <input type="text" placeholder="输入关键成功因素，如：建立统一数据平台..." style="flex: 1;">
+              <button class="btn btn-secondary" onclick="removeFactor(this)">删除</button>
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="addFactor()">+ 添加关键成功因素</button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 第四步：定义范围与约束 -->
+    <div class="card">
+      <div class="card-header">
+        <h2>📐 第四步：定义转型范围与约束</h2>
+      </div>
+      <div class="card-body">
+        <div class="vision-grid">
+          <div class="vision-item">
+            <h3>🎯 转型范围</h3>
+            <div class="form-group">
+              <label>涉及的组织和业务范围</label>
+              <select id="orgScope" onchange="toggleOtherScope()">
+                <option value="all">全集团</option>
+                <option value="multi">部分业务单元</option>
+                <option value="single">单一业务单元</option>
+              </select>
+              <textarea id="orgScopeDetail" placeholder="详细说明涉及的组织和业务范围..." style="margin-top: 0.75rem; display: none;"></textarea>
+            </div>
+            <div class="form-group">
+              <label>涉及的技术领域</label>
+              <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                <label style="display: flex; align-items: center; gap: 0.25rem; cursor: pointer;">
+                  <input type="checkbox" value="erp"> ERP
+                </label>
+                <label style="display: flex; align-items: center; gap: 0.25rem; cursor: pointer;">
+                  <input type="checkbox" value="crm"> CRM
+                </label>
+                <label style="display: flex; align-items: center; gap: 0.25rem; cursor: pointer;">
+                  <input type="checkbox" value="scm"> SCM
+                </label>
+                <label style="display: flex; align-items: center; gap: 0.25rem; cursor: pointer;">
+                  <input type="checkbox" value="mes"> MES
+                </label>
+                <label style="display: flex; align-items: center; gap: 0.25rem; cursor: pointer;">
+                  <input type="checkbox" value="plm"> PLM
+                </label>
+                <label style="display: flex; align-items: center; gap: 0.25rem; cursor: pointer;">
+                  <input type="checkbox" value="data"> 数据平台
+                </label>
+                <label style="display: flex; align-items: center; gap: 0.25rem; cursor: pointer;">
+                  <input type="checkbox" value="cloud"> 云平台
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="vision-item">
+            <h3>⚠️ 约束条件</h3>
+            <div class="form-group">
+              <label>时间约束</label>
+              <input type="text" id="timeConstraint" placeholder="如：需在18个月内完成核心系统上线">
+            </div>
+            <div class="form-group">
+              <label>预算约束</label>
+              <input type="text" id="budgetConstraint" placeholder="如：总投资预算不超过5000万元">
+            </div>
+            <div class="form-group">
+              <label>技术约束</label>
+              <textarea id="techConstraint" placeholder="如：需兼容现有IT架构，保护既有投资..."></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 预览与导出 -->
+    <div class="card">
+      <div class="card-header">
+        <h2>📄 愿景预览与导出</h2>
+      </div>
+      <div class="card-body">
+        <div class="preview-card" id="previewCard">
+          <h2>📋 数字化转型愿景预览</h2>
+          <div class="preview-item">
+            <h4>愿景</h4>
+            <p id="previewVision">请在上方填写愿景内容</p>
+          </div>
+          <div class="preview-item">
+            <h4>使命</h4>
+            <p id="previewMission">请在上方填写使命内容</p>
+          </div>
+          <div class="preview-item">
+            <h4>战略主题</h4>
+            <p id="previewThemes">暂无战略主题</p>
+          </div>
+          <div class="preview-item">
+            <h4>业务驱动因素</h4>
+            <p id="previewDrivers">请选择业务驱动因素</p>
+          </div>
+        </div>
+        
+        <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 1.5rem;">
+          <button class="btn btn-primary" onclick="previewVision()">👁️ 预览效果</button>
+          <button class="btn btn-success" onclick="exportVision()">📥 导出Word报告</button>
+          <button class="btn btn-secondary" onclick="saveToLocal()">💾 保存草稿</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    // 驱动因素选择
+    function toggleDriver(el, type) {
+      el.classList.toggle('selected');
+      const input = el.querySelector('input');
+      if (el.classList.contains('selected')) {
+        input.style.display = 'block';
+      } else {
+        input.style.display = 'none';
+        input.value = '';
+      }
+    }
+    
+    function toggleOtherScope() {
+      const select = document.getElementById('orgScope');
+      const detail = document.getElementById('orgScopeDetail');
+      if (select.value === 'multi' || select.value === 'single') {
+        detail.style.display = 'block';
+      } else {
+        detail.style.display = 'none';
+      }
+    }
+    
+    // 添加战略主题
+    function addTheme() {
+      const container = document.getElementById('strategicThemes');
+      const div = document.createElement('div');
+      div.className = 'theme-item';
+      div.style.cssText = 'display: flex; gap: 0.5rem; margin-bottom: 0.75rem;';
+      div.innerHTML = `
+        <input type="text" placeholder="输入战略主题，如：客户体验、运营效率..." style="flex: 1;">
+        <select style="width: 120px;">
+          <option value="1year">1年内</option>
+          <option value="3year">3年内</option>
+          <option value="5year">5年内</option>
+        </select>
+        <button class="btn btn-secondary" onclick="removeTheme(this)">删除</button>
+      `;
+      container.appendChild(div);
+    }
+    
+    function removeTheme(btn) {
+      btn.parentElement.remove();
+    }
+    
+    // 添加关键成功因素
+    function addFactor() {
+      const container = document.getElementById('criticalFactors');
+      const div = document.createElement('div');
+      div.className = 'factor-item';
+      div.style.cssText = 'display: flex; gap: 0.5rem; margin-bottom: 0.75rem;';
+      div.innerHTML = `
+        <input type="text" placeholder="输入关键成功因素，如：建立统一数据平台..." style="flex: 1;">
+        <button class="btn btn-secondary" onclick="removeFactor(this)">删除</button>
+      `;
+      container.appendChild(div);
+    }
+    
+    function removeFactor(btn) {
+      btn.parentElement.remove();
+    }
+    
+    // 预览愿景
+    function previewVision() {
+      const vision = document.getElementById('visionStatement').value || '请在上方填写愿景内容';
+      const mission = document.getElementById('missionStatement').value || '请在上方填写使命内容';
+      
+      const themeInputs = document.querySelectorAll('#strategicThemes input[type="text"]');
+      const themes = Array.from(themeInputs).map(input => input.value).filter(v => v);
+      
+      const drivers = [];
+      document.querySelectorAll('.driver-item.selected strong').forEach(el => {
+        drivers.push(el.textContent.replace(/^[📈👥⚡💡📊🛡️]\s*/, ''));
+      });
+      
+      document.getElementById('previewVision').textContent = vision;
+      document.getElementById('previewMission').textContent = mission;
+      document.getElementById('previewThemes').textContent = themes.length ? themes.join('、') : '暂无战略主题';
+      document.getElementById('previewDrivers').textContent = drivers.length ? drivers.join('、') : '请选择业务驱动因素';
+      
+      alert('预览已更新，请查看底部预览区域');
+    }
+    
+    // 保存到本地
+    function saveToLocal() {
+      const data = {
+        vision: document.getElementById('visionStatement').value,
+        mission: document.getElementById('missionStatement').value,
+        themes: Array.from(document.querySelectorAll('#strategicThemes input[type="text"]')).map(i => i.value),
+        factors: Array.from(document.querySelectorAll('#criticalFactors input[type="text"]')).map(i => i.value),
+        drivers: Array.from(document.querySelectorAll('.driver-item.selected')).map(el => ({
+          type: el.onclick.toString().match(/toggleDriver\(this, '(\w+)'\)/)[1],
+          desc: el.querySelector('input').value
+        })),
+        timeConstraint: document.getElementById('timeConstraint').value,
+        budgetConstraint: document.getElementById('budgetConstraint').value,
+        techConstraint: document.getElementById('techConstraint').value
+      };
+      
+      localStorage.setItem('vision_draft', JSON.stringify(data));
+      alert('✅ 草稿已保存');
+    }
+    
+    // 加载草稿
+    function loadDraft() {
+      const saved = localStorage.getItem('vision_draft');
+      if (saved) {
+        const data = JSON.parse(saved);
+        if (data.vision) document.getElementById('visionStatement').value = data.vision;
+        if (data.mission) document.getElementById('missionStatement').value = data.mission;
+        if (data.timeConstraint) document.getElementById('timeConstraint').value = data.timeConstraint;
+        if (data.budgetConstraint) document.getElementById('budgetConstraint').value = data.budgetConstraint;
+        if (data.techConstraint) document.getElementById('techConstraint').value = data.techConstraint;
+      }
+    }
+    
+    // 导出Word报告
+    function exportVision() {
+      const vision = document.getElementById('visionStatement').value;
+      const mission = document.getElementById('missionStatement').value;
+      
+      if (!vision && !mission) {
+        alert('请先填写愿景或使命内容');
+        return;
+      }
+      
+      var docx = '\uFEFF<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n';
+      docx += '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">\n<w:body>\n';
+      docx += '<w:p><w:r><w:rPr><w:b/><w:sz w:val="40"/></w:rPr><w:t>企业数字化转型愿景规划</w:t></w:r></w:p>\n';
+      docx += '<w:p><w:r><w:rPr><w:color w:val="888888"/></w:rPr><w:t>生成日期：' + new Date().toLocaleDateString('zh-CN') + '</w:t></w:r></w:p>\n';
+      
+      docx += '<w:p><w:r><w:rPr><w:b/><w:sz w:val="28"/></w:rPr><w:t>一、愿景</w:t></w:r></w:p>\n';
+      docx += '<w:p><w:r><w:t>' + (vision || '未填写') + '</w:t></w:r></w:p>\n';
+      
+      docx += '<w:p><w:r><w:rPr><w:b/><w:sz w:val="28"/></w:rPr><w:t>二、使命</w:t></w:r></w:p>\n';
+      docx += '<w:p><w:r><w:t>' + (mission || '未填写') + '</w:t></w:r></w:p>\n';
+      
+      docx += '</w:body></w:document>';
+      
+      var blob = new Blob([docx], {type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = '数字化转型愿景规划.docx';
+      a.click();
+    }
+    
+    // 页面加载时尝试恢复草稿
+    window.onload = loadDraft;
+  </script>
+</body>
+</html>

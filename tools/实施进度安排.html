@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>实施进度安排 - 企业数字化转型规划系统</title>
+  <style>
+    :root {
+      --primary: #1a56db;
+      --primary-dark: #1e40af;
+      --primary-light: #dbeafe;
+      --secondary: #6366f1;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --white: #ffffff;
+      --gray-50: #f9fafb;
+      --gray-100: #f3f4f6;
+      --gray-200: #e5e7eb;
+      --gray-300: #d1d5db;
+      --gray-400: #9ca3af;
+      --gray-500: #6b7280;
+      --gray-600: #4b5563;
+      --gray-700: #374151;
+      --gray-800: #1f2937;
+      --gray-900: #111827;
+      --border: #e5e7eb;
+      --shadow: 0 2px 8px rgba(0,0,0,0.08);
+      --shadow-lg: 0 10px 25px rgba(0,0,0,0.1);
+    }
+    
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Microsoft YaHei", "PingFang SC", "Helvetica Neue", Arial, sans-serif; background: #f5f7fa; color: var(--gray-800); line-height: 1.6; }
+    
+    .header { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: white; padding: 1.5rem 2rem; }
+    .header h1 { font-size: 1.5rem; font-weight: 600; margin-bottom: 0.5rem; }
+    .header p { opacity: 0.9; font-size: 0.9rem; }
+    
+    .container { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; }
+    
+    .card { background: var(--white); border-radius: 12px; box-shadow: var(--shadow); margin-bottom: 1.5rem; overflow: hidden; }
+    .card-header { padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); background: var(--gray-50); display: flex; justify-content: space-between; align-items: center; }
+    .card-header h2 { font-size: 1.1rem; color: var(--primary); font-weight: 600; }
+    .card-body { padding: 1.5rem; }
+    
+    .btn { padding: 0.6rem 1.2rem; border: none; border-radius: 8px; font-size: 0.9rem; cursor: pointer; transition: all 0.2s; font-weight: 500; }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-secondary { background: var(--gray-100); color: var(--gray-700); }
+    .btn-secondary:hover { background: var(--gray-200); }
+    .btn-danger { background: var(--danger); color: white; }
+    .btn-danger:hover { background: #dc2626; }
+    .btn-sm { padding: 0.4rem 0.8rem; font-size: 0.85rem; }
+    .btn-icon { background: none; border: none; cursor: pointer; font-size: 1.1rem; padding: 0.25rem; }
+    
+    .timeline-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+    .timeline-phase { border-radius: 12px; padding: 1.25rem; color: white; text-align: center; cursor: pointer; transition: transform 0.2s; }
+    .timeline-phase:hover { transform: translateY(-3px); }
+    .timeline-phase .year { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.25rem; }
+    .timeline-phase .title { font-size: 0.95rem; opacity: 0.9; margin-bottom: 0.75rem; }
+    .timeline-phase .tasks { font-size: 0.8rem; opacity: 0.8; line-height: 1.4; }
+    
+    .phase-form { background: var(--gray-50); border-radius: 8px; padding: 1.5rem; margin-top: 1rem; display: none; }
+    .phase-form.active { display: block; }
+    
+    .form-group { margin-bottom: 1rem; }
+    .form-group label { display: block; font-weight: 600; margin-bottom: 0.5rem; color: var(--gray-700); }
+    .form-group input, .form-group textarea { width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px; font-size: 0.95rem; }
+    .form-group input:focus, .form-group textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(26,86,219,0.1); }
+    .form-group textarea { min-height: 80px; resize: vertical; }
+    
+    .milestone-list { display: grid; gap: 0.75rem; }
+    .milestone-item { display: flex; align-items: center; gap: 1rem; padding: 1rem; background: var(--gray-50); border-radius: 8px; border: 1px solid var(--border); }
+    .milestone-item input[type="text"] { flex: 1; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; }
+    .milestone-item .time-input { width: 100px; }
+    
+    .summary-card { background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); color: white; border-radius: 12px; padding: 1.5rem; margin-top: 1.5rem; }
+    .summary-card h3 { font-size: 1rem; opacity: 0.9; margin-bottom: 0.5rem; }
+    .summary-card .total { font-size: 2rem; font-weight: 700; }
+    
+    .export-section { text-align: center; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border); }
+    
+    .empty-state { text-align: center; padding: 3rem; color: var(--gray-500); }
+    .empty-state .icon { font-size: 3rem; margin-bottom: 1rem; }
+    
+    @media (max-width: 768px) {
+      .timeline-grid { grid-template-columns: repeat(2, 1fr); }
+      .card-header { flex-direction: column; gap: 0.75rem; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>📅 实施进度安排</h1>
+    <p>规划数字化转型项目的时间进度和里程碑节点</p>
+  </div>
+  
+  <div class="container">
+    <div class="card">
+      <div class="card-header">
+        <h2>五年规划阶段</h2>
+        <div>
+          <button class="btn btn-secondary btn-sm" onclick="loadFromStorage()">📂 加载草稿</button>
+          <button class="btn btn-primary btn-sm" onclick="saveToStorage()">💾 保存</button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="timeline-grid" id="timelineGrid">
+          <!-- 动态生成 -->
+        </div>
+        
+        <div style="text-align: center; margin-top: 1.5rem;">
+          <button class="btn btn-primary" onclick="addPhase()">+ 添加阶段</button>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card">
+      <div class="card-header">
+        <h2>里程碑节点</h2>
+        <button class="btn btn-primary btn-sm" onclick="addMilestone()">+ 添加里程碑</button>
+      </div>
+      <div class="card-body">
+        <div class="milestone-list" id="milestoneList">
+          <!-- 动态生成 -->
+        </div>
+      </div>
+    </div>
+    
+    <div class="card">
+      <div class="card-header">
+        <h2>备注说明</h2>
+      </div>
+      <div class="card-body">
+        <textarea id="notes" style="width: 100%; min-height: 150px; padding: 1rem; border: 1px solid var(--border); border-radius: 8px; font-size: 0.95rem; resize: vertical;" placeholder="输入实施计划的其他说明..."></textarea>
+      </div>
+    </div>
+    
+    <div class="export-section">
+      <button class="btn btn-secondary" onclick="exportExcel()">📊 导出Excel</button>
+      <button class="btn btn-primary" onclick="exportWord()">📥 导出Word</button>
+    </div>
+  </div>
+  
+  <script>
+    // 数据结构
+    let phases = [
+      { id: 1, year: '第1年', title: '基础建设期', color: '#1a56db', tasks: ['基础设施云化', '数据标准化', '核心系统选型'], details: '' },
+      { id: 2, year: '第2年', title: '系统建设期', color: '#1e40af', tasks: ['核心系统上线', '数据中台搭建', '系统集成'], details: '' },
+      { id: 3, year: '第3年', title: '深化应用期', color: '#6366f1', tasks: ['智能分析应用', '业务优化'], details: '' },
+      { id: 4, year: '第4年', title: '创新突破期', color: '#8b5cf6', tasks: ['AI应用创新', '模式探索'], details: '' },
+      { id: 5, year: '第5年', title: '全面引领期', color: '#10b981', tasks: ['行业标杆', '持续优化'], details: '' }
+    ];
+    
+    let milestones = [
+      { id: 1, time: 'M12', desc: '基础设施云化完成，数据标准发布' },
+      { id: 2, time: 'M24', desc: '核心系统上线，数据中台运行' },
+      { id: 3, time: 'M36', desc: '智能化应用初见成效' },
+      { id: 4, time: 'M48', desc: '创新业务模式落地' },
+      { id: 5, time: 'M60', desc: '全面数字化运营' }
+    ];
+    
+    let nextPhaseId = 6;
+    let nextMilestoneId = 6;
+    
+    // 渲染阶段
+    function renderPhases() {
+      const grid = document.getElementById('timelineGrid');
+      grid.innerHTML = phases.map((phase, index) => `
+        <div class="timeline-phase" style="background: ${phase.color};" onclick="togglePhaseForm(${phase.id})">
+          <div class="year">${phase.year}</div>
+          <div class="title">${phase.title}</div>
+          <div class="tasks">${phase.tasks.map(t => '• ' + t).join('<br>')}</div>
+          <button class="btn-icon" onclick="event.stopPropagation(); deletePhase(${phase.id})" style="color: white; opacity: 0.7; margin-top: 0.5rem;">🗑️</button>
+        </div>
+      `).join('');
+      
+      // 渲染阶段编辑表单
+      renderPhaseForms();
+    }
+    
+    function renderPhaseForms() {
+      const container = document.getElementById('timelineGrid');
+      const existingForms = container.parentElement.querySelectorAll('.phase-form');
+      existingForms.forEach(f => f.remove());
+      
+      phases.forEach(phase => {
+        const form = document.createElement('div');
+        form.className = 'phase-form';
+        form.id = 'phase-form-' + phase.id;
+        form.innerHTML = `
+          <h4 style="margin-bottom: 1rem; color: ${phase.color};">编辑 ${phase.year} - ${phase.title}</h4>
+          <div class="form-group">
+            <label>年份名称（如：第1年、第2年）</label>
+            <input type="text" value="${phase.year}" onchange="updatePhase(${phase.id}, 'year', this.value)">
+          </div>
+          <div class="form-group">
+            <label>阶段标题</label>
+            <input type="text" value="${phase.title}" onchange="updatePhase(${phase.id}, 'title', this.value)">
+          </div>
+          <div class="form-group">
+            <label>主要任务（每行一个）</label>
+            <textarea onchange="updatePhase(${phase.id}, 'tasks', this.value)">${phase.tasks.join('\n')}</textarea>
+          </div>
+          <div class="form-group">
+            <label>详细说明</label>
+            <textarea placeholder="该阶段的详细实施内容..." onchange="updatePhase(${phase.id}, 'details', this.value)">${phase.details || ''}</textarea>
+          </div>
+        `;
+        container.parentElement.appendChild(form);
+      });
+    }
+    
+    function togglePhaseForm(id) {
+      const form = document.getElementById('phase-form-' + id);
+      document.querySelectorAll('.phase-form').forEach(f => f.classList.remove('active'));
+      if (form) form.classList.add('active');
+    }
+    
+    function updatePhase(id, field, value) {
+      const phase = phases.find(p => p.id === id);
+      if (phase) {
+        if (field === 'tasks') {
+          phase.tasks = value.split('\n').filter(t => t.trim());
+        } else {
+          phase[field] = value;
+        }
+        renderPhases();
+      }
+    }
+    
+    function addPhase() {
+      const year = prompt('输入年份名称（如：第6年）：');
+      if (!year) return;
+      const title = prompt('输入阶段标题（如：持续优化期）：');
+      if (!title) return;
+      
+      phases.push({
+        id: nextPhaseId++,
+        year: year,
+        title: title,
+        color: getRandomColor(),
+        tasks: [],
+        details: ''
+      });
+      
+      renderPhases();
+    }
+    
+    function deletePhase(id) {
+      if (confirm('确定删除该阶段？')) {
+        phases = phases.filter(p => p.id !== id);
+        renderPhases();
+      }
+    }
+    
+    // 渲染里程碑
+    function renderMilestones() {
+      const list = document.getElementById('milestoneList');
+      list.innerHTML = milestones.map(m => `
+        <div class="milestone-item">
+          <input type="text" value="${m.time}" class="time-input" style="width: 80px; text-align: center; font-weight: 600;" onchange="updateMilestone(${m.id}, 'time', this.value)">
+          <span style="color: var(--gray-400);">:</span>
+          <input type="text" value="${m.desc}" placeholder="里程碑描述..." onchange="updateMilestone(${m.id}, 'desc', this.value)">
+          <button class="btn-icon" onclick="deleteMilestone(${m.id})" title="删除">🗑️</button>
+        </div>
+      `).join('');
+    }
+    
+    function updateMilestone(id, field, value) {
+      const m = milestones.find(item => item.id === id);
+      if (m) {
+        m[field] = value;
+      }
+    }
+    
+    function addMilestone() {
+      const time = prompt('输入时间节点（如：M18）：');
+      if (!time) return;
+      const desc = prompt('输入里程碑描述：');
+      if (!desc) return;
+      
+      milestones.push({ id: nextMilestoneId++, time, desc });
+      renderMilestones();
+    }
+    
+    function deleteMilestone(id) {
+      milestones = milestones.filter(m => m.id !== id);
+      renderMilestones();
+    }
+    
+    // 颜色生成
+    function getRandomColor() {
+      const colors = ['#1a56db', '#1e40af', '#6366f1', '#8b5cf6', '#a855f7', '#10b981', '#059669', '#f59e0b', '#d97706'];
+      return colors[Math.floor(Math.random() * colors.length)];
+    }
+    
+    // 保存/加载
+    function saveToStorage() {
+      const data = { phases, milestones, notes: document.getElementById('notes').value };
+      localStorage.setItem('timeline_data', JSON.stringify(data));
+      alert('✅ 进度安排已保存');
+    }
+    
+    function loadFromStorage() {
+      const saved = localStorage.getItem('timeline_data');
+      if (saved) {
+        const data = JSON.parse(saved);
+        phases = data.phases || phases;
+        milestones = data.milestones || milestones;
+        document.getElementById('notes').value = data.notes || '';
+        renderPhases();
+        renderMilestones();
+        alert('✅ 已加载草稿');
+      } else {
+        alert('没有找到保存的草稿');
+      }
+    }
+    
+    // 导出
+    function exportWord() {
+      var docx = '\uFEFF<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n';
+      docx += '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">\n<w:body>\n';
+      docx += '<w:p><w:r><w:rPr><w:b/><w:sz w:val="40"/></w:rPr><w:t>企业数字化转型实施进度安排</w:t></w:r></w:p>\n';
+      docx += '<w:p><w:r><w:rPr><w:color w:val="888888"/></w:rPr><w:t>生成日期：' + new Date().toLocaleDateString('zh-CN') + '</w:t></w:r></w:p>\n';
+      
+      docx += '<w:p><w:r><w:rPr><w:b/><w:sz w:val="28"/></w:rPr><w:t>一、实施阶段</w:t></w:r></w:p>\n';
+      phases.forEach(phase => {
+        docx += '<w:p><w:r><w:rPr><w:b/></w:rPr><w:t>' + phase.year + ' - ' + phase.title + '</w:t></w:r></w:p>\n';
+        phase.tasks.forEach(task => {
+          docx += '<w:p><w:r><w:t>• ' + task + '</w:t></w:r></w:p>\n';
+        });
+      });
+      
+      docx += '<w:p><w:r><w:rPr><w:b/><w:sz w:val="28"/></w:rPr><w:t>二、里程碑节点</w:t></w:r></w:p>\n';
+      milestones.forEach(m => {
+        docx += '<w:p><w:r><w:t>' + m.time + '：' + m.desc + '</w:t></w:r></w:p>\n';
+      });
+      
+      docx += '</w:body></w:document>';
+      
+      downloadDocx(docx, '实施进度安排.docx');
+    }
+    
+    function exportExcel() {
+      alert('Excel导出功能开发中，可先使用Word导出');
+    }
+    
+    function downloadDocx(content, filename) {
+      var blob = new Blob([content], {type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+    }
+    
+    // 初始化
+    renderPhases();
+    renderMilestones();
+  </script>
+</body>
+</html>
