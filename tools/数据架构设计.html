@@ -281,7 +281,7 @@
       renderModels();
     }
     
-    function saveData(type) {
+    async function saveData(type) {
       let data = {};
       if (type === 'master') data = { masterData };
       if (type === 'standard') data = { standards };

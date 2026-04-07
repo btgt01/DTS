@@ -1,40 +1,144 @@
-<script src="data-api.js"></script>
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>数字化转型实施路径报告 - 企业数字化转型规划系统</title>
+  <style>
+    :root {
+      --primary: #1a56db;
+      --primary-dark: #1e40af;
+      --secondary: #6366f1;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --white: #ffffff;
+      --gray-50: #f9fafb;
+      --gray-100: #f3f4f6;
+      --gray-200: #e5e7eb;
+      --gray-500: #6b7280;
+      --gray-600: #4b5563;
+      --gray-700: #374151;
+      --gray-800: #1f2937;
+      --border: #e5e7eb;
+      --shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Microsoft YaHei", "PingFang SC", "Helvetica Neue", Arial, sans-serif; background: var(--gray-100); color: var(--gray-800); line-height: 1.6; }
+    .header { background: linear-gradient(135deg, var(--success) 0%, var(--primary) 100%); color: white; padding: 2rem; text-align: center; }
+    .header h1 { font-size: 1.75rem; font-weight: 600; margin-bottom: 0.5rem; }
+    .header p { opacity: 0.9; }
+    .container { max-width: 1000px; margin: 2rem auto; padding: 0 1rem; }
+    .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 2rem; }
+    .stat-card { background: var(--white); border-radius: 12px; padding: 1.5rem; text-align: center; box-shadow: var(--shadow); }
+    .stat-card .number { font-size: 2.5rem; font-weight: 700; }
+    .stat-card .label { color: var(--gray-500); font-size: 0.9rem; margin-top: 0.5rem; }
+    .stat-card:nth-child(1) .number { color: var(--primary); }
+    .stat-card:nth-child(2) .number { color: var(--success); }
+    .stat-card:nth-child(3) .number { color: var(--warning); }
+    .card { background: var(--white); border-radius: 12px; box-shadow: var(--shadow); margin-bottom: 1.5rem; overflow: hidden; }
+    .card-header { padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); background: var(--gray-50); }
+    .card-header h2 { font-size: 1.1rem; color: var(--primary); font-weight: 600; }
+    .card-body { padding: 1.5rem; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    th, td { padding: 0.85rem; text-align: left; border-bottom: 1px solid var(--border); }
+    th { background: var(--gray-50); font-weight: 600; color: var(--gray-700); }
+    tr:hover { background: var(--gray-50); }
+    .tag { padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.75rem; font-weight: 500; }
+    .tag-1 { background: #dbeafe; color: #1e40af; }
+    .tag-2 { background: #d1fae5; color: #065f46; }
+    .tag-3 { background: #fef3c7; color: #92400e; }
+    .tag-4 { background: #ede9fe; color: #5b21b6; }
+    .tag-5 { background: #fce7f3; color: #9d174d; }
+    .empty-state { text-align: center; padding: 3rem; color: var(--gray-500); }
+    .export-section { display: flex; gap: 1rem; justify-content: center; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border); }
+    .btn { padding: 0.75rem 1.5rem; border: none; border-radius: 8px; font-size: 0.95rem; cursor: pointer; font-weight: 500; }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-secondary { background: var(--gray-200); color: var(--gray-700); }
+    @media (max-width: 768px) { .stats-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>🛤️ 数字化转型实施路径报告</h1>
+    <p>五年规划路线图与里程碑管理</p>
+  </div>
+  
+  <div class="container">
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="number" id="totalProjects">0</div>
+        <div class="label">规划项目数</div>
+      </div>
+      <div class="stat-card">
+        <div class="number" id="totalPhases">5</div>
+        <div class="label">实施阶段</div>
+      </div>
+      <div class="stat-card">
+        <div class="number" id="totalInvestment">-</div>
+        <div class="label">总投资估算(万)</div>
+      </div>
+    </div>
+    
+    <div class="card">
+      <div class="card-header">
+        <h2>📅 五年实施里程碑</h2>
+      </div>
+      <div class="card-body" id="milestonesContent">
+        <div class="empty-state">正在加载里程碑数据...</div>
+      </div>
+    </div>
+    
+    <div class="export-section">
+      <button class="btn btn-secondary" onclick="exportReport()">📄 导出报告</button>
+      <button class="btn btn-primary" onclick="window.print()">🖨️ 打印PDF</button>
+    </div>
+  </div>
+  
+  <script src="data-api.js"></script>
 <script>
-    async async function loadData() {
-
+    let _cachedData = null;
+    
+    async function loadData() {
       const r_impl_timeline = await loadToolData('timeline');
       const timeline = r_impl_timeline.data || [];
       const r_sys_modules = await loadToolData('modules');
       const modules = r_sys_modules.data || [];
       const r_investment_data = await loadToolData('investment');
       const investment = r_investment_data.data || [];
-      return {timeline, modules, investment};
+      _cachedData = {timeline, modules, investment};
+      return _cachedData;
     }
 
-    function renderStats() {
-      const {modules, investment} = loadData();
+    async function renderStats() {
+      const {modules, investment} = await loadData();
       document.getElementById('totalProjects').textContent = modules.length || '0';
-      const total = investment.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+      const total = (investment.items || investment).reduce((sum, item) => sum + (parseFloat(item.cost || item.amount || 0)), 0);
       document.getElementById('totalInvestment').textContent = total > 0 ? total.toFixed(0) : '-';
     }
 
-    function renderMilestones() {
-      const {timeline} = loadData();
-      if (timeline.length === 0) return;
+    async function renderMilestones() {
+      const {timeline} = await loadData();
+      if (!timeline || timeline.length === 0) {
+        document.getElementById('milestonesContent').innerHTML = '<div class="empty-state">暂无里程碑数据，请先在"实施进度安排"中配置</div>';
+        return;
+      }
       const container = document.getElementById('milestonesContent');
       container.innerHTML = '<table><thead><tr><th>里程碑</th><th>阶段</th><th>时间</th><th>状态</th></tr></thead><tbody>' +
-        timeline.map(t => `<tr><td>${t.name}</td><td><span class="tag tag-${t.year - 2025}">第${t.year - 2025}阶段</span></td><td>${t.year}年</td><td>${t.status === 'completed' ? '✅已完成' : t.status === 'inprogress' ? '🔄进行中' : '⏳待启动'}</td></tr>`).join('') +
+        timeline.map(t => `<tr><td>${t.name || t.milestone || ''}</td><td><span class="tag tag-${t.year - 2025}">第${t.year - 2025}阶段</span></td><td>${t.year}年</td><td>${t.status === 'completed' ? '已完成' : t.status === 'inprogress' ? '进行中' : '待启动'}</td></tr>`).join('') +
         '</tbody></table>';
     }
 
     function exportReport() {
+      if (!_cachedData) { alert('请先等待数据加载完成'); return; }
       let content = '数字化转型实施路径报告\n\n';
       content += '一、实施概览\n';
-      const {modules, investment} = loadData();
+      const {modules, investment} = _cachedData;
       content += `规划周期：5年（2026-2030）\n`;
       content += `实施阶段：5个阶段\n`;
-      content += `项目数量：${modules.length || 0}个\n`;
-      const total = investment.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+      content += `项目数量：${(modules.modules || modules).length || 0}个\n`;
+      const inv = investment.items || investment;
+      const total = inv.reduce((sum, item) => sum + (parseFloat(item.cost || item.amount || 0)), 0);
       content += `总投资：${total > 0 ? total.toFixed(2) : '待定'}万元\n\n`;
 
       content += '二、五年实施路线图\n\n';
@@ -62,8 +166,11 @@
       a.click();
     }
 
-    renderStats();
-    renderMilestones();
+    // 页面加载时异步初始化
+    (async function() {
+      await renderStats();
+      await renderMilestones();
+    })();
   </script>
 </body>
 </html>

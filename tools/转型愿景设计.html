@@ -361,7 +361,7 @@
     }
     
     // 保存到本地
-    function saveToLocal() {
+    async function saveToLocal() {
       const data = {
         vision: document.getElementById('visionStatement').value,
         mission: document.getElementById('missionStatement').value,
@@ -383,8 +383,8 @@
     // 加载草稿
     async function loadDraft() {
       const result = await loadToolData('vision');
-                if (result.data) {
-                    saved = result.data;
+      if (result && result.data) {
+        const data = result.data;
         if (data.vision) document.getElementById('visionStatement').value = data.vision;
         if (data.mission) document.getElementById('missionStatement').value = data.mission;
         if (data.timeConstraint) document.getElementById('timeConstraint').value = data.timeConstraint;

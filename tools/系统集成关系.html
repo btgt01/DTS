@@ -263,7 +263,7 @@
       });
     }
     
-    function saveToStorage() {
+    async function saveToStorage() {
       const data = { systems, integrations, strategy: document.getElementById('strategy').value };
       await saveToolData('integration', data);
       alert('✅ 集成关系已保存');
@@ -271,8 +271,8 @@
     
     async function loadFromStorage() {
       const result = await loadToolData('integration');
-                if (result.data) {
-                    saved = result.data;
+      if (result && result.data) {
+        const data = result.data;
         systems = data.systems || systems;
         integrations = data.integrations || integrations;
         document.getElementById('strategy').value = data.strategy || '';

@@ -231,15 +231,15 @@
       document.getElementById('totalCost').textContent = modules.reduce((sum, m) => sum + (m.cost || 0), 0);
     }
     
-    function saveToStorage() {
+    async function saveToStorage() {
       await saveToolData('modules', modules);
       alert('✅ 系统模块规划已保存');
     }
     
     async function loadFromStorage() {
       const result = await loadToolData('modules');
-                if (result.data) {
-                    saved = result.data;
+      if (result && result.data) {
+        modules = result.data.modules || modules;
         renderModules();
         alert('✅ 已加载草稿');
       } else {

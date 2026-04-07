@@ -197,6 +197,7 @@
     ];
     
     let nextId = 8;
+    let _loaded = false;
     
     function renderTable() {
       const tbody = document.getElementById('costTableBody');
@@ -290,7 +291,7 @@
       `).join('');
     }
     
-    function saveToStorage() {
+    async function saveToStorage() {
       const data = { items, notes: document.getElementById('notes').value };
       await saveToolData('investment', data);
       alert('✅ 投资估算已保存');
@@ -298,8 +299,8 @@
     
     async function loadFromStorage() {
       const result = await loadToolData('investment');
-                if (result.data) {
-                    saved = result.data;
+      if (result && result.data) {
+        const data = result.data;
         items = data.items || items;
         document.getElementById('notes').value = data.notes || '';
         renderTable();

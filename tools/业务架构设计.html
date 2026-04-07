@@ -291,7 +291,7 @@
       el.parentElement.remove();
     }
     
-    function saveData(type) {
+    async function saveData(type) {
       let data = {};
       if (type === 'capability') {
         data = { capabilities };

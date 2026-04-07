@@ -297,7 +297,7 @@
     }
     
     // 保存/加载
-    function saveToStorage() {
+    async function saveToStorage() {
       const data = { phases, milestones, notes: document.getElementById('notes').value };
       await saveToolData('timeline', data);
       alert('✅ 进度安排已保存');
@@ -305,8 +305,8 @@
     
     async function loadFromStorage() {
       const result = await loadToolData('timeline');
-                if (result.data) {
-                    saved = result.data;
+      if (result && result.data) {
+        const data = result.data;
         phases = data.phases || phases;
         milestones = data.milestones || milestones;
         document.getElementById('notes').value = data.notes || '';
