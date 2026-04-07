@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>数字化转型总体规划报告 - 企业数字化转型规划系统</title>
+  <style>
+    :root {
+      --primary: #1a56db;
+      --primary-dark: #1e40af;
+      --secondary: #6366f1;
+      --success: #10b981;
+      --white: #ffffff;
+      --gray-50: #f9fafb;
+      --gray-100: #f3f4f6;
+      --gray-200: #e5e7eb;
+      --gray-500: #6b7280;
+      --gray-600: #4b5563;
+      --gray-700: #374151;
+      --gray-800: #1f2937;
+      --border: #e5e7eb;
+      --shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Microsoft YaHei", "PingFang SC", "Helvetica Neue", Arial, sans-serif; background: var(--gray-100); color: var(--gray-800); line-height: 1.6; }
+    .header { background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); color: white; padding: 2rem; text-align: center; }
+    .header h1 { font-size: 1.75rem; font-weight: 600; margin-bottom: 0.5rem; }
+    .header p { opacity: 0.9; }
+    .container { max-width: 1000px; margin: 2rem auto; padding: 0 1rem; }
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 2rem; }
+    .stat-card { background: var(--white); border-radius: 12px; padding: 1.5rem; text-align: center; box-shadow: var(--shadow); }
+    .stat-card .number { font-size: 2.5rem; font-weight: 700; color: var(--primary); }
+    .stat-card .label { color: var(--gray-500); font-size: 0.9rem; margin-top: 0.5rem; }
+    .card { background: var(--white); border-radius: 12px; box-shadow: var(--shadow); margin-bottom: 1.5rem; overflow: hidden; }
+    .card-header { padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); background: var(--gray-50); }
+    .card-header h2 { font-size: 1.1rem; color: var(--primary); font-weight: 600; }
+    .card-body { padding: 1.5rem; }
+    .section { margin-bottom: 1.5rem; padding: 1rem; background: var(--gray-50); border-radius: 8px; }
+    .section h4 { color: var(--gray-700); margin-bottom: 0.75rem; font-size: 1rem; border-bottom: 2px solid var(--primary); padding-bottom: 0.5rem; }
+    .arch-item { padding: 0.75rem; background: var(--white); border-radius: 6px; margin-bottom: 0.5rem; border-left: 3px solid var(--primary); }
+    .arch-item h5 { color: var(--gray-800); font-size: 0.95rem; }
+    .arch-item p { color: var(--gray-500); font-size: 0.85rem; margin-top: 0.25rem; }
+    .arch-tag { background: var(--primary); color: white; padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.75rem; margin-right: 0.5rem; }
+    .empty-state { text-align: center; padding: 3rem; color: var(--gray-500); background: var(--gray-50); border-radius: 12px; }
+    .export-section { display: flex; gap: 1rem; justify-content: center; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border); }
+    .btn { padding: 0.75rem 1.5rem; border: none; border-radius: 8px; font-size: 0.95rem; cursor: pointer; font-weight: 500; }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-secondary { background: var(--gray-200); color: var(--gray-700); }
+    @media (max-width: 768px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>📋 数字化转型总体规划报告</h1>
+    <p>基于TOGAF方法论的企业架构设计总体规划</p>
+  </div>
+  
+  <div class="container">
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="number" id="visionCount">0</div>
+        <div class="label">愿景定义</div>
+      </div>
+      <div class="stat-card">
+        <div class="number" id="bizCount">0</div>
+        <div class="label">业务域</div>
+      </div>
+      <div class="stat-card">
+        <div class="number" id="dataCount">0</div>
+        <div class="label">数据项</div>
+      </div>
+      <div class="stat-card">
+        <div class="number" id="appCount">0</div>
+        <div class="label">应用系统</div>
+      </div>
+    </div>
+    
+    <div class="card">
+      <div class="card-header">
+        <h2>📐 架构设计成果总览</h2>
+      </div>
+      <div class="card-body" id="archResults">
+        <div class="empty-state">正在加载架构设计数据...</div>
+      </div>
+    </div>
+    
+    <div class="export-section">
+      <button class="btn btn-secondary" onclick="exportDocx()">📄 导出Word</button>
+      <button class="btn btn-secondary" onclick="exportPptx()">📊 导出PPT大纲</button>
+      <button class="btn btn-primary" onclick="exportPdf()">🖨️ 打印PDF</button>
+    </div>
+  </div>
+  
+  <script src="data-api.js"></script>
+<script>
+    let _cachedData = null;
+    
+    async function loadData() {
+      const r_vision_data = await loadToolData('vision');
+      const vision = r_vision_data.data || {};
+      const r_biz_arch_data = await loadToolData('business-arch');
+      const bizArch = r_biz_arch_data.data || {};
+      const r_data_arch_data = await loadToolData('data-arch');
+      const dataArch = r_data_arch_data.data || {};
+      const r_app_arch_data = await loadToolData('app-arch');
+      const appArch = r_app_arch_data.data || {};
+      const r_tech_arch_data = await loadToolData('tech-arch');
+      const techArch = r_tech_arch_data.data || {};
+      _cachedData = {vision, bizArch, dataArch, appArch, techArch};
+      return _cachedData;
+    }
+
+    async function renderOverview() {
+      const {vision, bizArch, dataArch, appArch} = await loadData();
+      document.getElementById('visionCount').textContent = vision.mission ? '1' : '0';
+      document.getElementById('bizCount').textContent = (bizArch.domains || []).length || '0';
+      document.getElementById('dataCount').textContent = (dataArch.items || []).length || '0';
+      document.getElementById('appCount').textContent = (appArch.systems || []).length || '0';
+    }
+
+    async function renderArchResults() {
+      const {vision, bizArch, dataArch, appArch, techArch} = await loadData();
+      const hasData = vision.mission || (bizArch.domains || []).length > 0 || (dataArch.items || []).length > 0;
+      
+      if (!hasData) {
+        document.getElementById('archResults').innerHTML = '<div class="empty-state">暂无架构设计数据，请先完成各架构模块的设计工作</div>';
+        return;
+      }
+
+      let html = '<div class="section"><h4>转型愿景</h4>';
+      if (vision.mission) {
+        html += `<div class="arch-item"><h5>${vision.mission}</h5><p>${vision.vision || ''}</p></div>`;
+      } else {
+        html += '<p style="color:#64748b">待完善</p>';
+      }
+      html += '</div>';
+
+      if ((bizArch.domains || []).length > 0) {
+        html += '<div class="section"><h4>业务架构</h4>';
+        (bizArch.domains || []).slice(0, 3).forEach(d => {
+          html += `<div class="arch-item"><h5>${d.name}</h5><p>${d.desc || ''}</p></div>`;
+        });
+        html += '</div>';
+      }
+
+      if ((dataArch.items || []).length > 0) {
+        html += '<div class="section"><h4>数据架构</h4>';
+        (dataArch.items || []).slice(0, 3).forEach(d => {
+          html += `<div class="arch-item"><h5>${d.name}</h5><p>类型：${d.type || '标准数据'}</p></div>`;
+        });
+        html += '</div>';
+      }
+
+      if ((appArch.systems || []).length > 0) {
+        html += '<div class="section"><h4>应用架构</h4>';
+        (appArch.systems || []).slice(0, 3).forEach(s => {
+          html += `<div class="arch-item"><h5><span class="arch-tag">${s.type || '应用'}</span>${s.name}</h5><p>${s.desc || ''}</p></div>`;
+        });
+        html += '</div>';
+      }
+
+      document.getElementById('archResults').innerHTML = html;
+    }
+
+    function exportDocx() {
+      if (!_cachedData) { alert('请先等待数据加载完成'); return; }
+      const content = generateReportContent(_cachedData);
+      downloadText(content, '数字化转型总体规划报告.txt');
+      showAlert('报告已导出（文本格式）');
+    }
+
+    function exportPptx() {
+      if (!_cachedData) { alert('请先等待数据加载完成'); return; }
+      const content = generateReportContent(_cachedData);
+      downloadText(content, '数字化转型总体规划报告_简版.txt');
+      showAlert('PPT大纲已导出');
+    }
+
+    function exportPdf() {
+      window.print();
+    }
+
+    function generateReportContent(data) {
+      const {vision, bizArch, dataArch, appArch, techArch} = data;
+      let content = '数字化转型总体规划报告\n\n';
+      content += '一、执行摘要\n\n';
+      content += '1.1 项目背景\n基于企业数字化转型需求，制定本总体规划方案。\n\n';
+      content += '1.2 架构愿景\n';
+      if (vision.mission) {
+        content += `使命：${vision.mission}\n`;
+        content += `愿景：${vision.vision || ''}\n\n`;
+      } else {
+        content += '待完善\n\n';
+      }
+
+      content += '二、业务架构设计\n';
+      (bizArch.domains || []).forEach((d, i) => {
+        content += `${i + 1}. ${d.name}\n   ${d.desc || ''}\n`;
+      });
+      content += '\n三、数据架构设计\n';
+      (dataArch.items || []).forEach((d, i) => {
+        content += `${i + 1}. ${d.name}\n   类型：${d.type || ''} | 主数据：${d.master ? '是' : '否'}\n`;
+      });
+      content += '\n四、应用架构设计\n';
+      (appArch.systems || []).forEach((s, i) => {
+        content += `${i + 1}. ${s.name}（${s.type || ''}）\n   ${s.desc || ''}\n`;
+      });
+      return content;
+    }
+
+    function downloadText(text, filename) {
+      const blob = new Blob([text], {type: 'text/plain'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = filename;
+      a.click();
+    }
+
+    function showAlert(msg) {
+      alert(msg);
+    }
+
+    // 页面加载时异步初始化
+    (async function() {
+      await renderOverview();
+      await renderArchResults();
+    })();
+  </script>
+</body>
+</html>

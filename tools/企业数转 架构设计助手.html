@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>企业数转架构向导 · 验证+结果导出</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        body {
+            background: #f0f4fa;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            padding: 2rem 1rem;
+        }
+        .tool-container {
+            max-width: 1100px;
+            width: 100%;
+            background: white;
+            border-radius: 2rem;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.3);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .header {
+            background: #0b2b4f;
+            color: white;
+            padding: 1.5rem 2.5rem;
+        }
+        .header h1 {
+            font-weight: 600;
+            font-size: 1.9rem;
+            letter-spacing: -0.02em;
+            margin-bottom: 0.25rem;
+        }
+        .header p {
+            font-size: 1rem;
+            opacity: 0.85;
+        }
+        .csg-badge {
+            background: rgba(255,255,255,0.12);
+            display: inline-block;
+            padding: 0.25rem 1rem;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            margin-top: 0.7rem;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+        .step-nav {
+            display: flex;
+            flex-wrap: wrap;
+            background: #eef2f6;
+            padding: 0.75rem 2rem;
+            gap: 0.3rem 0.8rem;
+            border-bottom: 1px solid #d0ddee;
+        }
+        .step-btn {
+            background: transparent;
+            border: none;
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            border-radius: 40px;
+            color: #1e3a6b;
+            cursor: pointer;
+            transition: all 0.1s;
+            white-space: nowrap;
+        }
+        .step-btn:hover {
+            background: #d9e2ef;
+        }
+        .step-btn.active {
+            background: #0b2b4f;
+            color: white;
+            box-shadow: 0 4px 8px rgba(0,35,70,0.2);
+        }
+        .workspace {
+            padding: 2rem 2.5rem;
+            background: white;
+            min-height: 420px;
+        }
+        /* 起始页表单 */
+        .verify-form {
+            background: #f8fafd;
+            border-left: 5px solid #2d68c4;
+            padding: 1.8rem 2rem;
+            border-radius: 1.2rem;
+            margin-bottom: 1.5rem;
+        }
+        .form-row {
+            margin-bottom: 1.5rem;
+            display: flex;
+            flex-direction: column;
+        }
+        .form-row label {
+            font-weight: 600;
+            color: #0a1c3a;
+            margin-bottom: 0.4rem;
+            font-size: 0.95rem;
+        }
+        .form-row input, .form-row select {
+            padding: 0.85rem 1.2rem;
+            border: 1px solid #cbd6e6;
+            border-radius: 0.9rem;
+            font-size: 1rem;
+            background: white;
+        }
+        .form-row input:focus, .form-row select:focus {
+            outline: none;
+            border-color: #2d68c4;
+            box-shadow: 0 0 0 3px rgba(45,104,196,0.15);
+        }
+        .verify-hint {
+            color: #c03535;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            font-weight: 500;
+        }
+        .step-guide {
+            background: #f8fafd;
+            border-left: 5px solid #2d68c4;
+            padding: 1.2rem 1.8rem;
+            border-radius: 1rem;
+            margin-bottom: 2rem;
+        }
+        .step-guide h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #0a1c3a;
+            margin-bottom: 0.75rem;
+        }
+        .step-guide ul, .step-guide p {
+            color: #1f3a5f;
+            line-height: 1.6;
+            font-size: 0.98rem;
+        }
+        .step-guide li {
+            margin-left: 1.4rem;
+            margin-bottom: 0.25rem;
+        }
+        .design-area {
+            margin-top: 1.2rem;
+        }
+        .design-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #0e2d53;
+        }
+        textarea {
+            width: 100%;
+            padding: 1.2rem 1.4rem;
+            font-size: 0.95rem;
+            border: 1px solid #cbd6e6;
+            border-radius: 1rem;
+            background: #ffffff;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+            resize: vertical;
+            line-height: 1.5;
+            font-family: 'JetBrains Mono', 'SF Mono', monospace;
+        }
+        textarea:focus {
+            outline: none;
+            border-color: #2d68c4;
+            box-shadow: 0 0 0 3px rgba(45,104,196,0.2);
+        }
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin: 2rem 2.5rem 1.5rem 2.5rem;
+            align-items: center;
+        }
+        .nav-buttons button {
+            background: white;
+            border: 1px solid #b6c7e0;
+            padding: 0.7rem 2rem;
+            border-radius: 3rem;
+            font-weight: 500;
+            color: #1a3d6e;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: 0.1s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+        .nav-buttons button:hover {
+            background: #e7edf6;
+            border-color: #2d68c4;
+        }
+        .nav-buttons button.primary {
+            background: #0b2b4f;
+            color: white;
+            border: none;
+            box-shadow: 0 8px 16px -6px #0b2b4f80;
+        }
+        .nav-buttons button.primary:hover {
+            background: #123b66;
+        }
+        .nav-buttons button:disabled {
+            opacity: 0.4;
+            pointer-events: none;
+        }
+        .reset-btn {
+            background: transparent !important;
+            border: none !important;
+            color: #6c7f9e;
+            box-shadow: none !important;
+        }
+        .footer-note {
+            background: #ecf2fa;
+            padding: 1rem 2.5rem;
+            font-size: 0.9rem;
+            color: #1e3f68;
+            border-top: 1px solid #c9d9ee;
+            display: flex;
+            justify-content: space-between;
+        }
+        .example-hint {
+            color: #2d68c4;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            font-style: italic;
+        }
+        .summary-box {
+            background: #f3f7fd;
+            border-radius: 1.2rem;
+            padding: 1.5rem 2rem;
+            max-height: 500px;
+            overflow-y: auto;
+            border: 1px solid #d2e0f0;
+        }
+        .summary-item {
+            margin-bottom: 2rem;
+            border-bottom: 1px dashed #b8cbe0;
+            padding-bottom: 1.2rem;
+        }
+        .summary-item h3 {
+            color: #0b2b4f;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        .summary-item pre {
+            background: white;
+            padding: 1rem;
+            border-radius: 0.8rem;
+            font-size: 0.9rem;
+            white-space: pre-wrap;
+            word-break: break-word;
+            border: 1px solid #d9e3f0;
+            font-family: 'SF Mono', monospace;
+        }
+        .export-btn {
+            background: #0b2b4f;
+            color: white;
+            border: none;
+            padding: 0.8rem 2rem;
+            border-radius: 3rem;
+            font-weight: 600;
+            font-size: 1rem;
+            margin-top: 1rem;
+            cursor: pointer;
+            transition: background 0.1s;
+        }
+        .export-btn:hover {
+            background: #143e63;
+        }
+    </style>
+</head>
+<body>
+<div class="tool-container">
+    <div class="header">
+        <h1>📐 企业数转架构向导 · 验证+结果导出</h1>
+        <p>基于CSG-EAF 2.0 (TOGAF+DDD) 逐步构建，起始验证，最终汇总</p>
+        <div class="csg-badge">⚡ 继承 · 价值流 · 业务能力 · 中台沉淀</div>
+    </div>
+
+    <div class="step-nav" id="stepNav"></div>
+
+    <div class="workspace" id="workspace"></div>
+
+    <div class="nav-buttons" id="navButtons"></div>
+
+    <div class="footer-note">
+        <span>📘 9个业务域 · 35+架构制品 · 融合电网实践</span>
+        <span><a href="#" id="fillExampleBtn" style="color:#0b2b4f; font-weight:500; text-decoration:none;">↺ 重置当前步骤为示例</a></span>
+    </div>
+</div>
+
+<script>
+(function() {
+    // --- 步骤定义 (0:起始验证, 1-7:设计步骤, 8:结果汇总) ---
+    const designSteps = [
+        { // 1 (原0)
+            title: "1️⃣ 现状 & 战略输入",
+            guide: `📋 企业架构现状分析 (承接业务战略)  
+• 梳理已有业务架构: 业务域/分类/流程协作 (如: 9个业务域,380分类,2523协作)  
+• 技术架构现状: 8个技术域、23个平台、266模块  
+• 应用架构现状: 10个应用域、27应用、628模块  
+• 识别战略愿景、关键变革举措、政策法规 (三法三条例)  
+💡 融合TOGAF+DDD，从职能分析与端到端价值流两条线出发。`,
+            placeholder: `✍️ 请描述贵司现状及战略输入...`,
+            defaultText: `【现状示例 · 继承自CSG-EAF基线】\n业务域：安全生产、供应链、营销、财务、资产、人资等9个域。\n业务流程：1090个流程，2523个协作关系。\n技术平台：云平台、大数据平台、物联网平台等8个技术域。\n战略重点：客户服务数字化、资产全生命周期管理、供应链韧性。\n安全要求：符合“三法三条例”，数据分级分类。`
+        },
+        { // 2
+            title: "2️⃣ 业务架构 · 价值流梳理",
+            guide: `🎯 从客户视角识别企业级价值流 & 专业级价值流  
+原则: 由外而内，交付完整结果，明确定义利益相关者。  
+• 企业级价值流 (如: 客户服务流、资产管理流、电力交易流)  
+• 专业级价值流 (如供应链: 战略策划、供应商管理、采购执行)  
+🎁 输出: 企业级价值流图、专业级价值流阶段。`,
+            defaultText: `【企业级价值流参考】\n利益相关者: 政府、个人/企业用户、售电公司、数据使用者。\n主价值流: 客户服务流(价值实现)、资产管理流(价值创造)、新兴业务流(增值)、电力交易流(价值实现)。\n基础支撑: 安全管理、创新管理。\n\n【专业级价值流示例-供应链】\n1. 供应链策划管理  2. 供应商管理  3. 采购管理  4. 合约管理  5. 品控管理  6. 仓储配送  7. 逆向物流。`,
+            placeholder: `💬 请列出您的企业级价值流和专业级价值流...`
+        },
+        { // 3
+            title: "3️⃣ 业务架构 · 能力与流程",
+            guide: `🧩 基于价值流分解业务能力 & 设计业务流程  
+• 业务域 → 一级分类 → 二级分类 → 业务能力 (指导/监督/执行三层)  
+• 识别专业级流程、操作级流程、业务步骤、角色、业务规则  
+• 协作矩阵、流程架构图、业务对象初步识别。`,
+            defaultText: `【业务能力框架-供应链示例】\n业务域: 供应链管理\n一级分类: 采购管理、供应商管理、仓储配送、品控管理\n二级分类: 招标采购、非招标采购、供应商分级分类、仓库建设管理\n业务能力: 仓库注册建模、入库、出库、盘点、保管保养\n\n【流程示例-入库】\n操作级流程: 入库验收→上架→记账\n业务步骤: ①核对到货单(仓管员) ②质量初检(质检员) ③更新库存(仓管员)\n业务对象: 入库单、到货通知、库存台账`,
+            placeholder: `📝 分解贵司的业务能力/流程/角色...`
+        },
+        { // 4
+            title: "4️⃣ 数据架构 · 资产与模型",
+            guide: `🗃️ 设计数据资产目录、概念/逻辑模型、数据分布  
+• L1数据域(与业务域对齐) → L2数据主题 → L3概念实体 → L4逻辑实体 → L5属性  
+• 概念实体来源于业务对象，建立概念数据模型(实体关系)  
+• 逻辑模型细化(三范式)，定义主键、外键、属性  
+• 识别数据源、数据流(CRUD)、数据Owner。`,
+            defaultText: `【数据资产目录-供应链示例】\nL1数据域: 供应链\nL2数据主题: 供应商、采购、合同、库存、物料\nL3概念实体: 供应商、采购订单、合同、物料、仓库、库存事务\nL4逻辑实体: 供应商主数据、采购订单头/行、合同条款、物料清单、库存余额\n\n【概念关系】\n供应商 1:N 采购订单; 采购订单 1:N 合同; 物料 N:N 仓库(库存)\n数据Owner: 采购部(供应商)、仓储部(库存)。`,
+            placeholder: `🗂️ 定义您的数据资产目录、概念模型...`
+        },
+        { // 5
+            title: "5️⃣ 应用架构 · 模块与服务",
+            guide: `📱 自顶向下划分应用域(AD)、应用组(AG)、一级应用模块(APP)、二级应用模块(ABB)  
+• AD与价值流对齐，AG/APP支撑业务能力  
+• 识别功能项、功能子项，建立业务/应用矩阵、角色/功能矩阵  
+• 设计应用服务(可复用)，梳理应用集成关系。`,
+            defaultText: `【应用架构-供应链模块示例】\nAD: 资产管理域\nAG: 供应链管理组\nAPP: 需求管理、采购管理、供应商管理、合同管理、品控管理、仓储管理\nABB: 采购需求计划管理(属于需求管理)、框架招标需求分配(采购管理)、合同履约(合同管理)\n功能项: 需求填报、需求整合、平衡利库\n应用服务: 供应商资格预审服务、合同生成服务。`,
+            placeholder: `📌 设计您的应用域/模块/服务...`
+        },
+        { // 6
+            title: "6️⃣ 技术架构 · 框架与平台",
+            guide: `⚙️ 设计技术框架、技术组件、技术服务、技术平台  
+• 技术原则: 全面云化、服务化、中台化、自主可控  
+• 划分技术域: 基础设施层、数字平台层、公共服务层、安全/运维(三横两纵)  
+• 识别技术组件(容器、数据库、微服务)、技术服务(可复用)  
+• 部署节点、技术蓝皮书、标准规范。`,
+            defaultText: `【技术架构-“三横两纵”示例】\n基础设施层: 南网云(虚拟机/裸金属/容器)、分布式存储\n数字平台层: 大数据平台、AI平台、物联网平台\n公共服务层: 统一认证、流程引擎、消息中心、日志服务\n安全两纵: 数据安全、应用安全、零信任\n运维两纵: 监控、自动化运维\n\n技术组件: k8s、Doris、Kafka、Spring Cloud、API网关\n部署节点: 双数据中心+云边协同。`,
+            placeholder: `🖥️ 描绘您的技术框架/平台/组件...`
+        },
+        { // 7
+            title: "7️⃣ 架构整合 & 制品清单",
+            guide: `📦 汇总所有架构设计，形成35+架构制品(本次新增14个)  
+关键制品: 业务能力清单、流程协作矩阵、数据资产目录、应用系统模块清单、技术服务目录、部署架构图  
+• 建立架构管控组织与机制，持续运营  
+• 跨域概念数据模型、跨域应用集成蓝图。`,
+            defaultText: `【制品清单汇总-已完成】\n业务架构: 业务能力清单、价值流图、流程清单、角色清单、业务对象清单\n数据架构: 数据资产目录、概念数据模型、逻辑数据模型、数据流图、数据源清单\n应用架构: 应用系统模块清单(ABB)、功能项清单、应用集成图、应用服务目录\n技术架构: 技术组件清单、技术服务目录、技术平台清单、部署节点设计\n\n【管控机制】架构管控委员会、评审流程、架构遵从检查。`,
+            placeholder: `📋 整合您的架构产出，记录管控机制...`
+        }
+    ];
+
+    // 完整步骤: 起始页(0) + 7个设计步骤(1-7) + 汇总页(8) = 9
+    const steps = [
+        { // 0 起始验证页
+            title: "0️⃣ 起始验证",
+            guide: `请填写企业基本信息，验证通过后方可进入架构设计。所有字段必填。`,
+            // 没有 defaultText, 单独处理
+        },
+        ...designSteps,
+        { // 8 结果汇总页
+            title: "8️⃣ 结果汇总 & 导出",
+            guide: `以下为您所有步骤的设计内容。您可以预览并导出完整报告。`,
+        }
+    ];
+
+    // 存储每个步骤的文本 (索引0和8实际上不会被textarea使用, 但占位)
+    let stepContents = [
+        "",  // 起始页无文本
+        ...designSteps.map(s => s.defaultText),
+        ""   // 汇总页无文本
+    ];
+
+    // 企业信息 (起始页)
+    let companyInfo = {
+        name: '',
+        industry: '电网能源',
+        project: '',
+        version: 'CSG-EAF 2.0'
+    };
+    let verified = false;  // 是否验证通过
+
+    const fillExampleBtn = document.getElementById('fillExampleBtn');
+    const stepNavEl = document.getElementById('stepNav');
+    const workspaceEl = document.getElementById('workspace');
+    const navButtonsEl = document.getElementById('navButtons');
+
+    let currentStep = 0; // 默认起始页
+
+    // 保存当前textarea内容
+    function saveCurrentTextarea() {
+        const ta = document.getElementById('step-textarea');
+        if (ta && currentStep > 0 && currentStep < steps.length-1) {
+            stepContents[currentStep] = ta.value;
+        }
+    }
+
+    // 检查验证 (起始页表单)
+    function isCompanyInfoValid() {
+        return companyInfo.name.trim() !== '' && companyInfo.project.trim() !== '';
+    }
+
+    // 渲染起始页表单
+    function renderStartPage() {
+        const html = `
+            <div class="verify-form">
+                <h2 style="margin-bottom:1.2rem; color:#0b2b4f;">🔐 企业信息验证</h2>
+                <div class="form-row">
+                    <label>企业名称 <span style="color:#c03535;">*</span></label>
+                    <input type="text" id="companyName" placeholder="如：南方电网" value="${companyInfo.name.replace(/"/g, '&quot;')}">
+                </div>
+                <div class="form-row">
+                    <label>所属行业</label>
+                    <select id="companyIndustry">
+                        <option value="电网能源" ${companyInfo.industry==='电网能源'?'selected':''}>电网能源</option>
+                        <option value="制造" ${companyInfo.industry==='制造'?'selected':''}>制造</option>
+                        <option value="金融" ${companyInfo.industry==='金融'?'selected':''}>金融</option>
+                        <option value="通信" ${companyInfo.industry==='通信'?'selected':''}>通信</option>
+                        <option value="其他" ${companyInfo.industry==='其他'?'selected':''}>其他</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <label>项目/架构版本名称 <span style="color:#c03535;">*</span></label>
+                    <input type="text" id="projectName" placeholder="如：数字化转型2026" value="${companyInfo.project.replace(/"/g, '&quot;')}">
+                </div>
+                <div class="form-row">
+                    <label>架构框架版本</label>
+                    <input type="text" id="archVersion" value="${companyInfo.version.replace(/"/g, '&quot;')}">
+                </div>
+                <div class="verify-hint" id="verifyHint"></div>
+            </div>
+        `;
+        workspaceEl.innerHTML = html;
+
+        // 绑定输入事件
+        document.getElementById('companyName').addEventListener('input', (e) => {
+            companyInfo.name = e.target.value;
+            verified = false; // 修改后验证失效
+        });
+        document.getElementById('companyIndustry').addEventListener('change', (e) => {
+            companyInfo.industry = e.target.value;
+        });
+        document.getElementById('projectName').addEventListener('input', (e) => {
+            companyInfo.project = e.target.value;
+            verified = false;
+        });
+        document.getElementById('archVersion').addEventListener('input', (e) => {
+            companyInfo.version = e.target.value;
+        });
+    }
+
+    // 渲染设计步骤 (1-7)
+    function renderDesignStep(stepIdx) {
+        const step = steps[stepIdx];
+        const content = stepContents[stepIdx];
+        const guideHtml = step.guide.split('\n').map(line => line.trim() ? `<li>${line.replace(/^• /, '')}</li>` : '').join('');
+        const html = `
+            <div class="step-guide">
+                <h2>${step.title}</h2>
+                <ul>${guideHtml}</ul>
+            </div>
+            <div class="design-area">
+                <div class="design-label">
+                    <span>✏️ 您的设计</span>
+                    <span>📎 可参考示例修改</span>
+                </div>
+                <textarea id="step-textarea" placeholder="${step.placeholder || ''}" rows="12">${content.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</textarea>
+                <div class="example-hint">💡 左侧指南与电网实践融合</div>
+            </div>
+        `;
+        workspaceEl.innerHTML = html;
+        const ta = document.getElementById('step-textarea');
+        if (ta) {
+            ta.addEventListener('input', (e) => {
+                stepContents[stepIdx] = e.target.value;
+            });
+        }
+    }
+
+    // 渲染汇总页
+    function renderSummaryPage() {
+        let summaryHtml = `<div class="summary-box">`;
+        // 企业信息
+        summaryHtml += `<div class="summary-item"><h3>🏢 企业信息</h3><pre>企业名称: ${companyInfo.name || '(未填)'}\n所属行业: ${companyInfo.industry}\n项目名称: ${companyInfo.project || '(未填)'}\n架构版本: ${companyInfo.version}</pre></div>`;
+        // 遍历设计步骤 (索引1到7)
+        for (let i = 1; i <= 7; i++) {
+            summaryHtml += `<div class="summary-item"><h3>${steps[i].title}</h3><pre>${stepContents[i] || '暂无内容'}</pre></div>`;
+        }
+        summaryHtml += `</div><button class="export-btn" id="exportSummaryBtn">📤 导出全部内容(.txt)</button>`;
+        workspaceEl.innerHTML = summaryHtml;
+        document.getElementById('exportSummaryBtn')?.addEventListener('click', exportSummary);
+    }
+
+    // 导出功能
+    function exportSummary() {
+        let content = `==== 企业数字化转型架构设计报告 ====\n\n`;
+        content += `【企业信息】\n企业名称: ${companyInfo.name}\n行业: ${companyInfo.industry}\n项目: ${companyInfo.project}\n架构版本: ${companyInfo.version}\n\n`;
+        for (let i = 1; i <= 7; i++) {
+            content += `【${steps[i].title}】\n${stepContents[i]}\n\n`;
+        }
+        const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `架构设计_${companyInfo.name || '企业'}_${new Date().toISOString().slice(0,10)}.txt`;
+        link.click();
+        URL.revokeObjectURL(link.href);
+    }
+
+    // 渲染当前步骤
+    function renderCurrentStep() {
+        if (currentStep === 0) {
+            renderStartPage();
+        } else if (currentStep === steps.length - 1) {
+            renderSummaryPage();
+        } else {
+            renderDesignStep(currentStep);
+        }
+    }
+
+    // 验证并尝试跳转 (用于起始页点击下一步)
+    function attemptStartVerifyAndGoNext() {
+        if (!isCompanyInfoValid()) {
+            const hint = document.getElementById('verifyHint');
+            if (hint) hint.innerText = '❌ 请填写企业名称和项目名称 (必填)';
+            return false;
+        }
+        verified = true;
+        return true;
+    }
+
+    // 步骤导航渲染
+    function renderStepNav() {
+        let html = '';
+        steps.forEach((step, idx) => {
+            const activeClass = idx === currentStep ? 'active' : '';
+            html += `<button class="step-btn ${activeClass}" data-step="${idx}">${step.title}</button>`;
+        });
+        stepNavEl.innerHTML = html;
+        document.querySelectorAll('.step-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const targetStep = parseInt(e.target.dataset.step, 10);
+                if (!isNaN(targetStep) && targetStep !== currentStep) {
+                    // 如果要进入非起始页且非汇总页，且未验证，强制回起始页
+                    if (targetStep > 0 && targetStep < steps.length-1 && !verified) {
+                        alert('请先在起始页填写并验证企业信息');
+                        if (currentStep !== 0) {
+                            saveCurrentTextarea();
+                            currentStep = 0;
+                            renderCurrentStep();
+                            renderStepNav();
+                            renderNavButtons();
+                        }
+                        return;
+                    }
+                    saveCurrentTextarea();
+                    currentStep = targetStep;
+                    renderCurrentStep();
+                    renderStepNav();
+                    renderNavButtons();
+                }
+            });
+        });
+    }
+
+    // 底部按钮渲染
+    function renderNavButtons() {
+        const isFirst = currentStep === 0;
+        const isLast = currentStep === steps.length - 1;
+        navButtonsEl.innerHTML = `
+            <button class="reset-btn" id="prevStepBtn" ${isFirst ? 'disabled' : ''}>◀ 上一步</button>
+            <div style="display:flex; gap:0.8rem;">
+                <button id="resetCurrentBtn">↩ 重置当前示例</button>
+                <button class="primary" id="nextStepBtn" ${isLast ? 'disabled' : ''}>下一步 ▶</button>
+            </div>
+        `;
+
+        // 上一步
+        const prevBtn = document.getElementById('prevStepBtn');
+        if (prevBtn && !isFirst) {
+            prevBtn.addEventListener('click', () => {
+                saveCurrentTextarea();
+                currentStep--;
+                renderCurrentStep();
+                renderStepNav();
+                renderNavButtons();
+            });
+        }
+
+        // 下一步 (带验证)
+        const nextBtn = document.getElementById('nextStepBtn');
+        if (nextBtn && !isLast) {
+            nextBtn.addEventListener('click', () => {
+                // 如果当前是起始页，先验证
+                if (currentStep === 0) {
+                    if (!attemptStartVerifyAndGoNext()) return;
+                }
+                // 对于非起始页，正常下一步
+                saveCurrentTextarea();
+                currentStep++;
+                renderCurrentStep();
+                renderStepNav();
+                renderNavButtons();
+            });
+        }
+
+        // 重置当前步骤示例 (仅设计步骤有效)
+        const resetBtn = document.getElementById('resetCurrentBtn');
+        if (resetBtn) {
+            resetBtn.addEventListener('click', () => {
+                if (currentStep === 0 || currentStep === steps.length-1) {
+                    alert('该页面无示例可重置');
+                    return;
+                }
+                stepContents[currentStep] = steps[currentStep].defaultText;
+                renderCurrentStep();
+            });
+        }
+    }
+
+    // 全局底部“重置当前步骤为示例”
+    if (fillExampleBtn) {
+        fillExampleBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (currentStep === 0 || currentStep === steps.length-1) {
+                alert('当前页面无可重置的示例');
+                return;
+            }
+            stepContents[currentStep] = steps[currentStep].defaultText;
+            renderCurrentStep();
+        });
+    }
+
+    // 初始化
+    function init() {
+        // 默认companyInfo置空以便验证
+        companyInfo = { name: '', industry: '电网能源', project: '', version: 'CSG-EAF 2.0' };
+        verified = false;
+        renderStepNav();
+        renderCurrentStep();
+        renderNavButtons();
+    }
+
+    init();
+
+    // 防抖保存
+    window.addEventListener('beforeunload', function() {
+        saveCurrentTextarea();
+    });
+})();
+</script>
+</body>
+</html>

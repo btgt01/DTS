@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>数据架构设计 - 企业数字化转型规划系统</title>
+  <style>
+    :root {
+      --primary: #1a56db;
+      --primary-dark: #1e40af;
+      --secondary: #6366f1;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --white: #ffffff;
+      --gray-50: #f9fafb;
+      --gray-100: #f3f4f6;
+      --gray-200: #e5e7eb;
+      --gray-300: #d1d5db;
+      --gray-500: #6b7280;
+      --gray-600: #4b5563;
+      --gray-700: #374151;
+      --gray-800: #1f2937;
+      --border: #e5e7eb;
+      --shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Microsoft YaHei", "PingFang SC", "Helvetica Neue", Arial, sans-serif; background: #f5f7fa; color: var(--gray-800); line-height: 1.6; }
+    
+    .header { background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%); color: white; padding: 1.5rem 2rem; }
+    .header h1 { font-size: 1.5rem; font-weight: 600; margin-bottom: 0.5rem; }
+    .header p { opacity: 0.9; font-size: 0.9rem; }
+    
+    .container { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; }
+    
+    .card { background: var(--white); border-radius: 12px; box-shadow: var(--shadow); margin-bottom: 1.5rem; overflow: hidden; }
+    .card-header { padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); background: var(--gray-50); display: flex; justify-content: space-between; align-items: center; }
+    .card-header h2 { font-size: 1.1rem; color: #7c3aed; font-weight: 600; }
+    .card-body { padding: 1.5rem; }
+    
+    .btn { padding: 0.6rem 1.2rem; border: none; border-radius: 8px; font-size: 0.9rem; cursor: pointer; transition: all 0.2s; font-weight: 500; }
+    .btn-primary { background: #7c3aed; color: white; }
+    .btn-primary:hover { background: #6d28d9; }
+    .btn-secondary { background: var(--gray-100); color: var(--gray-700); }
+    .btn-secondary:hover { background: var(--gray-200); }
+    .btn-sm { padding: 0.4rem 0.8rem; font-size: 0.85rem; }
+    
+    .tab-nav { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; border-bottom: 2px solid var(--border); padding-bottom: 0.5rem; flex-wrap: wrap; }
+    .tab-nav button { padding: 0.5rem 1rem; border: none; background: none; cursor: pointer; font-size: 0.9rem; color: var(--gray-500); border-bottom: 2px solid transparent; margin-bottom: -0.5rem; }
+    .tab-nav button.active { color: #7c3aed; border-bottom-color: #7c3aed; font-weight: 600; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    
+    .form-group { margin-bottom: 1rem; }
+    .form-group label { display: block; font-weight: 600; margin-bottom: 0.5rem; color: var(--gray-700); }
+    .form-group input, .form-group textarea { width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px; font-size: 0.95rem; }
+    .form-group textarea { min-height: 80px; resize: vertical; }
+    
+    /* 主数据管理 */
+    .master-data-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1rem; }
+    .master-data-card { background: var(--gray-50); border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem; }
+    .master-data-card h4 { color: #7c3aed; margin-bottom: 0.75rem; display: flex; justify-content: space-between; }
+    .master-data-card textarea { font-size: 0.85rem; min-height: 60px; }
+    
+    /* 数据标准 */
+    .standard-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    .standard-table th, .standard-table td { padding: 0.75rem; text-align: left; border-bottom: 1px solid var(--border); }
+    .standard-table th { background: var(--gray-50); font-weight: 600; color: #7c3aed; }
+    .standard-table input, .standard-table select { width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 4px; }
+    
+    /* 数据模型 */
+    .model-list { display: grid; gap: 0.75rem; }
+    .model-item { display: flex; align-items: center; gap: 1rem; padding: 1rem; background: var(--gray-50); border-radius: 8px; border: 1px solid var(--border); }
+    .model-item input { flex: 1; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; }
+    
+    .export-section { text-align: center; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border); }
+    
+    @media (max-width: 768px) {
+      .master-data-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>💾 数据架构设计</h1>
+    <p>基于DAMA数据管理方法论，规划企业数据资产、数据标准与数据模型</p>
+  </div>
+  
+  <div class="container">
+    <div class="card">
+      <div class="tab-nav">
+        <button class="active" onclick="switchTab('master')">🏷️ 主数据管理</button>
+        <button onclick="switchTab('standard')">📏 数据标准</button>
+        <button onclick="switchTab('model')">🔧 数据模型</button>
+      </div>
+      
+      <!-- 主数据管理 -->
+      <div class="tab-content active" id="tab-master">
+        <div style="margin-bottom: 1rem;">
+          <button class="btn btn-secondary btn-sm" onclick="saveData('master')">💾 保存</button>
+          <button class="btn btn-primary btn-sm" onclick="addMasterData()">+ 添加主数据</button>
+        </div>
+        <div class="master-data-grid" id="masterDataGrid">
+          <!-- 动态生成 -->
+        </div>
+      </div>
+      
+      <!-- 数据标准 -->
+      <div class="tab-content" id="tab-standard">
+        <div style="margin-bottom: 1rem;">
+          <button class="btn btn-secondary btn-sm" onclick="saveData('standard')">💾 保存</button>
+          <button class="btn btn-primary btn-sm" onclick="addStandard()">+ 添加标准</button>
+        </div>
+        <div class="table-container">
+          <table class="standard-table">
+            <thead>
+              <tr>
+                <th>数据域</th>
+                <th>数据项</th>
+                <th>数据类型</th>
+                <th>数据长度</th>
+                <th>标准值</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="standardTable">
+              <!-- 动态生成 -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+      
+      <!-- 数据模型 -->
+      <div class="tab-content" id="tab-model">
+        <div style="margin-bottom: 1rem;">
+          <button class="btn btn-secondary btn-sm" onclick="saveData('model')">💾 保存</button>
+          <button class="btn btn-primary btn-sm" onclick="addModel()">+ 添加模型</button>
+        </div>
+        <div class="model-list" id="modelList">
+          <!-- 动态生成 -->
+        </div>
+      </div>
+    </div>
+    
+    <div class="card">
+      <div class="card-header">
+        <h2>数据架构总览</h2>
+      </div>
+      <div class="card-body">
+        <textarea id="overview" placeholder="描述企业数据架构的整体设计思路...">数据架构以数据资产化为核心，建立统一的数据标准体系，构建企业级数据模型，实现数据资产的统一管理和价值挖掘。</textarea>
+      </div>
+    </div>
+    
+    <div class="export-section">
+      <button class="btn btn-primary" onclick="exportWord()">📥 导出Word文档</button>
+    </div>
+  </div>
+  
+  <script src="data-api.js"></script>
+<script>
+    let masterData = [
+      { id: 1, name: '客户主数据', desc: '客户基本信息、联系方式、分类属性' },
+      { id: 2, name: '供应商主数据', desc: '供应商基本信息、资质评级、合作范围' },
+      { id: 3, name: '物料主数据', desc: '物料编码、规格参数、分类层级' },
+      { id: 4, name: '组织主数据', desc: '组织架构、部门职能、岗位设置' },
+      { id: 5, name: '财务主数据', desc: '会计科目、成本中心、利润中心' }
+    ];
+    
+    let standards = [
+      { id: 1, domain: '客户数据', field: '客户编码', type: '字符', length: '20', value: 'KH+日期+序号' },
+      { id: 2, domain: '客户数据', field: '客户名称', type: '字符', length: '100', value: '-' },
+      { id: 3, domain: '物料数据', field: '物料编码', type: '字符', length: '18', value: '物料分类+流水号' },
+      { id: 4, domain: '物料数据', field: '计量单位', type: '字符', length: '10', value: '国标计量单位' }
+    ];
+    
+    let models = [
+      { id: 1, name: '客户主题域', desc: '客户360度视图相关数据模型' },
+      { id: 2, name: '供应商主题域', desc: '供应商全生命周期管理模型' },
+      { id: 3, name: '财务主题域', desc: '财务核算与分析数据模型' },
+      { id: 4, name: '生产主题域', desc: '生产运营数据模型' }
+    ];
+    
+    let nextId = 5;
+    
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-nav button').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      document.querySelector(`[onclick="switchTab('${tabId}')"]`).classList.add('active');
+      document.getElementById('tab-' + tabId).classList.add('active');
+    }
+    
+    function renderMasterData() {
+      const grid = document.getElementById('masterDataGrid');
+      grid.innerHTML = masterData.map(m => `
+        <div class="master-data-card">
+          <h4>${m.name}<span onclick="deleteMasterData(${m.id})" style="cursor:pointer;color:var(--gray-400)">🗑️</span></h4>
+          <textarea onchange="updateMasterData(${m.id}, this.value)">${m.desc}</textarea>
+        </div>
+      `).join('');
+    }
+    
+    function addMasterData() {
+      const name = prompt('输入主数据名称：');
+      if (!name) return;
+      const desc = prompt('输入描述：');
+      masterData.push({ id: nextId++, name, desc: desc || '' });
+      renderMasterData();
+    }
+    
+    function updateMasterData(id, value) {
+      const m = masterData.find(m => m.id === id);
+      if (m) m.desc = value;
+    }
+    
+    function deleteMasterData(id) {
+      masterData = masterData.filter(m => m.id !== id);
+      renderMasterData();
+    }
+    
+    function renderStandards() {
+      const tbody = document.getElementById('standardTable');
+      tbody.innerHTML = standards.map(s => `
+        <tr>
+          <td><input type="text" value="${s.domain}" onchange="updateStandard(${s.id}, 'domain', this.value)"></td>
+          <td><input type="text" value="${s.field}" onchange="updateStandard(${s.id}, 'field', this.value)"></td>
+          <td><select onchange="updateStandard(${s.id}, 'type', this.value)">
+            <option value="字符" ${s.type === '字符' ? 'selected' : ''}>字符</option>
+            <option value="数值" ${s.type === '数值' ? 'selected' : ''}>数值</option>
+            <option value="日期" ${s.type === '日期' ? 'selected' : ''}>日期</option>
+            <option value="布尔" ${s.type === '布尔' ? 'selected' : ''}>布尔</option>
+          </select></td>
+          <td><input type="text" value="${s.length}" onchange="updateStandard(${s.id}, 'length', this.value)"></td>
+          <td><input type="text" value="${s.value}" onchange="updateStandard(${s.id}, 'value', this.value)"></td>
+          <td><button class="btn btn-secondary btn-sm" onclick="deleteStandard(${s.id})">删除</button></td>
+        </tr>
+      `).join('');
+    }
+    
+    function addStandard() {
+      standards.push({ id: nextId++, domain: '', field: '', type: '字符', length: '', value: '' });
+      renderStandards();
+    }
+    
+    function updateStandard(id, field, value) {
+      const s = standards.find(s => s.id === id);
+      if (s) s[field] = value;
+    }
+    
+    function deleteStandard(id) {
+      standards = standards.filter(s => s.id !== id);
+      renderStandards();
+    }
+    
+    function renderModels() {
+      const list = document.getElementById('modelList');
+      list.innerHTML = models.map(m => `
+        <div class="model-item">
+          <span style="font-weight:600;color:#7c3aed;">📊</span>
+          <input type="text" value="${m.name}" onchange="updateModel(${m.id}, 'name', this.value)">
+          <input type="text" value="${m.desc}" placeholder="模型描述" onchange="updateModel(${m.id}, 'desc', this.value)">
+          <button class="btn btn-secondary btn-sm" onclick="deleteModel(${m.id})">删除</button>
+        </div>
+      `).join('');
+    }
+    
+    function addModel() {
+      const name = prompt('输入数据模型名称：');
+      if (!name) return;
+      models.push({ id: nextId++, name, desc: '' });
+      renderModels();
+    }
+    
+    function updateModel(id, field, value) {
+      const m = models.find(m => m.id === id);
+      if (m) m[field] = value;
+    }
+    
+    function deleteModel(id) {
+      models = models.filter(m => m.id !== id);
+      renderModels();
+    }
+    
+    async function saveData(type) {
+      let data = {};
+      if (type === 'master') data = { masterData };
+      if (type === 'standard') data = { standards };
+      if (type === 'model') data = { models };
+      data.overview = document.getElementById('overview').value;
+      await saveToolData('data-arch', data, 'data-arch-' + type);
+      alert('✅ 已保存');
+    }
+    
+    function exportWord() {
+      var docx = '\uFEFF<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n';
+      docx += '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">\n<w:body>\n';
+      docx += '<w:p><w:r><w:rPr><w:b/><w:sz w:val="40"/></w:rPr><w:t>数据架构设计</w:t></w:r></w:p>\n';
+      docx += '<w:p><w:r><w:rPr><w:color w:val="888888"/></w:rPr><w:t>生成日期：' + new Date().toLocaleDateString('zh-CN') + '</w:t></w:r></w:p>\n';
+      
+      docx += '<w:p><w:r><w:rPr><w:b/><w:sz w:val="28"/></w:rPr><w:t>一、主数据管理</w:t></w:r></w:p>\n';
+      masterData.forEach(m => {
+        docx += '<w:p><w:r><w:rPr><w:b/></w:rPr><w:t>' + m.name + '</w:t></w:r></w:p>\n';
+        docx += '<w:p><w:r><w:t>' + m.desc + '</w:t></w:r></w:p>\n';
+      });
+      
+      docx += '</w:body></w:document>';
+      
+      var blob = new Blob([docx], {type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = '数据架构设计.docx';
+      a.click();
+    }
+    
+    renderMasterData();
+    renderStandards();
+    renderModels();
+  </script>
+</body>
+</html>

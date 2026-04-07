@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>治理架构设计 - 企业数字化转型规划系统</title>
+  <style>
+    :root {
+      --primary: #1a56db;
+      --primary-dark: #1e40af;
+      --secondary: #6366f1;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --white: #ffffff;
+      --gray-50: #f9fafb;
+      --gray-100: #f3f4f6;
+      --gray-200: #e5e7eb;
+      --gray-300: #d1d5db;
+      --gray-500: #6b7280;
+      --gray-600: #4b5563;
+      --gray-700: #374151;
+      --gray-800: #1f2937;
+      --border: #e5e7eb;
+      --shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Microsoft YaHei", "PingFang SC", "Helvetica Neue", Arial, sans-serif; background: #f5f7fa; color: var(--gray-800); line-height: 1.6; }
+    
+    .header { background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%); color: white; padding: 1.5rem 2rem; }
+    .header h1 { font-size: 1.5rem; font-weight: 600; margin-bottom: 0.5rem; }
+    .header p { opacity: 0.9; font-size: 0.9rem; }
+    
+    .container { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; }
+    
+    .card { background: var(--white); border-radius: 12px; box-shadow: var(--shadow); margin-bottom: 1.5rem; overflow: hidden; }
+    .card-header { padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); background: var(--gray-50); display: flex; justify-content: space-between; align-items: center; }
+    .card-header h2 { font-size: 1.1rem; color: #0891b2; font-weight: 600; }
+    .card-body { padding: 1.5rem; }
+    
+    .btn { padding: 0.6rem 1.2rem; border: none; border-radius: 8px; font-size: 0.9rem; cursor: pointer; transition: all 0.2s; font-weight: 500; }
+    .btn-primary { background: #0891b2; color: white; }
+    .btn-primary:hover { background: #0e7490; }
+    .btn-secondary { background: var(--gray-100); color: var(--gray-700); }
+    .btn-secondary:hover { background: var(--gray-200); }
+    .btn-sm { padding: 0.4rem 0.8rem; font-size: 0.85rem; }
+    
+    .form-group { margin-bottom: 1rem; }
+    .form-group label { display: block; font-weight: 600; margin-bottom: 0.5rem; color: var(--gray-700); }
+    .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px; font-size: 0.95rem; }
+    .form-group textarea { min-height: 80px; resize: vertical; }
+    
+    /* 组织架构 */
+    .governance-org { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.5rem; }
+    .governance-level { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+    .governance-level .level-label { width: 100px; font-weight: 600; color: #0891b2; }
+    .governance-level .members { display: flex; flex-wrap: wrap; gap: 0.5rem; flex: 1; }
+    .governance-member { background: var(--gray-100); border: 1px solid var(--border); border-radius: 6px; padding: 0.5rem 1rem; display: flex; align-items: center; gap: 0.5rem; }
+    .governance-member input { border: none; background: none; width: 80px; font-size: 0.9rem; }
+    .governance-member .delete { color: var(--gray-400); cursor: pointer; font-size: 0.85rem; }
+    
+    /* 制度流程 */
+    .policy-list { display: grid; gap: 0.75rem; }
+    .policy-item { display: flex; align-items: center; gap: 1rem; padding: 1rem; background: var(--gray-50); border-radius: 8px; border: 1px solid var(--border); }
+    .policy-item input { flex: 1; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; }
+    .policy-item select { width: 150px; }
+    
+    /* KPI */
+    .kpi-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    .kpi-table th, .kpi-table td { padding: 0.75rem; text-align: left; border-bottom: 1px solid var(--border); }
+    .kpi-table th { background: var(--gray-50); font-weight: 600; color: #0891b2; }
+    .kpi-table input { width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 4px; }
+    
+    .export-section { text-align: center; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border); }
+    
+    @media (max-width: 768px) {
+      .governance-level { flex-direction: column; align-items: flex-start; }
+      .governance-level .level-label { width: auto; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>📊 治理架构设计</h1>
+    <p>建立数字化转型的组织保障、制度体系和评估机制</p>
+  </div>
+  
+  <div class="container">
+    <div class="card">
+      <div class="card-header">
+        <h2>治理组织架构</h2>
+        <div>
+          <button class="btn btn-secondary btn-sm" onclick="saveData()">💾 保存</button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="governance-org">
+          <div class="governance-level">
+            <div class="level-label">🏛️ 决策层</div>
+            <div class="members" id="level1">
+              <div class="governance-member">
+                <span>数字化转型委员会主任</span>
+                <input type="text" value="CEO">
+                <span class="delete" onclick="deleteMember(this)">×</span>
+              </div>
+            </div>
+            <button class="btn btn-secondary btn-sm" onclick="addMember(1)">+ 添加</button>
+          </div>
+          
+          <div class="governance-level">
+            <div class="level-label">⚙️ 管理层</div>
+            <div class="members" id="level2">
+              <div class="governance-member">
+                <span>数字化转型办公室负责人</span>
+                <input type="text" value="CIO">
+                <span class="delete" onclick="deleteMember(this)">×</span>
+              </div>
+              <div class="governance-member">
+                <span>各业务域负责人</span>
+                <input type="text" value="业务副总">
+                <span class="delete" onclick="deleteMember(this)">×</span>
+              </div>
+            </div>
+            <button class="btn btn-secondary btn-sm" onclick="addMember(2)">+ 添加</button>
+          </div>
+          
+          <div class="governance-level">
+            <div class="level-label">🔧 执行层</div>
+            <div class="members" id="level3">
+              <div class="governance-member">
+                <span>项目经理</span>
+                <input type="text" value="">
+                <span class="delete" onclick="deleteMember(this)">×</span>
+              </div>
+              <div class="governance-member">
+                <span>业务分析师</span>
+                <input type="text" value="">
+                <span class="delete" onclick="deleteMember(this)">×</span>
+              </div>
+              <div class="governance-member">
+                <span>数据分析师</span>
+                <input type="text" value="">
+                <span class="delete" onclick="deleteMember(this)">×</span>
+              </div>
+            </div>
+            <button class="btn btn-secondary btn-sm" onclick="addMember(3)">+ 添加</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card">
+      <div class="card-header">
+        <h2>管理制度与流程</h2>
+        <button class="btn btn-primary btn-sm" onclick="addPolicy()">+ 添加制度</button>
+      </div>
+      <div class="card-body">
+        <div class="policy-list" id="policyList">
+          <div class="policy-item">
+            <input type="text" value="项目立项管理制度" placeholder="制度名称">
+            <select>
+              <option value="process">流程管理</option>
+              <option value="data">数据管理</option>
+              <option value="security">安全管理</option>
+              <option value="change">变更管理</option>
+            </select>
+            <input type="text" value="规范项目立项审批流程" placeholder="制度描述">
+            <button class="btn btn-secondary btn-sm" onclick="this.parentElement.remove()">删除</button>
+          </div>
+          <div class="policy-item">
+            <input type="text" value="数据质量管理规范" placeholder="制度名称">
+            <select>
+              <option value="process">流程管理</option>
+              <option value="data" selected>数据管理</option>
+              <option value="security">安全管理</option>
+              <option value="change">变更管理</option>
+            </select>
+            <input type="text" value="确保数据资产的质量和一致性" placeholder="制度描述">
+            <button class="btn btn-secondary btn-sm" onclick="this.parentElement.remove()">删除</button>
+          </div>
+          <div class="policy-item">
+            <input type="text" value="系统安全管理制度" placeholder="制度名称">
+            <select>
+              <option value="process">流程管理</option>
+              <option value="data">数据管理</option>
+              <option value="security" selected>安全管理</option>
+              <option value="change">变更管理</option>
+            </select>
+            <input type="text" value="保障系统和数据安全" placeholder="制度描述">
+            <button class="btn btn-secondary btn-sm" onclick="this.parentElement.remove()">删除</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card">
+      <div class="card-header">
+        <h2>评估指标（KPI）</h2>
+        <button class="btn btn-primary btn-sm" onclick="addKPI()">+ 添加指标</button>
+      </div>
+      <div class="card-body">
+        <table class="kpi-table">
+          <thead>
+            <tr>
+              <th>指标名称</th>
+              <th>指标定义</th>
+              <th>目标值</th>
+              <th>评估周期</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="kpiTable">
+            <tr>
+              <td><input type="text" value="系统上线率"></td>
+              <td><input type="text" value="按期上线的系统数量/计划上线数量"></td>
+              <td><input type="text" value="≥90%"></td>
+              <td><select><option value="monthly">月度</option><option value="quarterly">季度</option></select></td>
+              <td><button class="btn btn-secondary btn-sm" onclick="deleteKPI(this)">删除</button></td>
+            </tr>
+            <tr>
+              <td><input type="text" value="数据质量达标率"></td>
+              <td><input type="text" value="符合质量标准的数据占比"></td>
+              <td><input type="text" value="≥95%"></td>
+              <td><select><option value="monthly">月度</option><option value="quarterly" selected>季度</option></select></td>
+              <td><button class="btn btn-secondary btn-sm" onclick="deleteKPI(this)">删除</button></td>
+            </tr>
+            <tr>
+              <td><input type="text" value="用户满意度"></td>
+              <td><input type="text" value="系统用户满意度评分"></td>
+              <td><input type="text" value="≥4.0分"></td>
+              <td><select><option value="monthly">月度</option><option value="quarterly">季度</option></select></td>
+              <td><button class="btn btn-secondary btn-sm" onclick="deleteKPI(this)">删除</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    
+    <div class="card">
+      <div class="card-header">
+        <h2>治理机制说明</h2>
+      </div>
+      <div class="card-body">
+        <textarea id="mechanism" placeholder="描述数字化治理的总体机制...">建立"决策-管理-执行"三级治理架构，明确各级职责分工。决策层负责数字化转型战略方向和重大事项决策；管理层负责制定标准和流程，协调资源配置；执行层负责具体项目的实施和运营。通过定期评估和持续改进，确保数字化转型目标的实现。</textarea>
+      </div>
+    </div>
+    
+    <div class="export-section">
+      <button class="btn btn-primary" onclick="exportWord()">📥 导出Word文档</button>
+    </div>
+  </div>
+  
+  <script src="data-api.js"></script>
+<script>
+    function addMember(level) {
+      const name = prompt('输入岗位名称：');
+      if (!name) return;
+      const container = document.getElementById('level' + level);
+      const div = document.createElement('div');
+      div.className = 'governance-member';
+      div.innerHTML = '<span>' + name + '</span><input type="text" value=""><span class="delete" onclick="deleteMember(this)">×</span>';
+      container.appendChild(div);
+    }
+    
+    function deleteMember(el) {
+      el.parentElement.remove();
+    }
+    
+    function addPolicy() {
+      const container = document.getElementById('policyList');
+      const div = document.createElement('div');
+      div.className = 'policy-item';
+      div.innerHTML = `
+        <input type="text" placeholder="制度名称">
+        <select>
+          <option value="process">流程管理</option>
+          <option value="data">数据管理</option>
+          <option value="security">安全管理</option>
+          <option value="change">变更管理</option>
+        </select>
+        <input type="text" placeholder="制度描述">
+        <button class="btn btn-secondary btn-sm" onclick="this.parentElement.remove()">删除</button>
+      `;
+      container.appendChild(div);
+    }
+    
+    function addKPI() {
+      const tbody = document.getElementById('kpiTable');
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><input type="text" placeholder="指标名称"></td>
+        <td><input type="text" placeholder="指标定义"></td>
+        <td><input type="text" placeholder="目标值"></td>
+        <td><select><option value="monthly">月度</option><option value="quarterly">季度</option></select></td>
+        <td><button class="btn btn-secondary btn-sm" onclick="deleteKPI(this)">删除</button></td>
+      `;
+      tbody.appendChild(tr);
+    }
+    
+    function deleteKPI(btn) {
+      btn.closest('tr').remove();
+    }
+    
+    async function saveData() {
+      const data = {
+        mechanism: document.getElementById('mechanism').value
+      };
+      await saveToolData('governance', data);
+      alert('✅ 治理架构设计已保存');
+    }
+    
+    function exportWord() {
+      var docx = '\uFEFF<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n';
+      docx += '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">\n<w:body>\n';
+      docx += '<w:p><w:r><w:rPr><w:b/><w:sz w:val="40"/></w:rPr><w:t>治理架构设计</w:t></w:r></w:p>\n';
+      docx += '<w:p><w:r><w:rPr><w:color w:val="888888"/></w:rPr><w:t>生成日期：' + new Date().toLocaleDateString('zh-CN') + '</w:t></w:r></w:p>\n';
+      
+      docx += '<w:p><w:r><w:rPr><w:b/><w:sz w:val="28"/></w:rPr><w:t>一、治理组织架构</w:t></w:r></w:p>\n';
+      docx += '<w:p><w:r><w:t>建立"决策-管理-执行"三级治理架构，确保数字化转型的组织保障。</w:t></w:r></w:p>\n';
+      
+      docx += '<w:p><w:r><w:rPr><w:b/><w:sz w:val="28"/></w:rPr><w:t>二、管理制度</w:t></w:r></w:p>\n';
+      const policies = document.querySelectorAll('#policyList .policy-item');
+      policies.forEach(p => {
+        const inputs = p.querySelectorAll('input');
+        if (inputs[0].value) {
+          docx += '<w:p><w:r><w:t>• ' + inputs[0].value + '：' + (inputs[1]?.value || '') + '</w:t></w:r></w:p>\n';
+        }
+      });
+      
+      docx += '</w:body></w:document>';
+      
+      var blob = new Blob([docx], {type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = '治理架构设计.docx';
+      a.click();
+    }
+  </script>
+</body>
+</html>

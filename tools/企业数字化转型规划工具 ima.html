@@ -1,0 +1,1365 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>企业数字化转型规划工具</title>
+    <link rel="stylesheet" href=" https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css ">
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #3b82f6;
+            --accent-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --light-color: #f8fafc;
+            --dark-color: #1e293b;
+            --gray-color: #64748b;
+            --border-radius: 8px;
+            --box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background-color: #f1f5f9;
+            color: var(--dark-color);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            margin-bottom: 2rem;
+            box-shadow: var(--box-shadow);
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        h1 {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .subtitle {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+        
+        .logo {
+            font-size: 2.5rem;
+            color: white;
+        }
+        
+        .progress-container {
+            background-color: white;
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--box-shadow);
+        }
+        
+        .progress-bar {
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+            margin-bottom: 1rem;
+        }
+        
+        .progress-bar::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background-color: #e2e8f0;
+            transform: translateY(-50%);
+            z-index: 1;
+        }
+        
+        .progress-line {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            height: 4px;
+            background-color: var(--accent-color);
+            transform: translateY(-50%);
+            z-index: 2;
+            transition: width 0.5s ease;
+        }
+        
+        .step {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: white;
+            border: 3px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: var(--gray-color);
+            position: relative;
+            z-index: 3;
+            transition: all 0.3s ease;
+        }
+        
+        .step.active {
+            border-color: var(--accent-color);
+            background-color: var(--accent-color);
+            color: white;
+        }
+        
+        .step.completed {
+            border-color: var(--accent-color);
+            background-color: var(--accent-color);
+            color: white;
+        }
+        
+        .step-label {
+            position: absolute;
+            top: 45px;
+            left: 50%;
+            transform: translateX(-50%);
+            white-space: nowrap;
+            font-size: 0.85rem;
+            color: var(--gray-color);
+        }
+        
+        .step.active .step-label {
+            color: var(--accent-color);
+            font-weight: bold;
+        }
+        
+        .content-area {
+            display: none;
+            background-color: white;
+            border-radius: var(--border-radius);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--box-shadow);
+        }
+        
+        .content-area.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        h2 {
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        
+        h3 {
+            color: var(--secondary-color);
+            margin: 1.5rem 0 1rem;
+        }
+        
+        .design-method {
+            background-color: #f8fafc;
+            border-left: 4px solid var(--primary-color);
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            border-radius: 0 var(--border-radius) var(--border-radius) 0;
+        }
+        
+        .method-title {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        
+        .method-title i {
+            color: var(--primary-color);
+            margin-right: 0.5rem;
+        }
+        
+        .tool-card {
+            background-color: white;
+            border: 1px solid #e2e8f0;
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .tool-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .tool-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .tool-icon {
+            width: 50px;
+            height: 50px;
+            background-color: #dbeafe;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+            color: var(--primary-color);
+            font-size: 1.5rem;
+        }
+        
+        .case-study {
+            background-color: #f0f9ff;
+            border: 1px solid #bae6fd;
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .case-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .case-icon {
+            color: var(--warning-color);
+            margin-right: 0.5rem;
+        }
+        
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+        
+        input, textarea, select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #cbd5e1;
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+        
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+        
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-top: 0.5rem;
+        }
+        
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+        }
+        
+        .checkbox-item input {
+            width: auto;
+            margin-right: 0.5rem;
+        }
+        
+        .matrix-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .matrix-item {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: var(--border-radius);
+            padding: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .matrix-item:hover {
+            background-color: #e0f2fe;
+            border-color: #7dd3fc;
+        }
+        
+        .matrix-item h4 {
+            margin-bottom: 0.5rem;
+            color: var(--primary-color);
+        }
+        
+        .button-group {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #e2e8f0;
+        }
+        
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: var(--border-radius);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #1d4ed8;
+        }
+        
+        .btn-secondary {
+            background-color: #e2e8f0;
+            color: var(--dark-color);
+        }
+        
+        .btn-secondary:hover {
+            background-color: #cbd5e1;
+        }
+        
+        .btn-success {
+            background-color: var(--accent-color);
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background-color: #0da271;
+        }
+        
+        .btn i {
+            margin-right: 0.5rem;
+        }
+        
+        .export-container {
+            text-align: center;
+            padding: 3rem 2rem;
+        }
+        
+        .export-icon {
+            font-size: 4rem;
+            color: var(--accent-color);
+            margin-bottom: 1.5rem;
+        }
+        
+        .export-preview {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: var(--border-radius);
+            padding: 2rem;
+            margin: 2rem 0;
+            text-align: left;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .preview-title {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        
+        .preview-section {
+            margin-bottom: 1.5rem;
+        }
+        
+        .preview-section h4 {
+            color: var(--secondary-color);
+            margin-bottom: 0.5rem;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 2rem 0;
+            color: var(--gray-color);
+            font-size: 0.9rem;
+            border-top: 1px solid #e2e8f0;
+            margin-top: 2rem;
+        }
+        
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .logo {
+                margin-top: 1rem;
+            }
+            
+            .progress-bar {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 1rem;
+            }
+            
+            .step-label {
+                position: static;
+                transform: none;
+                margin-top: 0.5rem;
+                width: 100%;
+                text-align: center;
+            }
+            
+            .button-group {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+            
+            .matrix-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <div>
+                    <h1>企业数字化转型规划工具</h1>
+                    <p class="subtitle">基于业务架构、应用架构、数据架构、技术架构的完整设计流程</p>
+                </div>
+                <div class="logo">
+                    <i class="fas fa-digital-tachograph"></i>
+                </div>
+            </div>
+        </header>
+        
+        <div class="progress-container">
+            <div class="progress-bar">
+                <div class="progress-line" id="progressLine"></div>
+                <div class="step active" id="step1">
+                    <span>1</span>
+                    <div class="step-label">业务架构</div>
+                </div>
+                <div class="step" id="step2">
+                    <span>2</span>
+                    <div class="step-label">应用架构</div>
+                </div>
+                <div class="step" id="step3">
+                    <span>3</span>
+                    <div class="step-label">数据架构</div>
+                </div>
+                <div class="step" id="step4">
+                    <span>4</span>
+                    <div class="step-label">技术架构</div>
+                </div>
+                <div class="step" id="step5">
+                    <span>5</span>
+                    <div class="step-label">导出方案</div>
+                </div>
+            </div>
+            <p>按照企业架构"四横五纵"框架，逐步完成数字化转型规划设计</p>
+        </div>
+        
+        <!-- 业务架构设计 -->
+        <div class="content-area active" id="content1">
+            <h2>第一步：业务架构设计</h2>
+            <p>连接企业战略与数字化落地的顶层架构，描述业务模式、价值流、业务域划分、流程和组织角色。</p>
+            
+            <div class="design-method">
+                <div class="method-title">
+                    <i class="fas fa-tasks"></i>
+                    <h3>设计方法</h3>
+                </div>
+                <p>采用"战略-业务-流程"三层分析法：</p>
+                <ol>
+                    <li><strong>战略识别</strong>：通过访谈、问卷识别企业战略目标</li>
+                    <li><strong>业务域划分</strong>：根据价值链分析划分核心业务领域</li>
+                    <li><strong>流程梳理</strong>：识别端到端业务流程和关键活动</li>
+                    <li><strong>功能矩阵</strong>：形成横向分层或纵向分层的功能矩阵</li>
+                </ol>
+            </div>
+            
+            <div class="tool-card">
+                <div class="tool-header">
+                    <div class="tool-icon">
+                        <i class="fas fa-project-diagram"></i>
+                    </div>
+                    <div>
+                        <h3>设计工具</h3>
+                        <p>业务建模工具与方法</p>
+                    </div>
+                </div>
+                <ul>
+                    <li><strong>价值链分析图</strong>：识别企业核心价值活动</li>
+                    <li><strong>业务流程图(BPMN)</strong>：使用BPMN 2.0标准绘制</li>
+                    <li><strong>业务功能矩阵</strong>：Excel或专用建模工具</li>
+                    <li><strong>角色权限矩阵</strong>：定义组织单元与业务活动关系</li>
+                </ul>
+            </div>
+            
+            <div class="case-study">
+                <div class="case-header">
+                    <i class="fas fa-lightbulb case-icon"></i>
+                    <h3>参考案例：某电力企业业务架构</h3>
+                </div>
+                <p><strong>业务域划分</strong>：规划计划管理、财务管理、营销管理、物资管理、生产管理</p>
+                <p><strong>核心流程</strong>：资产全寿命管理、从采购到付款、电网运行监控</p>
+                <p><strong>价值流</strong>：电能生产→输电→配电→售电→客户服务</p>
+                <p><strong>关键成果</strong>：形成5大业务域、12个核心流程、23个业务职能的完整业务架构</p>
+            </div>
+            
+            <h3>业务架构设计输入</h3>
+            <div class="input-group">
+                <label for="companyName">企业名称</label>
+                <input type="text" id="companyName" placeholder="请输入企业名称">
+            </div>
+            
+            <div class="input-group">
+                <label for="businessStrategy">企业战略目标</label>
+                <textarea id="businessStrategy" placeholder="描述企业的战略目标、愿景和使命"></textarea>
+            </div>
+            
+            <div class="input-group">
+                <label>核心业务领域（业务域）</label>
+                <div class="checkbox-group">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="domain1" value="战略管理">
+                        <label for="domain1">战略管理</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="domain2" value="财务管理">
+                        <label for="domain2">财务管理</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="domain3" value="人力资源管理">
+                        <label for="domain3">人力资源管理</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="domain4" value="供应链管理">
+                        <label for="domain4">供应链管理</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="domain5" value="生产运营">
+                        <label for="domain5">生产运营</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="domain6" value="市场营销">
+                        <label for="domain6">市场营销</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="domain7" value="客户服务">
+                        <label for="domain7">客户服务</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="domain8" value="研发创新">
+                        <label for="domain8">研发创新</label>
+                    </div>
+                </div>
+                <input type="text" id="otherDomains" placeholder="其他业务领域（用逗号分隔）" style="margin-top: 10px;">
+            </div>
+            
+            <div class="input-group">
+                <label for="coreProcesses">核心业务流程</label>
+                <textarea id="coreProcesses" placeholder="描述企业的核心业务流程，每行一个流程"></textarea>
+            </div>
+            
+            <div class="button-group">
+                <button class="btn btn-secondary" onclick="saveStep(1)">
+                    <i class="fas fa-save"></i> 保存当前步骤
+                </button>
+                <button class="btn btn-primary" onclick="nextStep(1)">
+                    下一步：应用架构 <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- 应用架构设计 -->
+        <div class="content-area" id="content2">
+            <h2>第二步：应用架构设计</h2>
+            <p>支撑产品功能的软件系统架构，设计应用组件、组件交互、接口规范和系统边界。</p>
+            
+            <div class="design-method">
+                <div class="method-title">
+                    <i class="fas fa-layer-group"></i>
+                    <h3>设计方法</h3>
+                </div>
+                <p>采用"业务-应用映射"法：</p>
+                <ol>
+                    <li><strong>业务到IT转换</strong>：根据业务架构识别应用程序和组件</li>
+                    <li><strong>应用组件优化</strong>：根据耦合度进行拆分或聚合</li>
+                    <li><strong>关系设计</strong>：设计应用与业务功能、流程、数据的关系</li>
+                    <li><strong>集成设计</strong>：设计应用集成、交互和开发规范</li>
+                </ol>
+            </div>
+            
+            <div class="tool-card">
+                <div class="tool-header">
+                    <div class="tool-icon">
+                        <i class="fas fa-sitemap"></i>
+                    </div>
+                    <div>
+                        <h3>设计工具</h3>
+                        <p>应用建模与设计工具</p>
+                    </div>
+                </div>
+                <ul>
+                    <li><strong>应用架构图</strong>：Visio、Draw.io或Archimate工具</li>
+                    <li><strong>组件关系图</strong>：展示应用组件间的依赖关系</li>
+                    <li><strong>接口规范文档</strong>：OpenAPI/Swagger规范</li>
+                    <li><strong>微服务拆分矩阵</strong>：基于业务边界和团队结构</li>
+                </ul>
+            </div>
+            
+            <div class="case-study">
+                <div class="case-header">
+                    <i class="fas fa-lightbulb case-icon"></i>
+                    <h3>参考案例：某制造企业应用架构</h3>
+                </div>
+                <p><strong>应用域划分</strong>：ERP系统(财务、人力、物资)、MES系统(生产管理)、CRM系统(客户关系)、PLM系统(产品生命周期)</p>
+                <p><strong>核心应用</strong>：SAP ERP、自研MES、Salesforce CRM、Windchill PLM</p>
+                <p><strong>集成模式</strong>：通过ESB企业服务总线实现系统间数据交换</p>
+                <p><strong>关键成果</strong>：形成4大应用域、12个核心应用、56个功能模块的应用架构</p>
+            </div>
+            
+            <h3>应用架构设计</h3>
+            <div class="input-group">
+                <label for="appDomains">应用域划分</label>
+                <div class="matrix-grid" id="appDomainsContainer">
+                    <!-- 动态生成应用域 -->
+                </div>
+                <button class="btn btn-secondary" onclick="addAppDomain()" style="margin-top: 10px;">
+                    <i class="fas fa-plus"></i> 添加应用域
+                </button>
+            </div>
+            
+            <div class="input-group">
+                <label for="integrationPattern">系统集成模式</label>
+                <select id="integrationPattern">
+                    <option value="">请选择集成模式</option>
+                    <option value="esb">企业服务总线(ESB)</option>
+                    <option value="api">API网关</option>
+                    <option value="microservices">微服务直接调用</option>
+                    <option value="message">消息队列异步集成</option>
+                    <option value="hybrid">混合集成模式</option>
+                </select>
+            </div>
+            
+            <div class="input-group">
+                <label for="systemInterface">系统接口规范</label>
+                <textarea id="systemInterface" placeholder="描述系统接口规范，如RESTful API、SOAP、消息格式等"></textarea>
+            </div>
+            
+            <div class="button-group">
+                <button class="btn btn-secondary" onclick="prevStep(2)">
+                    <i class="fas fa-arrow-left"></i> 上一步
+                </button>
+                <button class="btn btn-secondary" onclick="saveStep(2)">
+                    <i class="fas fa-save"></i> 保存当前步骤
+                </button>
+                <button class="btn btn-primary" onclick="nextStep(2)">
+                    下一步：数据架构 <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- 数据架构设计 -->
+        <div class="content-area" id="content3">
+            <h2>第三步：数据架构设计</h2>
+            <p>规划数据全生命周期的架构，包括数据模型、存储、流转、治理和安全。</p>
+            
+            <div class="design-method">
+                <div class="method-title">
+                    <i class="fas fa-database"></i>
+                    <h3>设计方法</h3>
+                </div>
+                <p>采用"数据生命周期"法：</p>
+                <ol>
+                    <li><strong>需求分析</strong>：了解业务需求和数据特点</li>
+                    <li><strong>数据建模</strong>：设计数据模型，结合领域模型</li>
+                    <li><strong>存储设计</strong>：选择合适的存储技术和产品</li>
+                    <li><strong>流转设计</strong>：设计数据采集、处理、消费流程</li>
+                    <li><strong>治理设计</strong>：设计数据质量、安全、元数据管理</li>
+                </ol>
+            </div>
+            
+            <div class="tool-card">
+                <div class="tool-header">
+                    <div class="tool-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div>
+                        <h3>设计工具</h3>
+                        <p>数据建模与管理工具</p>
+                    </div>
+                </div>
+                <ul>
+                    <li><strong>数据建模工具</strong>：ERWin、PowerDesigner、MySQL Workbench</li>
+                    <li><strong>数据流程图</strong>：展示数据从产生到消费的全流程</li>
+                    <li><strong>数据字典</strong>：定义数据实体、属性和关系</li>
+                    <li><strong>数据治理平台</strong>：元数据管理、数据质量监控</li>
+                </ul>
+            </div>
+            
+            <div class="case-study">
+                <div class="case-header">
+                    <i class="fas fa-lightbulb case-icon"></i>
+                    <h3>参考案例：某金融机构数据架构</h3>
+                </div>
+                <p><strong>数据域划分</strong>：客户域、产品域、交易域、风险域、财务域</p>
+                <p><strong>数据存储</strong>：Oracle关系数据库(交易数据)、Hadoop大数据平台(行为数据)、Redis缓存(热点数据)</p>
+                <p><strong>数据流转</strong>：通过ETL工具从业务系统到数据仓库，再到数据湖和分析平台</p>
+                <p><strong>关键成果</strong>：形成5大数据域、128个数据实体、统一数据标准的架构</p>
+            </div>
+            
+            <h3>数据架构设计</h3>
+            <div class="input-group">
+                <label for="dataDomains">数据域划分</label>
+                <textarea id="dataDomains" placeholder="输入数据域，每行一个数据域，如：客户数据、产品数据、交易数据等"></textarea>
+            </div>
+            
+            <div class="input-group">
+                <label>数据存储技术选型</label>
+                <div class="checkbox-group">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="db1" value="关系型数据库">
+                        <label for="db1">关系型数据库(MySQL/Oracle)</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="db2" value="NoSQL数据库">
+                        <label for="db2">NoSQL数据库(MongoDB/Redis)</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="db3" value="数据仓库">
+                        <label for="db3">数据仓库</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="db4" value="数据湖">
+                        <label for="db4">数据湖</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="db5" value="分布式文件系统">
+                        <label for="db5">分布式文件系统(HDFS)</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="db6" value="云存储">
+                        <label for="db6">云存储</label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="input-group">
+                <label for="dataGovernance">数据治理策略</label>
+                <textarea id="dataGovernance" placeholder="描述数据治理策略，包括数据标准、数据质量、数据安全、元数据管理等"></textarea>
+            </div>
+            
+            <div class="button-group">
+                <button class="btn btn-secondary" onclick="prevStep(3)">
+                    <i class="fas fa-arrow-left"></i> 上一步
+                </button>
+                <button class="btn btn-secondary" onclick="saveStep(3)">
+                    <i class="fas fa-save"></i> 保存当前步骤
+                </button>
+                <button class="btn btn-primary" onclick="nextStep(3)">
+                    下一步：技术架构 <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- 技术架构设计 -->
+        <div class="content-area" id="content4">
+            <h2>第四步：技术架构设计</h2>
+            <p>为应用架构和数据架构提供底层技术支撑，包括技术选型、中间件、基础设施、部署架构和安全架构。</p>
+            
+            <div class="design-method">
+                <div class="method-title">
+                    <i class="fas fa-cogs"></i>
+                    <h3>设计方法</h3>
+                </div>
+                <p>采用"分层技术选型"法：</p>
+                <ol>
+                    <li><strong>技术栈选择</strong>：根据需求选择编程语言、框架、数据库</li>
+                    <li><strong>中间件选择</strong>：选择消息队列、缓存、负载均衡等</li>
+                    <li><strong>基础设施设计</strong>：设计服务器、存储、网络架构</li>
+                    <li><strong>部署架构设计</strong>：设计单体、分布式或微服务部署</li>
+                    <li><strong>安全架构设计</strong>：设计网络安全、数据加密、访问控制</li>
+                </ol>
+            </div>
+            
+            <div class="tool-card">
+                <div class="tool-header">
+                    <div class="tool-icon">
+                        <i class="fas fa-server"></i>
+                    </div>
+                    <div>
+                        <h3>设计工具</h3>
+                        <p>技术架构设计工具</p>
+                    </div>
+                </div>
+                <ul>
+                    <li><strong>架构图工具</strong>：Visio、Draw.io、Lucidchart</li>
+                    <li><strong>部署图工具</strong>：展示服务器、网络、存储布局</li>
+                    <li><strong>技术选型矩阵</strong>：评估不同技术方案的优缺点</li>
+                    <li><strong>容量规划工具</strong>：估算服务器、存储、网络需求</li>
+                </ul>
+            </div>
+            
+            <div class="case-study">
+                <div class="case-header">
+                    <i class="fas fa-lightbulb case-icon"></i>
+                    <h3>参考案例：某电商平台技术架构</h3>
+                </div>
+                <p><strong>技术栈</strong>：Java Spring Cloud微服务、Vue.js前端、MySQL+Redis+Elasticsearch</p>
+                <p><strong>中间件</strong>：Nginx负载均衡、RabbitMQ消息队列、Redis缓存、ELK日志系统</p>
+                <p><strong>部署架构</strong>：Kubernetes容器化部署，多可用区高可用设计</p>
+                <p><strong>安全架构</strong>：WAF防火墙、数据加密、RBAC权限控制、安全审计</p>
+            </div>
+            
+            <h3>技术架构设计</h3>
+            <div class="input-group">
+                <label for="techStack">技术栈选择</label>
+                <select id="techStack" multiple style="height: 120px;">
+                    <option value="java">Java Spring Boot/Cloud</option>
+                    <option value="net">.NET Core</option>
+                    <option value="node">Node.js</option>
+                    <option value="python">Python Django/Flask</option>
+                    <option value="go">Go</option>
+                    <option value="vue">Vue.js</option>
+                    <option value="react">React</option>
+                    <option value="angular">Angular</option>
+                </select>
+                <p style="margin-top: 5px; font-size: 0.9rem; color: var(--gray-color);">按住Ctrl键可多选</p>
+            </div>
+            
+            <div class="input-group">
+                <label>中间件选择</label>
+                <div class="checkbox-group">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="middleware1" value="消息队列">
+                        <label for="middleware1">消息队列(Kafka/RabbitMQ)</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="middleware2" value="缓存">
+                        <label for="middleware2">缓存(Redis/Memcached)</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="middleware3" value="负载均衡">
+                        <label for="middleware3">负载均衡(Nginx/HAProxy)</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="middleware4" value="API网关">
+                        <label for="middleware4">API网关(Kong/Apigee)</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="middleware5" value="服务注册发现">
+                        <label for="middleware5">服务注册发现(Consul/Eureka)</label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="input-group">
+                <label for="deploymentArch">部署架构</label>
+                <select id="deploymentArch">
+                    <option value="">请选择部署架构</option>
+                    <option value="monolithic">单体应用</option>
+                    <option value="distributed">分布式应用</option>
+                    <option value="microservices">微服务架构</option>
+                    <option value="serverless">Serverless无服务器</option>
+                    <option value="hybrid">混合架构</option>
+                </select>
+            </div>
+            
+            <div class="input-group">
+                <label for="securityArch">安全架构设计</label>
+                <textarea id="securityArch" placeholder="描述安全架构设计，包括网络安全、数据加密、访问控制、安全审计等"></textarea>
+            </div>
+            
+            <div class="button-group">
+                <button class="btn btn-secondary" onclick="prevStep(4)">
+                    <i class="fas fa-arrow-left"></i> 上一步
+                </button>
+                <button class="btn btn-secondary" onclick="saveStep(4)">
+                    <i class="fas fa-save"></i> 保存当前步骤
+                </button>
+                <button class="btn btn-primary" onclick="nextStep(4)">
+                    下一步：导出方案 <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- 导出方案 -->
+        <div class="content-area" id="content5">
+            <div class="export-container">
+                <div class="export-icon">
+                    <i class="fas fa-file-word"></i>
+                </div>
+                <h2>第五步：导出数字化转型方案</h2>
+                <p>您已完成企业数字化转型规划的所有步骤，现在可以导出完整的方案文档。</p>
+                
+                <div class="export-preview">
+                    <h3 class="preview-title">方案预览</h3>
+                    <div class="preview-section">
+                        <h4>企业基本信息</h4>
+                        <p id="previewCompany">未填写</p>
+                    </div>
+                    <div class="preview-section">
+                        <h4>业务架构</h4>
+                        <p id="previewBusiness">未填写</p>
+                    </div>
+                    <div class="preview-section">
+                        <h4>应用架构</h4>
+                        <p id="previewApplication">未填写</p>
+                    </div>
+                    <div class="preview-section">
+                        <h4>数据架构</h4>
+                        <p id="previewData">未填写</p>
+                    </div>
+                    <div class="preview-section">
+                        <h4>技术架构</h4>
+                        <p id="previewTechnology">未填写</p>
+                    </div>
+                </div>
+                
+                <div class="button-group" style="justify-content: center; border-top: none;">
+                    <button class="btn btn-success" onclick="generateWordDocument()">
+                        <i class="fas fa-download"></i> 导出Word文档
+                    </button>
+                </div>
+                
+                <p style="margin-top: 2rem; color: var(--gray-color);">
+                    <i class="fas fa-info-circle"></i> 导出的Word文档将包含完整的四层架构设计、设计方法、工具推荐和参考案例。
+                </p>
+            </div>
+            
+            <div class="button-group">
+                <button class="btn btn-secondary" onclick="prevStep(5)">
+                    <i class="fas fa-arrow-left"></i> 上一步
+                </button>
+                <button class="btn btn-primary" onclick="restartTool()">
+                    <i class="fas fa-redo"></i> 重新开始
+                </button>
+            </div>
+        </div>
+        
+        <footer>
+            <p>© 2026 企业数字化转型规划工具 | 基于企业架构"四横五纵"框架设计</p>
+            <p>本工具参考《业务架构应用架构数据架构技术架构设计》文档开发</p>
+        </footer>
+    </div>
+
+    <script>
+        // 当前步骤
+        let currentStep = 1;
+        const totalSteps = 5;
+        
+        // 存储用户输入的数据
+        const userData = {
+            business: {},
+            application: {},
+            data: {},
+            technology: {}
+        };
+        
+        // 初始化应用域容器
+        document.addEventListener('DOMContentLoaded', function() {
+            updateProgressBar();
+            loadAppDomains();
+            updatePreview();
+        });
+        
+        // 更新进度条
+        function updateProgressBar() {
+            const progressLine = document.getElementById('progressLine');
+            const progressWidth = ((currentStep - 1) / (totalSteps - 1)) * 100;
+            progressLine.style.width = `${progressWidth}%`;
+            
+            // 更新步骤状态
+            for (let i = 1; i <= totalSteps; i++) {
+                const step = document.getElementById(`step${i}`);
+                if (i < currentStep) {
+                    step.classList.remove('active');
+                    step.classList.add('completed');
+                } else if (i === currentStep) {
+                    step.classList.add('active');
+                    step.classList.remove('completed');
+                } else {
+                    step.classList.remove('active');
+                    step.classList.remove('completed');
+                }
+            }
+            
+            // 显示当前内容区域
+            for (let i = 1; i <= totalSteps; i++) {
+                const content = document.getElementById(`content${i}`);
+                if (i === currentStep) {
+                    content.classList.add('active');
+                } else {
+                    content.classList.remove('active');
+                }
+            }
+        }
+        
+        // 下一步
+        function nextStep(step) {
+            if (step < totalSteps) {
+                currentStep = step + 1;
+                updateProgressBar();
+                saveCurrentStep(step);
+                updatePreview();
+            }
+        }
+        
+        // 上一步
+        function prevStep(step) {
+            if (step > 1) {
+                currentStep = step - 1;
+                updateProgressBar();
+            }
+        }
+        
+        // 保存当前步骤数据
+        function saveCurrentStep(step) {
+            switch(step) {
+                case 1:
+                    userData.business = {
+                        companyName: document.getElementById('companyName').value,
+                        strategy: document.getElementById('businessStrategy').value,
+                        domains: getSelectedCheckboxes('domain'),
+                        otherDomains: document.getElementById('otherDomains').value,
+                        processes: document.getElementById('coreProcesses').value
+                    };
+                    break;
+                case 2:
+                    userData.application = {
+                        domains: getAppDomains(),
+                        integration: document.getElementById('integrationPattern').value,
+                        interfaces: document.getElementById('systemInterface').value
+                    };
+                    break;
+                case 3:
+                    userData.data = {
+                        domains: document.getElementById('dataDomains').value,
+                        storage: getSelectedCheckboxes('db'),
+                        governance: document.getElementById('dataGovernance').value
+                    };
+                    break;
+                case 4:
+                    userData.technology = {
+                        techStack: getSelectedOptions('techStack'),
+                        middleware: getSelectedCheckboxes('middleware'),
+                        deployment: document.getElementById('deploymentArch').value,
+                        security: document.getElementById('securityArch').value
+                    };
+                    break;
+            }
+        }
+        
+        // 保存步骤
+        function saveStep(step) {
+            saveCurrentStep(step);
+            alert(`第${step}步数据已保存！`);
+        }
+        
+        // 获取选中的复选框值
+        function getSelectedCheckboxes(prefix) {
+            const checkboxes = document.querySelectorAll(`input[type="checkbox"][id^="${prefix}"]:checked`);
+            return Array.from(checkboxes).map(cb => cb.value);
+        }
+        
+        // 获取选中的下拉选项
+        function getSelectedOptions(selectId) {
+            const select = document.getElementById(selectId);
+            return Array.from(select.selectedOptions).map(option => option.value);
+        }
+        
+        // 加载应用域
+        function loadAppDomains() {
+            const container = document.getElementById('appDomainsContainer');
+            const defaultDomains = [
+                { name: "ERP系统", desc: "财务、人力、物资等核心资源管理" },
+                { name: "CRM系统", desc: "客户关系管理与销售自动化" },
+                { name: "SCM系统", desc: "供应链管理与物流协同" },
+                { name: "MES系统", desc: "生产执行与制造过程管理" }
+            ];
+            
+            container.innerHTML = '';
+            defaultDomains.forEach(domain => {
+                addAppDomainToUI(domain.name, domain.desc);
+            });
+        }
+        
+        // 添加应用域到UI
+        function addAppDomainToUI(name, desc) {
+            const container = document.getElementById('appDomainsContainer');
+            const domainId = `appDomain_${Date.now()}`;
+            
+            const domainElement = document.createElement('div');
+            domainElement.className = 'matrix-item';
+            domainElement.innerHTML = `
+                <h4>${name}</h4>
+                <p>${desc}</p>
+                <div style="margin-top: 10px;">
+                    <input type="text" class="app-domain-name" placeholder="应用域名称" value="${name}" style="margin-bottom: 5px;">
+                    <textarea class="app-domain-desc" placeholder="应用域描述" rows="2">${desc}</textarea>
+                </div>
+            `;
+            
+            container.appendChild(domainElement);
+        }
+        
+        // 添加应用域
+        function addAppDomain() {
+            addAppDomainToUI('新应用域', '请描述此应用域的功能和范围');
+        }
+        
+        // 获取应用域数据
+        function getAppDomains() {
+            const domains = [];
+            const domainItems = document.querySelectorAll('.matrix-item');
+            
+            domainItems.forEach(item => {
+                const nameInput = item.querySelector('.app-domain-name');
+                const descInput = item.querySelector('.app-domain-desc');
+                
+                if (nameInput && descInput) {
+                    domains.push({
+                        name: nameInput.value,
+                        description: descInput.value
+                    });
+                }
+            });
+            
+            return domains;
+        }
+        
+        // 更新预览
+        function updatePreview() {
+            // 企业信息
+            document.getElementById('previewCompany').textContent = 
+                userData.business.companyName ? `${userData.business.companyName} 数字化转型规划方案` : '未填写';
+            
+            // 业务架构
+            let businessPreview = '';
+            if (userData.business.domains && userData.business.domains.length > 0) {
+                businessPreview = `业务域：${userData.business.domains.join('、')}`;
+                if (userData.business.otherDomains) {
+                    businessPreview += `、${userData.business.otherDomains}`;
+                }
+            } else {
+                businessPreview = '未填写';
+            }
+            document.getElementById('previewBusiness').textContent = businessPreview;
+            
+            // 应用架构
+            let appPreview = '';
+            if (userData.application.domains && userData.application.domains.length > 0) {
+                appPreview = `应用域：${userData.application.domains.map(d => d.name).join('、')}`;
+                if (userData.application.integration) {
+                    appPreview += ` | 集成模式：${userData.application.integration}`;
+                }
+            } else {
+                appPreview = '未填写';
+            }
+            document.getElementById('previewApplication').textContent = appPreview;
+            
+            // 数据架构
+            let dataPreview = '';
+            if (userData.data.domains) {
+                dataPreview = `数据域：${userData.data.domains.replace(/\n/g, '、')}`;
+                if (userData.data.storage && userData.data.storage.length > 0) {
+                    dataPreview += ` | 存储技术：${userData.data.storage.join('、')}`;
+                }
+            } else {
+                dataPreview = '未填写';
+            }
+            document.getElementById('previewData').textContent = dataPreview;
+            
+            // 技术架构
+            let techPreview = '';
+            if (userData.technology.techStack && userData.technology.techStack.length > 0) {
+                techPreview = `技术栈：${userData.technology.techStack.join('、')}`;
+                if (userData.technology.deployment) {
+                    techPreview += ` | 部署架构：${userData.technology.deployment}`;
+                }
+            } else {
+                techPreview = '未填写';
+            }
+            document.getElementById('previewTechnology').textContent = techPreview;
+        }
+        
+        // 生成Word文档
+        function generateWordDocument() {
+            // 收集所有数据
+            saveCurrentStep(1);
+            saveCurrentStep(2);
+            saveCurrentStep(3);
+            saveCurrentStep(4);
+            updatePreview();
+            
+            // 创建文档内容
+            const docContent = `
+                企业数字化转型规划方案
+                ========================
+                
+                生成时间：${new Date().toLocaleString('zh-CN')}
+                
+                一、企业基本信息
+                --------------
+                企业名称：${userData.business.companyName || '未填写'}
+                
+                二、业务架构设计
+                --------------
+                战略目标：${userData.business.strategy || '未填写'}
+                
+                业务域划分：${userData.business.domains ? userData.business.domains.join('、') : '未填写'} ${userData.business.otherDomains ? `、${userData.business.otherDomains}` : ''}
+                
+                核心业务流程：
+                ${userData.business.processes || '未填写'}
+                
+                设计方法：采用"战略-业务-流程"三层分析法
+                设计工具：价值链分析图、业务流程图(BPMN)、业务功能矩阵、角色权限矩阵
+                参考案例：某电力企业业务架构（5大业务域、12个核心流程、23个业务职能）
+                
+                三、应用架构设计
+                --------------
+                应用域划分：
+                ${userData.application.domains ? userData.application.domains.map(d => `- ${d.name}: ${d.description}`).join('\n') : '未填写'}
+                
+                系统集成模式：${userData.application.integration || '未填写'}
+                系统接口规范：${userData.application.interfaces || '未填写'}
+                
+                设计方法：采用"业务-应用映射"法
+                设计工具：应用架构图、组件关系图、接口规范文档、微服务拆分矩阵
+                参考案例：某制造企业应用架构（4大应用域、12个核心应用、56个功能模块）
+                
+                四、数据架构设计
+                --------------
+                数据域划分：
+                ${userData.data.domains ? userData.data.domains.split('\n').map(d => `- ${d}`).join('\n') : '未填写'}
+                
+                数据存储技术：${userData.data.storage ? userData.data.storage.join('、') : '未填写'}
+                数据治理策略：${userData.data.governance || '未填写'}
+                
+                设计方法：采用"数据生命周期"法
+                设计工具：数据建模工具、数据流程图、数据字典、数据治理平台
+                参考案例：某金融机构数据架构（5大数据域、128个数据实体、统一数据标准）
+                
+                五、技术架构设计
+                --------------
+                技术栈选择：${userData.technology.techStack ? userData.technology.techStack.join('、') : '未填写'}
+                中间件选择：${userData.technology.middleware ? userData.technology.middleware.join('、') : '未填写'}
+                部署架构：${userData.technology.deployment || '未填写'}
+                安全架构：${userData.technology.security || '未填写'}
+                
+                设计方法：采用"分层技术选型"法
+                设计工具：架构图工具、部署图工具、技术选型矩阵、容量规划工具
+                参考案例：某电商平台技术架构（微服务架构、容器化部署、多层级安全防护）
+                
+                六、总结与建议
+                --------------
+                基于企业架构"四横五纵"框架，本方案提供了完整的数字化转型规划。
+                
+                建议实施路径：
+                1. 第一阶段（1-3个月）：完成业务架构梳理和应用架构设计
+                2. 第二阶段（3-6个月）：完成数据架构设计和技术架构选型
+                3. 第三阶段（6-12个月）：完成试点系统开发和部署
+                4. 第四阶段（12-24个月）：全面推广和持续优化
+                
+                注：本方案由企业数字化转型规划工具生成，仅供参考。
+            `;
+            
+            // 创建Blob对象
+            const blob = new Blob([docContent], { type: 'application/msword' });
+            
+            // 创建下载链接
+            const downloadLink = document.createElement('a');
+            downloadLink.href = URL.createObjectURL(blob);
+            downloadLink.download = `数字化转型方案_${userData.business.companyName || '企业'}_${new Date().toISOString().slice(0,10)}.doc`;
+            
+            // 触发下载
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
+            
+            alert('Word文档已生成并开始下载！');
+        }
+        
+        // 重新开始工具
+        function restartTool() {
+            if (confirm('确定要重新开始吗？所有已输入的数据将被清除。')) {
+                // 重置表单
+                document.querySelectorAll('input, textarea, select').forEach(element => {
+                    if (element.type === 'checkbox' || element.type === 'radio') {
+                        element.checked = false;
+                    } else if (element.tagName === 'SELECT') {
+                        if (element.multiple) {
+                            Array.from(element.options).forEach(option => option.selected = false);
+                        } else {
+                            element.selectedIndex = 0;
+                        }
+                    } else {
+                        element.value = '';
+                    }
+                });
+                
+                // 重置数据
+                userData.business = {};
+                userData.application = {};
+                userData.data = {};
+                userData.technology = {};
+                
+                // 重置进度
+                currentStep = 1;
+                updateProgressBar();
+                loadAppDomains();
+                updatePreview();
+                
+                alert('工具已重置，可以重新开始规划！');
+            }
+        }
+    </script>
+</body>
+</html>
+

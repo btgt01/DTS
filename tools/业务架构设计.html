@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>业务架构设计 - 企业数字化转型规划系统</title>
+  <style>
+    :root {
+      --primary: #1a56db;
+      --primary-dark: #1e40af;
+      --secondary: #6366f1;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --white: #ffffff;
+      --gray-50: #f9fafb;
+      --gray-100: #f3f4f6;
+      --gray-200: #e5e7eb;
+      --gray-300: #d1d5db;
+      --gray-500: #6b7280;
+      --gray-600: #4b5563;
+      --gray-700: #374151;
+      --gray-800: #1f2937;
+      --border: #e5e7eb;
+      --shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Microsoft YaHei", "PingFang SC", "Helvetica Neue", Arial, sans-serif; background: #f5f7fa; color: var(--gray-800); line-height: 1.6; }
+    
+    .header { background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); color: white; padding: 1.5rem 2rem; }
+    .header h1 { font-size: 1.5rem; font-weight: 600; margin-bottom: 0.5rem; }
+    .header p { opacity: 0.9; font-size: 0.9rem; }
+    
+    .container { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; }
+    
+    .card { background: var(--white); border-radius: 12px; box-shadow: var(--shadow); margin-bottom: 1.5rem; overflow: hidden; }
+    .card-header { padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); background: var(--gray-50); display: flex; justify-content: space-between; align-items: center; }
+    .card-header h2 { font-size: 1.1rem; color: var(--primary); font-weight: 600; }
+    .card-body { padding: 1.5rem; }
+    
+    .btn { padding: 0.6rem 1.2rem; border: none; border-radius: 8px; font-size: 0.9rem; cursor: pointer; transition: all 0.2s; font-weight: 500; }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-secondary { background: var(--gray-100); color: var(--gray-700); }
+    .btn-secondary:hover { background: var(--gray-200); }
+    .btn-sm { padding: 0.4rem 0.8rem; font-size: 0.85rem; }
+    
+    .tab-nav { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; border-bottom: 2px solid var(--border); padding-bottom: 0.5rem; flex-wrap: wrap; }
+    .tab-nav button { padding: 0.5rem 1rem; border: none; background: none; cursor: pointer; font-size: 0.9rem; color: var(--gray-500); border-bottom: 2px solid transparent; margin-bottom: -0.5rem; }
+    .tab-nav button.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 600; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    
+    .form-group { margin-bottom: 1rem; }
+    .form-group label { display: block; font-weight: 600; margin-bottom: 0.5rem; color: var(--gray-700); }
+    .form-group input, .form-group textarea { width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px; font-size: 0.95rem; }
+    .form-group textarea { min-height: 100px; resize: vertical; }
+    
+    /* 能力卡片 */
+    .capability-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
+    .capability-card { background: var(--gray-50); border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem; }
+    .capability-card h4 { color: var(--primary); margin-bottom: 0.75rem; display: flex; justify-content: space-between; align-items: center; }
+    .capability-card textarea { font-size: 0.85rem; min-height: 60px; }
+    .capability-card .delete-btn { color: var(--gray-400); cursor: pointer; }
+    .capability-card .delete-btn:hover { color: var(--danger); }
+    
+    /* 流程列表 */
+    .process-list { display: grid; gap: 0.75rem; }
+    .process-item { display: flex; align-items: center; gap: 1rem; padding: 1rem; background: var(--gray-50); border-radius: 8px; border: 1px solid var(--border); }
+    .process-item input { flex: 1; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; }
+    .process-item .step-num { width: 30px; height: 30px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.85rem; }
+    
+    /* 组织结构 */
+    .org-level { margin-bottom: 1.5rem; }
+    .org-level h4 { color: var(--primary); margin-bottom: 0.75rem; font-size: 0.95rem; }
+    .org-units { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .org-unit { background: var(--gray-100); border: 1px solid var(--border); border-radius: 6px; padding: 0.5rem 1rem; font-size: 0.9rem; display: flex; align-items: center; gap: 0.5rem; }
+    .org-unit input { border: none; background: none; font-size: 0.9rem; width: 100px; }
+    .org-unit .delete { color: var(--gray-400); cursor: pointer; font-size: 0.85rem; }
+    
+    .export-section { text-align: center; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border); }
+    
+    @media (max-width: 768px) {
+      .capability-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>📐 业务架构设计</h1>
+    <p>基于TOGAF业务架构方法论，规划企业业务能力、组织结构和业务流程</p>
+  </div>
+  
+  <div class="container">
+    <div class="card">
+      <div class="tab-nav">
+        <button class="active" onclick="switchTab('capability')">🏢 业务能力</button>
+        <button onclick="switchTab('process')">📋 业务流程</button>
+        <button onclick="switchTab('organization')">👥 组织结构</button>
+      </div>
+      
+      <!-- 业务能力 -->
+      <div class="tab-content active" id="tab-capability">
+        <div class="card-body" style="padding: 0;">
+          <div style="padding: 1.5rem; border-bottom: 1px solid var(--border);">
+            <button class="btn btn-secondary btn-sm" onclick="loadData('capability')">📂 加载</button>
+            <button class="btn btn-primary btn-sm" onclick="saveData('capability')">💾 保存</button>
+            <button class="btn btn-primary btn-sm" onclick="addCapability()">+ 添加能力域</button>
+          </div>
+          <div style="padding: 1.5rem;">
+            <div class="capability-grid" id="capabilityGrid">
+              <!-- 动态生成 -->
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 业务流程 -->
+      <div class="tab-content" id="tab-process">
+        <div class="card-body" style="padding: 0;">
+          <div style="padding: 1.5rem; border-bottom: 1px solid var(--border);">
+            <button class="btn btn-secondary btn-sm" onclick="loadData('process')">📂 加载</button>
+            <button class="btn btn-primary btn-sm" onclick="saveData('process')">💾 保存</button>
+            <button class="btn btn-primary btn-sm" onclick="addProcess()">+ 添加流程</button>
+          </div>
+          <div style="padding: 1.5rem;">
+            <div class="process-list" id="processList">
+              <!-- 动态生成 -->
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 组织结构 -->
+      <div class="tab-content" id="tab-organization">
+        <div class="card-body" style="padding: 0;">
+          <div style="padding: 1.5rem; border-bottom: 1px solid var(--border);">
+            <button class="btn btn-secondary btn-sm" onclick="loadData('org')">📂 加载</button>
+            <button class="btn btn-primary btn-sm" onclick="saveData('org')">💾 保存</button>
+          </div>
+          <div style="padding: 1.5rem;">
+            <div class="org-level">
+              <h4>🏛️ 高管层</h4>
+              <div class="org-units" id="orgLevel1">
+                <div class="org-unit">
+                  <span>总经理办公室</span>
+                  <input type="text" value="总经理办公室">
+                  <span class="delete" onclick="deleteOrg(this)">×</span>
+                </div>
+              </div>
+              <button class="btn btn-secondary btn-sm" onclick="addOrg(1)" style="margin-top: 0.5rem;">+ 添加部门</button>
+            </div>
+            
+            <div class="org-level">
+              <h4>⚙️ 运营层</h4>
+              <div class="org-units" id="orgLevel2">
+                <div class="org-unit"><span>生产部</span><input type="text" value="生产部"><span class="delete" onclick="deleteOrg(this)">×</span></div>
+                <div class="org-unit"><span>销售部</span><input type="text" value="销售部"><span class="delete" onclick="deleteOrg(this)">×</span></div>
+                <div class="org-unit"><span>采购部</span><input type="text" value="采购部"><span class="delete" onclick="deleteOrg(this)">×</span></div>
+              </div>
+              <button class="btn btn-secondary btn-sm" onclick="addOrg(2)" style="margin-top: 0.5rem;">+ 添加部门</button>
+            </div>
+            
+            <div class="org-level">
+              <h4>🔧 支撑层</h4>
+              <div class="org-units" id="orgLevel3">
+                <div class="org-unit"><span>财务部</span><input type="text" value="财务部"><span class="delete" onclick="deleteOrg(this)">×</span></div>
+                <div class="org-unit"><span>人力资源部</span><input type="text" value="人力资源部"><span class="delete" onclick="deleteOrg(this)">×</span></div>
+                <div class="org-unit"><span>信息技术部</span><input type="text" value="信息技术部"><span class="delete" onclick="deleteOrg(this)">×</span></div>
+              </div>
+              <button class="btn btn-secondary btn-sm" onclick="addOrg(3)" style="margin-top: 0.5rem;">+ 添加部门</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card">
+      <div class="card-header">
+        <h2>业务架构总览</h2>
+      </div>
+      <div class="card-body">
+        <textarea id="overview" placeholder="描述企业业务架构的整体设计思路和核心能力...">业务架构基于企业战略目标，以客户价值为导向，构建端到端的业务流程能力。重点关注核心业务能力的数字化提升，实现业务敏捷响应和数据驱动决策。</textarea>
+      </div>
+    </div>
+    
+    <div class="export-section">
+      <button class="btn btn-primary" onclick="exportWord()">📥 导出Word文档</button>
+    </div>
+  </div>
+  
+  <script src="data-api.js"></script>
+<script>
+    let capabilities = [
+      { id: 1, name: '研发创新', desc: '产品设计与研发、创新管理、技术预研' },
+      { id: 2, name: '供应链', desc: '采购管理、仓储物流、供应商协同' },
+      { id: 3, name: '生产制造', desc: '生产计划、工艺管理、质量控制' },
+      { id: 4, name: '营销销售', desc: '市场拓展、渠道管理、销售运营' },
+      { id: 5, name: '客户服务', desc: '客户关系、售后服务、客户洞察' },
+      { id: 6, name: '财务管理', desc: '预算管理、成本控制、风险管控' }
+    ];
+    
+    let processes = [
+      { id: 1, name: 'LTC（从线索到回款）', steps: '线索获取 → 商机跟进 → 方案报价 → 合同签订 → 订单执行 → 回款管理' },
+      { id: 2, name: 'OTC（从订单到收款）', steps: '订单录入 → 计划确认 → 生产执行 → 发货出库 → 发票开具 → 收款确认' },
+      { id: 3, name: 'IPD（集成产品开发）', steps: '需求分析 → 产品规划 → 技术研发 → 测试验证 → 产品发布' }
+    ];
+    
+    let nextCapId = 7;
+    let nextProcId = 4;
+    
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-nav button').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      document.querySelector(`[onclick="switchTab('${tabId}')"]`).classList.add('active');
+      document.getElementById('tab-' + tabId).classList.add('active');
+    }
+    
+    function renderCapabilities() {
+      const grid = document.getElementById('capabilityGrid');
+      grid.innerHTML = capabilities.map(c => `
+        <div class="capability-card">
+          <h4>
+            ${c.name}
+            <span class="delete-btn" onclick="deleteCapability(${c.id})">🗑️</span>
+          </h4>
+          <textarea onchange="updateCapability(${c.id}, this.value)">${c.desc}</textarea>
+        </div>
+      `).join('');
+    }
+    
+    function addCapability() {
+      const name = prompt('输入能力域名称：');
+      if (!name) return;
+      const desc = prompt('输入能力描述：');
+      capabilities.push({ id: nextCapId++, name, desc: desc || '' });
+      renderCapabilities();
+    }
+    
+    function updateCapability(id, value) {
+      const c = capabilities.find(c => c.id === id);
+      if (c) c.desc = value;
+    }
+    
+    function deleteCapability(id) {
+      capabilities = capabilities.filter(c => c.id !== id);
+      renderCapabilities();
+    }
+    
+    function renderProcesses() {
+      const list = document.getElementById('processList');
+      list.innerHTML = processes.map(p => `
+        <div class="process-item">
+          <div class="step-num">${p.id}</div>
+          <input type="text" value="${p.name}" placeholder="流程名称" onchange="updateProcess(${p.id}, 'name', this.value)">
+          <input type="text" value="${p.steps}" placeholder="流程步骤" style="flex: 2;" onchange="updateProcess(${p.id}, 'steps', this.value)">
+          <button class="btn btn-secondary btn-sm" onclick="deleteProcess(${p.id})">删除</button>
+        </div>
+      `).join('');
+    }
+    
+    function addProcess() {
+      const name = prompt('输入流程名称：');
+      if (!name) return;
+      processes.push({ id: nextProcId++, name, steps: '' });
+      renderProcesses();
+    }
+    
+    function updateProcess(id, field, value) {
+      const p = processes.find(p => p.id === id);
+      if (p) p[field] = value;
+    }
+    
+    function deleteProcess(id) {
+      processes = processes.filter(p => p.id !== id);
+      renderProcesses();
+    }
+    
+    function addOrg(level) {
+      const name = prompt('输入部门名称：');
+      if (!name) return;
+      const container = document.getElementById('orgLevel' + level);
+      const div = document.createElement('div');
+      div.className = 'org-unit';
+      div.innerHTML = '<span>' + name + '</span><input type="text" value="' + name + '"><span class="delete" onclick="deleteOrg(this)">×</span>';
+      container.appendChild(div);
+    }
+    
+    function deleteOrg(el) {
+      el.parentElement.remove();
+    }
+    
+    async function saveData(type) {
+      let data = {};
+      if (type === 'capability') {
+        data = { capabilities };
+      } else if (type === 'process') {
+        data = { processes };
+      } else if (type === 'org') {
+        const orgs = { level1: [], level2: [], level3: [] };
+        document.querySelectorAll('#orgLevel1 input').forEach(i => orgs.level1.push(i.value));
+        document.querySelectorAll('#orgLevel2 input').forEach(i => orgs.level2.push(i.value));
+        document.querySelectorAll('#orgLevel3 input').forEach(i => orgs.level3.push(i.value));
+        data = { orgs };
+      }
+      data.overview = document.getElementById('overview').value;
+      await saveToolData('business-arch', data, 'business-arch-' + type);
+      alert('✅ 已保存');
+    }
+    
+    async function loadData(type) {
+      const r2 = await loadToolData('business-arch');
+      if (saved) {
+        const data = JSON.parse(saved);
+        if (type === 'capability') capabilities = data.capabilities || capabilities;
+        if (type === 'process') processes = data.processes || processes;
+        if (type === 'org') {
+          // 组织结构加载逻辑
+        }
+        if (data.overview) document.getElementById('overview').value = data.overview;
+        renderCapabilities();
+        renderProcesses();
+        alert('✅ 已加载草稿');
+      } else {
+        alert('没有找到保存的草稿');
+      }
+    }
+    
+    function exportWord() {
+      var docx = '\uFEFF<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n';
+      docx += '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">\n<w:body>\n';
+      docx += '<w:p><w:r><w:rPr><w:b/><w:sz w:val="40"/></w:rPr><w:t>业务架构设计</w:t></w:r></w:p>\n';
+      docx += '<w:p><w:r><w:rPr><w:color w:val="888888"/></w:rPr><w:t>生成日期：' + new Date().toLocaleDateString('zh-CN') + '</w:t></w:r></w:p>\n';
+      
+      docx += '<w:p><w:r><w:rPr><w:b/><w:sz w:val="28"/></w:rPr><w:t>一、业务能力域</w:t></w:r></w:p>\n';
+      capabilities.forEach(c => {
+        docx += '<w:p><w:r><w:rPr><w:b/></w:rPr><w:t>' + c.name + '</w:t></w:r></w:p>\n';
+        docx += '<w:p><w:r><w:t>' + c.desc + '</w:t></w:r></w:p>\n';
+      });
+      
+      docx += '<w:p><w:r><w:rPr><w:b/><w:sz w:val="28"/></w:rPr><w:t>二、核心业务流程</w:t></w:r></w:p>\n';
+      processes.forEach(p => {
+        docx += '<w:p><w:r><w:t>' + p.name + '：' + p.steps + '</w:t></w:r></w:p>\n';
+      });
+      
+      docx += '</w:body></w:document>';
+      
+      var blob = new Blob([docx], {type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = '业务架构设计.docx';
+      a.click();
+    }
+    
+    renderCapabilities();
+    renderProcesses();
+  </script>
+</body>
+</html>

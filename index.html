@@ -1,0 +1,1403 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>企业数字化转型规划系统</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI','Microsoft YaHei',sans-serif}
+:root{--primary:#1a56db;--primary-dark:#1e40af;--bg:#f0f4f8;--white:#fff;--gray:#64748b;--border:#e2e8f0;--success:#10b981;--danger:#ef4444}
+body{background:var(--bg);min-height:100vh;display:flex;flex-direction:column}
+.navbar{background:var(--white);border-bottom:1px solid var(--border);padding:0 2rem;height:64px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 1px 4px rgba(0,0,0,.06);position:sticky;top:0;z-index:50}
+.navbar-brand{display:flex;align-items:center;gap:.75rem;text-decoration:none}
+.navbar-logo{width:38px;height:38px;background:linear-gradient(135deg,#1a56db,#6366f1);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:1.1rem}
+.navbar-title{font-size:1.1rem;font-weight:700;color:#1e293b}
+.navbar-title span{color:var(--primary);font-size:.85rem;font-weight:500;display:block;margin-top:-2px}
+.hero{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4rem 1.5rem;text-align:center}
+.hero-badge{background:#dbeafe;color:#1d4ed8;padding:.3rem 1rem;border-radius:20px;font-size:.82rem;font-weight:600;margin-bottom:1.5rem;display:inline-block}
+.hero h1{font-size:2.8rem;font-weight:800;color:#0f172a;line-height:1.2;margin-bottom:1rem;max-width:800px}
+.hero h1 span{color:var(--primary)}
+.hero p{font-size:1.1rem;color:var(--gray);max-width:600px;margin:0 auto 2.5rem}
+.hero-btns{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:.4rem;padding:.5rem 1.25rem;border-radius:6px;font-size:.9rem;font-weight:500;cursor:pointer;transition:all .15s;border:none;text-decoration:none}
+.btn-outline{background:transparent;border:1.5px solid var(--primary);color:var(--primary)}
+.btn-outline:hover{background:rgba(26,86,219,.06)}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-primary:hover{background:var(--primary-dark)}
+.btn-lg{padding:.75rem 2rem;font-size:1rem;border-radius:8px}
+.btn-sm{padding:.35rem .85rem;font-size:.82rem}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-success{background:var(--success);color:#fff}
+.modules{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;max-width:1100px;width:100%;margin:0 auto 4rem;padding:0 1.5rem}
+.module-card{background:var(--white);border-radius:12px;padding:2rem 1.5rem;border:1px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,.04);text-align:left;transition:box-shadow .2s,transform .2s;cursor:pointer}
+.module-card:hover{box-shadow:0 8px 24px rgba(26,86,219,.12);transform:translateY(-3px)}
+.module-icon{width:48px;height:48px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;margin-bottom:1rem}
+.module-icon.blue{background:#dbeafe}.module-icon.purple{background:#ede9fe}.module-icon.green{background:#d1fae5}
+.module-card h3{font-size:1.1rem;font-weight:700;color:#0f172a;margin-bottom:.5rem}
+.module-card p{font-size:.85rem;color:var(--gray);line-height:1.6;margin-bottom:1rem}
+.module-tags{display:flex;flex-wrap:wrap;gap:.4rem}
+.tag{background:#f1f5f9;color:#475569;padding:.2rem .7rem;border-radius:20px;font-size:.75rem}
+.features{background:var(--white);border-top:1px solid var(--border);padding:3rem 1.5rem;text-align:center}
+.features h2{font-size:1.6rem;font-weight:700;color:#0f172a;margin-bottom:.5rem}
+.features p{color:var(--gray);margin-bottom:2rem}
+.features-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1.5rem;max-width:1000px;margin:0 auto}
+.feature-item{text-align:center;padding:1rem}
+.feature-icon{font-size:2rem;margin-bottom:.75rem}
+.feature-item h4{font-size:.95rem;font-weight:600;color:#0f172a;margin-bottom:.3rem}
+.feature-item p{font-size:.82rem;color:var(--gray)}
+footer{background:#1e293b;color:#94a3b8;text-align:center;padding:1.5rem;font-size:.85rem}
+/* Modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;align-items:center;justify-content:center}
+.modal-overlay.show{display:flex}
+.modal{background:#fff;border-radius:14px;padding:2.5rem;width:100%;max-width:440px;box-shadow:0 20px 60px rgba(0,0,0,.2);position:relative}
+.modal-lg{max-width:800px;max-height:90vh;overflow-y:auto}
+.modal-close{position:absolute;top:1rem;right:1rem;background:none;border:none;font-size:1.4rem;cursor:pointer;color:var(--gray);line-height:1}
+.modal h2{font-size:1.5rem;font-weight:700;color:#0f172a;margin-bottom:.5rem}
+.modal h3{font-size:1.1rem;font-weight:700;color:#0f172a;margin-bottom:.75rem}
+.modal p.sub{font-size:.88rem;color:var(--gray);margin-bottom:1.5rem}
+.form-group{margin-bottom:1rem}
+.form-group label{display:block;font-size:.85rem;font-weight:600;color:#374151;margin-bottom:.4rem}
+.form-group input,.form-group select{width:100%;padding:.65rem 1rem;border:1.5px solid var(--border);border-radius:6px;font-size:.9rem;transition:border-color .15s;outline:none}
+.form-group input:focus,.form-group select:focus{border-color:var(--primary)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+.modal-footer{display:flex;justify-content:space-between;align-items:center;margin-top:1.5rem}
+.modal-footer a{font-size:.85rem;color:var(--primary);cursor:pointer;text-decoration:none}
+.modal-footer a:hover{text-decoration:underline}
+.alert{padding:.75rem 1rem;border-radius:6px;font-size:.85rem;margin-bottom:1rem;display:none}
+.alert.show{display:block}.alert-success{background:#d1fae5;color:#065f46;border:1px solid #a7f3d0}
+.alert-error{background:#fee2e2;color:#991b1b;border:1px solid #fca5a5}
+.alert-info{background:#dbeafe;color:#1e40af;border:1px solid #93c5fd}
+/* Admin Panel */
+.admin-panel{display:none;position:fixed;inset:0;background:var(--bg);z-index:200;overflow-y:auto}
+.admin-panel.show{display:block}
+.admin-header{background:#0f172a;color:#fff;padding:1.5rem 2rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
+.admin-header h1{font-size:1.25rem;font-weight:700}
+.admin-tabs{display:flex;gap:.5rem;margin:2rem 2rem 0;flex-wrap:wrap}
+.admin-tab{padding:.6rem 1.25rem;border-radius:6px;font-size:.88rem;font-weight:500;cursor:pointer;border:1.5px solid var(--border);background:#fff;color:var(--gray);transition:all .15s}
+.admin-tab.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.admin-content{margin:1.5rem 2rem 2rem}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem}
+.stat-card{background:#fff;border-radius:10px;padding:1.25rem;border:1px solid var(--border);text-align:center}
+.stat-card .num{font-size:2rem;font-weight:800;color:var(--primary)}
+.stat-card .label{font-size:.82rem;color:var(--gray);margin-top:.25rem}
+.stat-card.pending .num{color:#f59e0b}.stat-card.approved .num{color:var(--success)}.stat-card.rejected .num{color:var(--danger)}
+.users-table{background:#fff;border-radius:10px;overflow:hidden;border:1px solid var(--border)}
+.users-table table{width:100%;border-collapse:collapse}
+.users-table th,.users-table td{padding:.85rem 1rem;text-align:left;font-size:.88rem}
+.users-table th{background:#f8fafc;font-weight:600;color:#374151;border-bottom:1px solid var(--border)}
+.users-table tr:not(:last-child) td{border-bottom:1px solid var(--border)}
+.users-table tr:hover td{background:#f8fafc}
+.status-badge{padding:.2rem .7rem;border-radius:20px;font-size:.75rem;font-weight:600}
+.status-pending{background:#fef3c7;color:#92400e}.status-approved{background:#d1fae5;color:#065f46}.status-rejected{background:#fee2e2;color:#991b1b}.status-admin{background:#dbeafe;color:#1e40af}
+.action-btns{display:flex;gap:.4rem}
+/* Audit log */
+.log-item{background:#fff;border-radius:8px;padding:1rem 1.25rem;border:1px solid var(--border);margin-bottom:.75rem}
+.log-item .log-time{font-size:.75rem;color:var(--gray);margin-bottom:.3rem}
+.log-item .log-text{font-size:.88rem;color:#0f172a}
+.log-item .log-action{padding:.15rem .6rem;border-radius:4px;font-size:.72rem;font-weight:600;margin-right:.5rem}
+.log-item .log-action.LOGIN{background:#dbeafe;color:#1e40af}.log-item .log-action.REGISTER{background:#ede9fe;color:#7c3aed}
+.log-item .log-action.APPROVE{background:#d1fae5;color:#065f46}.log-item .log-action.REJECT{background:#fee2e2;color:#991b1b}
+/* Loading */
+.loading{text-align:center;padding:2rem;color:var(--gray);font-size:.9rem}
+.spinner{display:inline-block;width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin .6s linear infinite;margin-right:.5rem;vertical-align:middle}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* Dashboard page */
+#dashboard-page{display:none}
+.dashboard-container{display:flex;min-height:100vh}
+.sidebar{width:260px;background:#0f172a;color:#cbd5e1;position:fixed;left:0;top:0;bottom:0;display:flex;flex-direction:column;z-index:100;overflow-y:auto}
+.sidebar-brand{padding:1.25rem 1.5rem;border-bottom:1px solid #1e293b;display:flex;align-items:center;gap:.75rem}
+.brand-logo{width:36px;height:36px;background:linear-gradient(135deg,#1a56db,#6366f1);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:.95rem;flex-shrink:0}
+.brand-text{font-size:.95rem;font-weight:700;color:#f1f5f9;line-height:1.3}
+.brand-text small{font-size:.72rem;font-weight:400;color:#64748b;display:block}
+.sidebar-section{padding:.75rem 1rem .25rem;font-size:.72rem;font-weight:600;color:#475569;text-transform:uppercase;letter-spacing:.05em}
+.nav-item{display:flex;align-items:center;gap:.75rem;padding:.65rem 1.25rem;cursor:pointer;border-radius:6px;margin:1px .5rem;font-size:.88rem;color:#94a3b8;transition:all .15s;text-decoration:none}
+.nav-item:hover{background:#1e293b;color:#e2e8f0}
+.nav-item.active{background:linear-gradient(135deg,rgba(26,86,219,.35),rgba(99,102,241,.25));color:#93c5fd;border-left:3px solid #1a56db}
+.nav-item .icon{font-size:1rem;width:20px;text-align:center;flex-shrink:0}
+.nav-sub{padding:.45rem 1.25rem .45rem 3.25rem;font-size:.82rem;color:#64748b;cursor:pointer;border-radius:4px;margin:1px .5rem;transition:all .15s}
+.nav-sub:hover{background:#1e293b;color:#94a3b8}
+.nav-sub.active{color:#60a5fa;background:rgba(96,165,250,.1)}
+.sidebar-footer{margin-top:auto;padding:1rem;border-top:1px solid #1e293b}
+.user-info{display:flex;align-items:center;gap:.75rem}
+.user-avatar{width:36px;height:36px;background:linear-gradient(135deg,#1a56db,#6366f1);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:.9rem;flex-shrink:0}
+.user-name{font-size:.88rem;font-weight:600;color:#e2e8f0}
+.user-company{font-size:.75rem;color:#64748b}
+.main-content{margin-left:260px;flex:1;padding:2rem;min-height:100vh;background:var(--bg)}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem}
+.page-header h2{font-size:1.5rem;font-weight:700;color:#0f172a}
+.breadcrumb{font-size:.82rem;color:var(--gray);margin-bottom:.5rem}
+.breadcrumb span{margin:0 .3rem}
+.card{background:#fff;border-radius:12px;padding:1.5rem;border:1px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,.03);margin-bottom:1.5rem}
+.card h3{font-size:1.05rem;font-weight:700;color:#0f172a;margin-bottom:1rem;padding-bottom:.75rem;border-bottom:1px solid var(--border)}
+.modules-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.25rem}
+.module-box{background:#f8fafc;border:1.5px solid var(--border);border-radius:10px;padding:1.25rem;cursor:pointer;transition:all .2s;text-decoration:none;display:block;color:inherit}
+.module-box:hover{border-color:var(--primary);background:#fff;box-shadow:0 4px 16px rgba(26,86,219,.1);transform:translateY(-2px)}
+.module-box-icon{width:44px;height:44px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;margin-bottom:.75rem}
+.module-box h4{font-size:.95rem;font-weight:700;color:#0f172a;margin-bottom:.3rem}
+.module-box p{font-size:.8rem;color:var(--gray);line-height:1.5}
+iframe{width:100%;height:calc(100vh - 120px);border:none;border-radius:10px;background:#fff}
+@media(max-width:768px){.hero h1{font-size:1.8rem}.modules{grid-template-columns:1fr}.features-grid{grid-template-columns:1fr 1fr}.modules-grid{grid-template-columns:1fr}.sidebar{width:60px}.main-content{margin-left:60px}.user-name,.user-company,.brand-text,.sidebar-section,.nav-sub,.sidebar-footer .user-info>div:not(.user-avatar){display:none}}
+</style>
+</head>
+<body>
+
+<!-- ==================== 首页 ==================== -->
+<div id="home-page">
+<nav class="navbar">
+  <a class="navbar-brand" href="#">
+    <div class="navbar-logo">数转</div>
+    <div class="navbar-title">数字化转型规划系统<span>Digital Transformation Planning</span></div>
+  </a>
+  <div class="navbar-actions">
+    <button class="btn btn-outline" onclick="showModal('login')">登录</button>
+    <button class="btn btn-primary" onclick="showModal('register')">注册账号</button>
+    <button class="btn btn-outline" id="adminBtn" style="display:none" onclick="showAdminPanel()">管理后台</button>
+  </div>
+</nav>
+
+<div class="hero">
+  <div class="hero-badge">🚀 企业级数字化转型解决方案</div>
+  <h1>企业<span>数字化转型</span>规划系统</h1>
+  <p>覆盖调研诊断 → 总体规划 → 实施路径全流程，基于TOGAF方法论，助力企业系统性推进数字化转型</p>
+  <div class="hero-btns">
+    <button class="btn btn-primary btn-lg" onclick="showModal('register')">立即开始使用</button>
+    <button class="btn btn-outline btn-lg" onclick="scrollToModules()">了解更多</button>
+  </div>
+</div>
+
+<div class="modules" id="module-list">
+  <div class="module-card" onclick="scrollToModules()">
+    <div class="module-icon blue">🔍</div>
+    <h3>调研诊断</h3>
+    <p>数字化成熟度评估、数据管理评估、智能制造评估、调研访谈、对标分析</p>
+    <div class="module-tags">
+      <span class="tag">成熟度评估</span><span class="tag">对标研究</span><span class="tag">访谈分析</span>
+    </div>
+  </div>
+  <div class="module-card" onclick="scrollToModules()">
+    <div class="module-icon purple">📐</div>
+    <h3>总体规划</h3>
+    <p>基于TOGAF的愿景目标、业务架构、数据架构、应用架构、技术架构设计</p>
+    <div class="module-tags">
+      <span class="tag">TOGAF</span><span class="tag">企业架构</span><span class="tag">架构设计</span>
+    </div>
+  </div>
+  <div class="module-card" onclick="scrollToModules()">
+    <div class="module-icon green">🛤️</div>
+    <h3>实施路径</h3>
+    <p>项目优先级评估、五年规划路线图、投资估算、系统集成、里程碑管理</p>
+    <div class="module-tags">
+      <span class="tag">路线图</span><span class="tag">项目规划</span><span class="tag">投资估算</span>
+    </div>
+  </div>
+</div>
+
+<div class="features">
+  <h2>系统功能模块</h2>
+  <p>覆盖企业数字化转型全生命周期的专业化工具集</p>
+  <div class="features-grid">
+    <div class="feature-item"><div class="feature-icon">📊</div><h4>多维成熟度评估</h4><p>数字化/数据管理/智能制造三维评估模型</p></div>
+    <div class="feature-item"><div class="feature-icon">🎯</div><h4>TOGAF架构设计</h4><p>业务·数据·应用·技术完整架构体系</p></div>
+    <div class="feature-item"><div class="feature-icon">📅</div><h4>五年规划路线</h4><p>阶段性里程碑与优先级排序</p></div>
+    <div class="feature-item"><div class="feature-icon">💰</div><h4>投资费用估算</h4><p>项目投资测算与资源规划</p></div>
+    <div class="feature-item"><div class="feature-icon">📝</div><h4>报告导出</h4><p>Word/PPT/Excel专业报告一键生成</p></div>
+    <div class="feature-item"><div class="feature-icon">🔗</div><h4>系统集成分析</h4><p>模块关系与集成依赖梳理</p></div>
+    <div class="feature-item"><div class="feature-icon">🏢</div><h4>对标企业研究</h4><p>行业标杆分析与差距评估</p></div>
+    <div class="feature-item"><div class="feature-icon">👥</div><h4>调研访谈</h4><p>结构化访谈提纲与挖掘分析</p></div>
+  </div>
+</div>
+
+<footer>
+  <p>© 2026 企业数字化转型规划系统 | 助力企业数字化转型</p>
+</footer>
+</div>
+
+<!-- ==================== 登录模态框 ==================== -->
+<div class="modal-overlay" id="loginModal">
+  <div class="modal">
+    <button class="modal-close" onclick="hideAllModals()">×</button>
+    <h2>登录系统</h2>
+    <p class="sub">使用您的账号登录企业数字化转型规划系统</p>
+    <div class="alert alert-error" id="loginAlert"></div>
+    <div class="form-group">
+      <label>用户名</label>
+      <input type="text" id="loginUsername" placeholder="请输入用户名" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div class="form-group">
+      <label>密码</label>
+      <input type="password" id="loginPassword" placeholder="请输入密码" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div class="modal-footer">
+      <a onclick="hideAllModals();showModal('register')">还没有账号？立即注册</a>
+      <button class="btn btn-primary" onclick="doLogin()">登录</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 注册模态框 ==================== -->
+<div class="modal-overlay" id="registerModal">
+  <div class="modal">
+    <button class="modal-close" onclick="hideAllModals()">×</button>
+    <h2>注册账号</h2>
+    <p class="sub">创建账号后需管理员审批方可使用系统</p>
+    <div class="alert alert-success" id="registerSuccess"></div>
+    <div class="alert alert-error" id="registerAlert"></div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>用户名 <span style="color:var(--danger)">*</span></label>
+        <input type="text" id="regUsername" placeholder="用于登录系统">
+      </div>
+      <div class="form-group">
+        <label>密码 <span style="color:var(--danger)">*</span></label>
+        <input type="password" id="regPassword" placeholder="至少6位">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>邮箱</label>
+        <input type="email" id="regEmail" placeholder="选填">
+      </div>
+      <div class="form-group">
+        <label>公司名称</label>
+        <input type="text" id="regCompany" placeholder="选填">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <a onclick="hideAllModals();showModal('login')">已有账号？立即登录</a>
+      <button class="btn btn-primary" onclick="doRegister()">提交注册</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 管理后台 ==================== -->
+<div class="admin-panel" id="adminPanel">
+  <div class="admin-header">
+    <h1>⚙️ 系统管理后台</h1>
+    <div style="display:flex;gap:1rem;align-items:center">
+      <span style="font-size:.85rem;opacity:.7" id="adminUsername"></span>
+      <button class="btn btn-outline btn-sm" onclick="hideAdminPanel()" style="border-color:rgba(255,255,255,.3);color:#fff">返回首页</button>
+      <button class="btn btn-danger btn-sm" onclick="doLogout()">退出登录</button>
+    </div>
+  </div>
+
+  <div class="admin-tabs">
+    <div class="admin-tab active" onclick="switchAdminTab('stats')" data-tab="stats">📊 数据概览</div>
+    <div class="admin-tab" onclick="switchAdminTab('overview')" data-tab="overview">📈 使用总览</div>
+    <div class="admin-tab" onclick="switchAdminTab('pending')" data-tab="pending">⏳ 待审批</div>
+    <div class="admin-tab" onclick="switchAdminTab('users')" data-tab="users">👥 用户管理</div>
+    <div class="admin-tab" onclick="switchAdminTab('userdata')" data-tab="userdata">💾 用户数据</div>
+    <div class="admin-tab" onclick="switchAdminTab('logs')" data-tab="logs">📋 审计日志</div>
+  </div>
+
+  <div class="admin-content">
+    <!-- 数据概览 -->
+    <div id="tab-stats" class="admin-tab-content">
+      <div class="stats-grid" id="statsGrid">
+        <div class="stat-card"><div class="num" id="stat-total">-</div><div class="label">总用户数</div></div>
+        <div class="stat-card pending"><div class="num" id="stat-pending">-</div><div class="label">待审批</div></div>
+        <div class="stat-card approved"><div class="num" id="stat-approved">-</div><div class="label">已批准</div></div>
+        <div class="stat-card rejected"><div class="num" id="stat-rejected">-</div><div class="label">已拒绝</div></div>
+      </div>
+      <div class="card">
+        <h3>💡 使用说明</h3>
+        <p style="font-size:.88rem;color:var(--gray);line-height:1.8">
+          <strong>超级管理员账号：</strong> admin / <code style="background:#f1f5f9;padding:.1rem .4rem;border-radius:4px">DTS@Admin2026</code><br>
+          • 新用户注册后需在此审批后才能登录<br>
+          • 点击「待审批」查看并审批注册申请<br>
+          • 「用户管理」可修改用户角色、删除用户<br>
+          • 「审计日志」记录所有关键操作<br>
+          • 账号信息：282727653@qq.com
+        </p>
+      </div>
+    </div>
+
+    <!-- 待审批 -->
+    <div id="tab-pending" class="admin-tab-content" style="display:none">
+      <div class="card">
+        <h3>⏳ 待审批用户列表</h3>
+        <div id="pendingList"><div class="loading"><span class="spinner"></span>加载中...</div></div>
+      </div>
+    </div>
+
+    <!-- 用户管理 -->
+    <div id="tab-users" class="admin-tab-content" style="display:none">
+      <div class="card">
+        <h3>👥 所有用户</h3>
+        <div class="users-table">
+          <table>
+            <thead><tr><th>用户名</th><th>邮箱</th><th>公司</th><th>角色</th><th>状态</th><th>注册时间</th><th>操作</th></tr></thead>
+            <tbody id="allUsersBody"><tr><td colspan="7" class="loading"><span class="spinner"></span>加载中...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 审计日志 -->
+    <div id="tab-logs" class="admin-tab-content" style="display:none">
+      <div class="card">
+        <h3>📋 审计日志</h3>
+        <div id="auditLogs"><div class="loading"><span class="spinner"></span>加载中...</div></div>
+      </div>
+    </div>
+
+    <!-- 使用总览 -->
+    <div id="tab-overview" class="admin-tab-content" style="display:none">
+      <div class="stats-grid" style="margin-bottom:1.5rem">
+        <div class="stat-card"><div class="num" id="dstat-total">-</div><div class="label">总记录数</div></div>
+        <div class="stat-card approved"><div class="num" id="dstat-users">-</div><div class="label">有过数据的用户</div></div>
+        <div class="stat-card pending"><div class="num" id="dstat-recent">-</div><div class="label">近7天活跃</div></div>
+      </div>
+      <div class="card" style="margin-bottom:1rem">
+        <h3>📊 各模块使用次数</h3>
+        <div id="moduleUsageList"><div class="loading"><span class="spinner"></span>加载中...</div></div>
+      </div>
+    </div>
+
+    <!-- 用户数据 -->
+    <div id="tab-userdata" class="admin-tab-content" style="display:none">
+      <div class="card" style="margin-bottom:1rem">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+          <h3>💾 用户工具数据管理</h3>
+          <button class="btn btn-outline btn-sm" onclick="loadUsersData()">🔄 刷新</button>
+        </div>
+        <div id="usersDataList"><div class="loading"><span class="spinner"></span>加载中...</div></div>
+      </div>
+      <div class="card" id="userDataDetail" style="display:none">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+          <h3 id="userDataTitle">👤 用户数据详情</h3>
+          <div style="display:flex;gap:.5rem">
+            <button class="btn btn-outline btn-sm" id="btnExportUserAll" onclick="exportUserAllData()">📥 导出全部</button>
+            <button class="btn btn-outline btn-sm" onclick="closeUserDataDetail()">关闭</button>
+          </div>
+        </div>
+        <div id="userModulesList"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 修改密码弹窗 ==================== -->
+<div id="resetPwdModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.6);z-index:2000;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:12px;padding:1.5rem;width:90%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,.2)">
+    <h3 style="font-size:1.1rem;font-weight:700;color:#0f172a;margin-bottom:1rem">🔑 修改密码</h3>
+    <p style="font-size:.85rem;color:#64748b;margin-bottom:1rem">正在修改用户：<strong id="resetPwdUsername">-</strong></p>
+    <div class="form-group">
+      <label>新密码 <span style="color:#dc2626">*</span></label>
+      <input type="password" id="newPassword" placeholder="输入新密码（至少6位）" minlength="6">
+    </div>
+    <div class="form-group">
+      <label>确认密码 <span style="color:#dc2626">*</span></label>
+      <input type="password" id="confirmPassword" placeholder="再次输入新密码" minlength="6">
+    </div>
+    <div id="resetPwdAlert" style="padding:.75rem;border-radius:8px;margin-bottom:1rem;font-size:.85rem;display:none"></div>
+    <div style="display:flex;gap:.75rem;justify-content:flex-end">
+      <button class="btn btn-outline" onclick="closeResetPwdModal()" style="padding:.6rem 1.2rem">取消</button>
+      <button class="btn btn-primary" onclick="doResetPassword()" style="padding:.6rem 1.2rem">确认修改</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 工作台/仪表盘 ==================== -->
+<div id="dashboard-page">
+  <div class="dashboard-container">
+    <div class="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-logo">数转</div>
+        <div class="brand-text">数字化转型规划<small>Digital Transformation</small></div>
+      </div>
+      <div class="sidebar-section">核心功能</div>
+      <div class="nav-item active" onclick="navigateTo('home')"><span class="icon">🏠</span>工作台首页</div>
+      <div class="nav-item" onclick="toggleSub('survey')"><span class="icon">🔍</span>调研诊断 ▾</div>
+      <div class="nav-sub active" onclick="navigateTo('survey-maturity')">数字化成熟度评估</div>
+      <div class="nav-sub" onclick="navigateTo('data-maturity')">数据管理成熟度评估</div>
+      <div class="nav-sub" onclick="navigateTo('manufacturing')">智能制造成熟度评估</div>
+      <div class="nav-sub" onclick="navigateTo('interview')">调研访谈</div>
+      <div class="nav-sub" onclick="navigateTo('benchmark')">对标企业研究</div>
+      <div class="nav-sub" onclick="navigateTo('report-survey')">诊断分析报告</div>
+      <div class="nav-item" onclick="toggleSub('plan')"><span class="icon">📐</span>总体规划 ▾</div>
+      <div class="nav-sub" onclick="navigateTo('vision')">转型愿景</div>
+      <div class="nav-sub" onclick="navigateTo('goal')">战略目标</div>
+      <div class="nav-sub" onclick="navigateTo('business-arch')">业务架构</div>
+      <div class="nav-sub" onclick="navigateTo('data-arch')">数据架构</div>
+      <div class="nav-sub" onclick="navigateTo('app-arch')">应用架构</div>
+      <div class="nav-sub" onclick="navigateTo('tech-arch')">技术架构</div>
+      <div class="nav-sub" onclick="navigateTo('security-arch')">安全架构</div>
+      <div class="nav-sub" onclick="navigateTo('governance')">治理架构</div>
+      <div class="nav-sub" onclick="navigateTo('report-plan')">总体规划报告</div>
+      <div class="nav-item" onclick="toggleSub('impl')"><span class="icon">🛤️</span>实施路径 ▾</div>
+      <div class="nav-sub" onclick="navigateTo('priority')">项目优先级评估</div>
+      <div class="nav-sub" onclick="navigateTo('timeline')">实施进度安排</div>
+      <div class="nav-sub" onclick="navigateTo('modules')">系统功能模块</div>
+      <div class="nav-sub" onclick="navigateTo('integration')">系统集成关系</div>
+      <div class="nav-sub" onclick="navigateTo('investment')">投资费用估算</div>
+      <div class="nav-sub" onclick="navigateTo('report-impl')">实施路径报告</div>
+      <div class="sidebar-section" id="adminSection" style="display:none">系统管理</div>
+      <div class="nav-item" id="adminNavItem" style="display:none" onclick="showAdminPanel()"><span class="icon">⚙️</span>管理后台</div>
+      <div class="sidebar-footer">
+        <div class="user-info">
+          <div class="user-avatar" id="userAvatar">-</div>
+          <div>
+            <div class="user-name" id="userName">-</div>
+            <div class="user-company" id="userCompany">-</div>
+          </div>
+          <button onclick="doLogout()" style="margin-left:auto;background:none;border:none;color:#64748b;cursor:pointer;font-size:1rem" title="退出登录">↩</button>
+        </div>
+      </div>
+    </div>
+    <div class="main-content">
+      <!-- 工作台首页 -->
+      <div id="page-home" class="content-page">
+        <div class="page-header">
+          <div>
+            <h2>欢迎使用数字化转型规划系统</h2>
+            <div class="breadcrumb"><span id="dashUsername">-</span> · 企业数字化转型规划平台</div>
+          </div>
+          <button class="btn btn-outline btn-sm" onclick="showAdminPanel()">⚙️ 管理后台</button>
+        </div>
+        <div class="modules-grid">
+          <div class="module-box" onclick="navigateTo('survey-maturity')">
+            <div class="module-box-icon" style="background:#dbeafe">🔍</div>
+            <h4>调研诊断</h4>
+            <p>成熟度评估、调研访谈、对标分析，生成诊断分析报告</p>
+          </div>
+          <div class="module-box" onclick="navigateTo('vision')">
+            <div class="module-box-icon" style="background:#ede9fe">📐</div>
+            <h4>总体规划</h4>
+            <p>基于TOGAF方法论，设计企业架构体系</p>
+          </div>
+          <div class="module-box" onclick="navigateTo('priority')">
+            <div class="module-box-icon" style="background:#d1fae5">🛤️</div>
+            <h4>实施路径</h4>
+            <p>项目规划、五年路线图、投资估算</p>
+          </div>
+          <div class="module-box" onclick="navigateTo('report-survey')">
+            <div class="module-box-icon" style="background:#fee2e2">📄</div>
+            <h4>调研诊断报告</h4>
+            <p>导出Word格式诊断分析报告</p>
+          </div>
+          <div class="module-box" onclick="navigateTo('report-plan')">
+            <div class="module-box-icon" style="background:#fef3c7">📊</div>
+            <h4>总体规划报告</h4>
+            <p>导出PPT格式总体规划报告</p>
+          </div>
+          <div class="module-box" onclick="navigateTo('report-impl')">
+            <div class="module-box-icon" style="background:#e0e7ff">💰</div>
+            <h4>实施路径报告</h4>
+            <p>导出Excel格式实施路径报告</p>
+          </div>
+        </div>
+      </div>
+      <!-- iframe容器 -->
+      <div id="page-iframe" style="display:none">
+        <div class="page-header">
+          <div><h2 id="iframe-title">-</h2></div>
+          <button class="btn btn-outline btn-sm" onclick="navigateTo('home')">← 返回工作台</button>
+        </div>
+        <iframe id="content-frame" src=""></iframe>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ==================== API 配置 ====================
+const API_BASE = '/api';
+
+// ==================== 当前用户状态 ====================
+let currentUser = null;
+let authToken = localStorage.getItem('dts_token');
+
+// ==================== 页面初始化 ====================
+document.addEventListener('DOMContentLoaded', () => {
+  checkLogin();
+});
+
+// ==================== 检查登录状态 ====================
+async function checkLogin() {
+  try {
+    const res = await fetch(API_BASE + '/check', {
+      method: 'GET',
+      headers: getAuthHeaders(),
+      credentials: 'include'
+    });
+    const data = await res.json();
+    if (data.loggedIn && data.user) {
+      currentUser = data.user;
+      authToken = localStorage.getItem('dts_token') || data.token;
+      if (data.token) localStorage.setItem('dts_token', data.token);
+      showDashboard();
+    }
+  } catch (e) {
+    // API未启动，静默忽略
+  }
+}
+
+function getAuthHeaders() {
+  const h = { 'Content-Type': 'application/json' };
+  if (authToken) h['Authorization'] = authToken;
+  return h;
+}
+
+// ==================== 登录 ====================
+async function doLogin() {
+  const username = document.getElementById('loginUsername').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  const alert = document.getElementById('loginAlert');
+  if (!username || !password) { showAlert(alert, '请输入用户名和密码', 'error'); return; }
+  try {
+    const res = await fetch(API_BASE + '/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ username, password })
+    });
+    const data = await res.json();
+    if (data.success) {
+      currentUser = data.user;
+      authToken = data.token || localStorage.getItem('dts_token');
+      if (authToken) localStorage.setItem('dts_token', authToken);
+      hideAllModals();
+      showDashboard();
+    } else {
+      showAlert(alert, data.message || '登录失败', 'error');
+    }
+  } catch (e) {
+    showAlert(alert, '无法连接服务器，请确保后端服务已启动', 'error');
+  }
+}
+
+// ==================== 注册 ====================
+async function doRegister() {
+  const username = document.getElementById('regUsername').value.trim();
+  const password = document.getElementById('regPassword').value;
+  const email = document.getElementById('regEmail').value.trim();
+  const company = document.getElementById('regCompany').value.trim();
+  const successEl = document.getElementById('registerSuccess');
+  const alertEl = document.getElementById('registerAlert');
+  if (!username || !password) { showAlert(alertEl, '用户名和密码不能为空', 'error'); return; }
+  if (password.length < 6) { showAlert(alertEl, '密码至少6位', 'error'); return; }
+  try {
+    const res = await fetch(API_BASE + '/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ username, password, email, company })
+    });
+    const data = await res.json();
+    if (data.success) {
+      successEl.textContent = data.message;
+      successEl.classList.add('show');
+      alertEl.classList.remove('show');
+      setTimeout(() => { hideAllModals(); successEl.classList.remove('show'); showModal('login'); }, 2000);
+    } else {
+      showAlert(alertEl, data.message || '注册失败', 'error');
+      successEl.classList.remove('show');
+    }
+  } catch (e) {
+    showAlert(alertEl, '无法连接服务器，请确保后端服务已启动', 'error');
+  }
+}
+
+// ==================== 登出 ====================
+async function doLogout() {
+  try {
+    await fetch(API_BASE + '/logout', { method: 'POST', headers: getAuthHeaders(), credentials: 'include' });
+  } catch(e) {}
+  currentUser = null;
+  authToken = null;
+  localStorage.removeItem('dts_token');
+  hideAdminPanel();
+  document.getElementById('dashboard-page').style.display = 'none';
+  document.getElementById('home-page').style.display = 'block';
+  document.getElementById('adminBtn').style.display = 'none';
+}
+
+// ==================== 显示工作台 ====================
+function showDashboard() {
+  document.getElementById('home-page').style.display = 'none';
+  document.getElementById('dashboard-page').style.display = 'block';
+  document.getElementById('userName').textContent = currentUser.username;
+  document.getElementById('userCompany').textContent = currentUser.company || '未填写公司';
+  document.getElementById('userAvatar').textContent = currentUser.username.charAt(0).toUpperCase();
+  document.getElementById('dashUsername').textContent = currentUser.username;
+  if (currentUser.role === 'admin') {
+    document.getElementById('adminBtn').style.display = 'inline-flex';
+    document.getElementById('adminSection').style.display = 'block';
+    document.getElementById('adminNavItem').style.display = 'flex';
+  }
+  navigateTo('home');
+}
+
+// ==================== 模态框 ====================
+function showModal(name) {
+  hideAllModals();
+  document.getElementById('loginAlert').classList.remove('show');
+  document.getElementById('registerAlert').classList.remove('show');
+  document.getElementById('registerSuccess').classList.remove('show');
+  if (name === 'login') document.getElementById('loginModal').classList.add('show');
+  else if (name === 'register') document.getElementById('registerModal').classList.add('show');
+}
+function hideAllModals() {
+  document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('show'));
+}
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) hideAllModals(); });
+});
+function showAlert(el, msg, type) {
+  el.textContent = msg;
+  el.className = 'alert show ' + (type === 'error' ? 'alert-error' : type === 'success' ? 'alert-success' : 'alert-info');
+}
+function scrollToModules() {
+  document.getElementById('module-list').scrollIntoView({ behavior: 'smooth' });
+}
+
+// ==================== 管理后台 ====================
+function showAdminPanel() {
+  if (!currentUser || currentUser.role !== 'admin') { alert('需要管理员权限'); return; }
+  document.getElementById('adminPanel').classList.add('show');
+  document.getElementById('adminUsername').textContent = '管理员: ' + currentUser.username;
+  loadAdminStats();
+  switchAdminTab('stats');
+}
+function hideAdminPanel() {
+  document.getElementById('adminPanel').classList.remove('show');
+}
+function switchAdminTab(tab) {
+  document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+  document.querySelector('[data-tab="' + tab + '"]').classList.add('active');
+  document.querySelectorAll('.admin-tab-content').forEach(c => c.style.display = 'none');
+  document.getElementById('tab-' + tab).style.display = 'block';
+  if (tab === 'stats') loadAdminStats();
+  else if (tab === 'pending') loadPendingUsers();
+  else if (tab === 'users') loadAllUsers();
+  else if (tab === 'logs') loadAuditLogs();
+  else if (tab === 'overview') loadDataOverview();
+  else if (tab === 'userdata') loadUsersData();
+}
+
+async function loadAdminStats() {
+  try {
+    const res = await fetch(API_BASE + '/admin/stats', { headers: getAuthHeaders() });
+    const data = await res.json();
+    if (data.success) {
+      document.getElementById('stat-total').textContent = data.stats.total;
+      document.getElementById('stat-pending').textContent = data.stats.pending;
+      document.getElementById('stat-approved').textContent = data.stats.approved;
+      document.getElementById('stat-rejected').textContent = data.stats.rejected;
+    }
+  } catch(e) {}
+}
+
+async function loadPendingUsers() {
+  const el = document.getElementById('pendingList');
+  el.innerHTML = '<div class="loading"><span class="spinner"></span>加载中...</div>';
+  try {
+    const res = await fetch(API_BASE + '/admin/pending-users', { headers: getAuthHeaders() });
+    const data = await res.json();
+    if (!data.success || !data.users || data.users.length === 0) {
+      el.innerHTML = '<p style="color:var(--gray);text-align:center;padding:2rem;font-size:.9rem">暂无待审批用户</p>';
+      return;
+    }
+    el.innerHTML = '<div class="users-table"><table><thead><tr><th>用户名</th><th>邮箱</th><th>公司</th><th>注册时间</th><th>操作</th></tr></thead><tbody id="pendingBody"></tbody></table></div>';
+    const tbody = document.getElementById('pendingBody');
+    data.users.forEach(u => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = '<td><strong>' + u.username + '</strong></td><td>' + (u.email||'-') + '</td><td>' + (u.company||'-') + '</td><td>' + formatDate(u.created_at) + '</td><td><div class="action-btns"><button class="btn btn-success btn-sm" onclick="approveUser(\'' + u.id + '\',\'approve\')">✅ 批准</button><button class="btn btn-danger btn-sm" onclick="approveUser(\'' + u.id + '\',\'reject\')">❌ 拒绝</button></div></td>';
+      tbody.appendChild(tr);
+    });
+  } catch(e) { el.innerHTML = '<p style="color:var(--danger);padding:1rem">加载失败</p>'; }
+}
+
+async function approveUser(userId, action) {
+  if (!confirm(action === 'approve' ? '确认批准该用户？' : '确认拒绝该用户？')) return;
+  try {
+    const res = await fetch(API_BASE + '/admin/approve-user', {
+      method: 'POST',
+      headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, action })
+    });
+    const data = await res.json();
+    if (data.success) {
+      loadPendingUsers();
+      loadAdminStats();
+    } else { alert(data.message); }
+  } catch(e) { alert('操作失败'); }
+}
+
+async function loadAllUsers() {
+  const el = document.getElementById('allUsersBody');
+  el.innerHTML = '<tr><td colspan="7" class="loading"><span class="spinner"></span>加载中...</td></tr>';
+  try {
+    const res = await fetch(API_BASE + '/admin/all-users', { headers: getAuthHeaders() });
+    const data = await res.json();
+    if (!data.success || !data.users) { el.innerHTML = '<tr><td colspan="7">加载失败</td></tr>'; return; }
+    el.innerHTML = '';
+    data.users.forEach(u => {
+      const statusClass = u.role === 'admin' ? 'status-admin' : 'status-' + u.status;
+      const statusText = u.role === 'admin' ? '管理员' : { pending:'待审批', approved:'已批准', rejected:'已拒绝' }[u.status] || u.status;
+      const tr = document.createElement('tr');
+      tr.innerHTML = '<td><strong>' + u.username + '</strong></td><td>' + (u.email||'-') + '</td><td>' + (u.company||'-') + '</td><td>' + u.role + '</td><td><span class="status-badge ' + statusClass + '">' + statusText + '</span></td><td>' + formatDate(u.created_at) + '</td><td><div class="action-btns"><button class="btn btn-outline btn-sm" onclick="showResetPassword(\'' + u.id + '\',\'' + u.username + '\')">修改密码</button>' + (u.role !== 'admin' ? '<button class="btn btn-danger btn-sm" onclick="deleteUser(\'' + u.id + '\',\'' + u.username + '\')">删除</button>' : '<span style="color:var(--gray);font-size:.8rem">-</span>') + '</div></td>';
+      el.appendChild(tr);
+    });
+  } catch(e) { el.innerHTML = '<tr><td colspan="7">加载失败</td></tr>'; }
+}
+
+async function deleteUser(userId, username) {
+  if (!confirm('确认删除用户 ' + username + '？')) return;
+  try {
+    const res = await fetch(API_BASE + '/admin/delete-user', {
+      method: 'POST',
+      headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId })
+    });
+    const data = await res.json();
+    if (data.success) loadAllUsers();
+    else alert(data.message);
+  } catch(e) { alert('删除失败'); }
+}
+
+// 修改密码相关
+let currentResetUserId = '';
+let currentResetUsername = '';
+
+function showResetPassword(userId, username) {
+  currentResetUserId = userId;
+  currentResetUsername = username;
+  document.getElementById('resetPwdUsername').textContent = username;
+  document.getElementById('newPassword').value = '';
+  document.getElementById('confirmPassword').value = '';
+  document.getElementById('resetPwdAlert').style.display = 'none';
+  document.getElementById('resetPwdModal').style.display = 'flex';
+}
+
+function closeResetPwdModal() {
+  document.getElementById('resetPwdModal').style.display = 'none';
+  currentResetUserId = '';
+  currentResetUsername = '';
+}
+
+async function doResetPassword() {
+  const newPwd = document.getElementById('newPassword').value;
+  const confirmPwd = document.getElementById('confirmPassword').value;
+  const alertBox = document.getElementById('resetPwdAlert');
+
+  if (!newPwd || newPwd.length < 6) {
+    alertBox.style.display = 'block';
+    alertBox.style.background = '#fee2e2';
+    alertBox.style.color = '#991b1b';
+    alertBox.textContent = '密码长度不能少于6位';
+    return;
+  }
+  if (newPwd !== confirmPwd) {
+    alertBox.style.display = 'block';
+    alertBox.style.background = '#fee2e2';
+    alertBox.style.color = '#991b1b';
+    alertBox.textContent = '两次输入的密码不一致';
+    return;
+  }
+
+  try {
+    const res = await fetch(API_BASE + '/admin/reset-password', {
+      method: 'POST',
+      headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: currentResetUserId, newPassword: newPwd })
+    });
+    const data = await res.json();
+    if (data.success) {
+      alertBox.style.display = 'block';
+      alertBox.style.background = '#dcfce7';
+      alertBox.style.color = '#166534';
+      alertBox.textContent = '密码修改成功！';
+      setTimeout(closeResetPwdModal, 1500);
+    } else {
+      alertBox.style.display = 'block';
+      alertBox.style.background = '#fee2e2';
+      alertBox.style.color = '#991b1b';
+      alertBox.textContent = data.message || '修改失败';
+    }
+  } catch(e) {
+    alertBox.style.display = 'block';
+    alertBox.style.background = '#fee2e2';
+    alertBox.style.color = '#991b1b';
+    alertBox.textContent = '网络错误，请重试';
+  }
+}
+
+async function loadAuditLogs() {
+  const el = document.getElementById('auditLogs');
+  el.innerHTML = '<div class="loading"><span class="spinner"></span>加载中...</div>';
+  try {
+    const res = await fetch(API_BASE + '/admin/audit-logs', { headers: getAuthHeaders() });
+    const data = await res.json();
+    if (!data.success || !data.logs || data.logs.length === 0) {
+      el.innerHTML = '<p style="color:var(--gray);text-align:center;padding:2rem;font-size:.9rem">暂无日志记录</p>';
+      return;
+    }
+    el.innerHTML = '';
+    data.logs.slice(0, 50).forEach(log => {
+      const div = document.createElement('div');
+      div.className = 'log-item';
+      div.innerHTML = '<div class="log-time">' + formatDate(log.created_at) + '</div><div><span class="log-action ' + (log.action||'') + '">' + (log.action||'') + '</span>' + (log.detail||'') + '</div>';
+      el.appendChild(div);
+    });
+  } catch(e) { el.innerHTML = '<p style="color:var(--danger);padding:1rem">加载失败</p>'; }
+}
+
+// ===== 加载使用总览数据 =====
+async function loadDataOverview() {
+  document.getElementById('dstat-total').textContent = '-';
+  document.getElementById('dstat-users').textContent = '-';
+  document.getElementById('dstat-recent').textContent = '-';
+  document.getElementById('moduleUsageList').innerHTML = '<div class="loading"><span class="spinner"></span>加载中...</div>';
+  try {
+    const res = await fetch(API_BASE + '/admin/data-stats', { headers: getAuthHeaders() });
+    const d = await res.json();
+    if (!d.success) return;
+    const s = d.stats;
+    document.getElementById('dstat-total').textContent = s.totalRecords;
+    document.getElementById('dstat-users').textContent = s.activeUsers;
+    document.getElementById('dstat-recent').textContent = s.recentActive;
+
+    const el = document.getElementById('moduleUsageList');
+    if (!s.moduleUsage || s.moduleUsage.length === 0) {
+      el.innerHTML = '<p style="color:var(--gray);text-align:center;padding:1.5rem;font-size:.9rem">暂无使用数据</p>';
+      return;
+    }
+    const maxCount = Math.max(...s.moduleUsage.map(m => m.count), 1);
+    el.innerHTML = '';
+    s.moduleUsage.forEach(m => {
+      const pct = Math.round(m.count / maxCount * 100);
+      const bar = document.createElement('div');
+      bar.style.cssText = 'margin-bottom:.75rem';
+      bar.innerHTML = '<div style="display:flex;justify-content:space-between;font-size:.85rem;margin-bottom:.2rem"><span>' + (MODULE_TITLES[m.module_id] || m.module_name || m.module_id) + '</span><span style="color:#64748b">' + m.count + '条 · ' + m.user_count + '人 · ' + (m.last_update ? formatDate(m.last_update) : '-') + '</span></div><div style="background:#e2e8f0;border-radius:4px;height:8px"><div style="width:' + pct + '%;background:linear-gradient(90deg,#3b82f6,#60a5fa);height:100%;border-radius:4px;transition:width .5s"></div></div>';
+      el.appendChild(bar);
+    });
+  } catch(e) {
+    document.getElementById('moduleUsageList').innerHTML = '<p style="color:var(--danger);padding:1rem">加载失败</p>';
+  }
+}
+
+// ===== 加载用户数据列表 =====
+let _currentUserDataId = '';
+async function loadUsersData() {
+  document.getElementById('usersDataList').innerHTML = '<div class="loading"><span class="spinner"></span>加载中...</div>';
+  try {
+    const res = await fetch(API_BASE + '/admin/users-data', { headers: getAuthHeaders() });
+    const d = await res.json();
+    const el = document.getElementById('usersDataList');
+    if (!d.success || !d.users || d.users.length === 0) {
+      el.innerHTML = '<p style="color:var(--gray);text-align:center;padding:2rem">暂无用户数据</p>';
+      return;
+    }
+    el.innerHTML = '<table style="width:100%;border-collapse:collapse;font-size:.88rem"><thead><tr style="background:#f8fafc;text-align:left"><th style="padding:.6rem .8rem;border-bottom:1px solid #e2e8f0">用户名</th><th style="padding:.6rem .8rem;border-bottom:1px solid #e2e8f0">公司</th><th style="padding:.6rem .8rem;border-bottom:1px solid #e2e8f0">状态</th><th style="padding:.6rem .8rem;border-bottom:1px solid #e2e8f0">已填模块</th><th style="padding:.6rem .8rem;border-bottom:1px solid #e2e8f0">最近活跃</th><th style="padding:.6rem .8rem;border-bottom:1px solid #e2e8f0;text-align:center">操作</th></tr></thead><tbody id="usersDataBody"></tbody></table>';
+    const tb = document.getElementById('usersDataBody');
+    d.users.forEach(u => {
+      const tr = document.createElement('tr');
+      tr.style.cssText = 'border-bottom:1px solid #f1f5f9';
+      tr.innerHTML = '<td style="padding:.6rem .8rem"><strong>' + u.username + '</strong></td><td style="padding:.6rem .8rem;color:#64748b">' + (u.company||'-') + '</td><td style="padding:.6rem .8rem"><span class="status-badge ' + (u.status==='approved'?'approved':'pending') + '">' + (u.status==='approved'?'已批准':'待审批') + '</span></td><td style="padding:.6rem .8rem;text-align:center"><span style="background:#eff6ff;color:#2563eb;padding:.15rem .5rem;border-radius:12px;font-weight:600">' + (u.module_count||0) + '</span></td><td style="padding:.6rem .8rem;color:#64748b;font-size:.82rem">' + (u.last_activity ? formatDate(u.last_activity) : '<span style="color:#cbd5e1">从未活跃</span>') + '</td><td style="padding:.6rem .8rem;text-align:center"><button class="btn btn-outline btn-sm" onclick="viewUserData(\'' + u.id + '\',\'' + u.username + '\')">查看数据</button></td>';
+      tb.appendChild(tr);
+    });
+  } catch(e) {
+    document.getElementById('usersDataList').innerHTML = '<p style="color:var(--danger);padding:1rem">加载失败: ' + e.message + '</p>';
+  }
+}
+
+// ===== 查看指定用户数据 =====
+async function viewUserData(userId, username) {
+  _currentUserDataId = userId;
+  document.getElementById('userDataDetail').style.display = 'block';
+  document.getElementById('userDataTitle').textContent = '👤 ' + username + ' 的工具数据';
+  document.getElementById('userModulesList').innerHTML = '<div class="loading"><span class="spinner"></span>加载中...</div>';
+  try {
+    const res = await fetch(API_BASE + '/admin/user-data/' + userId, { headers: getAuthHeaders() });
+    const d = await res.json();
+    const el = document.getElementById('userModulesList');
+    if (!d.success || !d.modules || d.modules.length === 0) {
+      el.innerHTML = '<p style="color:var(--gray);text-align:center;padding:2rem">该用户暂无任何工具数据</p>';
+      return;
+    }
+    el.innerHTML = '<table style="width:100%;border-collapse:collapse;font-size:.88rem"><thead><tr style="background:#f8fafc;text-align:left"><th style="padding:.6rem .8rem;border-bottom:1px solid #e2e8f0">模块名称</th><th style="padding:.6rem .8rem;border-bottom:1px solid #e2e8f0">最近保存时间</th><th style="padding:.6rem .8rem;border-bottom:1px solid #e2e8f0;text-align:center">操作</th></tr></thead><tbody></tbody></table>';
+    const tb = el.querySelector('tbody');
+    d.modules.forEach(m => {
+      const tr = document.createElement('tr');
+      tr.style.cssText = 'border-bottom:1px solid #f1f5f9';
+      tr.innerHTML = '<td style="padding:.6rem .8rem"><strong>' + (MODULE_TITLES[m.module_id] || m.module_name || m.module_id) + '</strong><br><span style="font-size:.78rem;color:#94a3b8">' + m.module_id + '</span></td><td style="padding:.6rem .8rem;color:#64748b;font-size:.82rem">' + formatDate(m.updated_at) + '</td><td style="padding:.6rem .8rem;text-align:center"><button class="btn btn-outline btn-sm" onclick="exportUserModule(\'' + userId + '\',\'' + m.module_id + '\')">📥 导出</button></td>';
+      tb.appendChild(tr);
+    });
+  } catch(e) {
+    document.getElementById('userModulesList').innerHTML = '<p style="color:var(--danger);padding:1rem">加载失败</p>';
+  }
+}
+
+// ===== 导出用户单模块数据 =====
+async function exportUserModule(userId, moduleId) {
+  try {
+    const res = await fetch(API_BASE + '/admin/export-user-module/' + userId + '/' + moduleId, { headers: getAuthHeaders() });
+    const d = await res.json();
+    if (!d.success) { alert(d.message || '导出失败'); return; }
+    const blob = new Blob([JSON.stringify(d.data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = d.username + '_' + (MODULE_TITLES[moduleId]||moduleId) + '.json'; a.click();
+    URL.revokeObjectURL(url);
+  } catch(e) { alert('导出失败'); }
+}
+
+// ===== 导出用户全部数据 =====
+async function exportUserAllData() {
+  if (!_currentUserDataId) return;
+  window.open(API_BASE + '/admin/export-user-all/' + _currentUserDataId + '?sid=' + (document.cookie.match(/dts_sid=([^;]+)/)||['',''])[1], '_blank');
+}
+
+function closeUserDataDetail() {
+  document.getElementById('userDataDetail').style.display = 'none';
+  _currentUserDataId = '';
+}
+
+function formatDate(d) {
+  if (!d) return '-';
+  const date = new Date(d);
+  return date.getFullYear() + '-' + String(date.getMonth()+1).padStart(2,'0') + '-' + String(date.getDate()).padStart(2,'0') + ' ' + String(date.getHours()).padStart(2,'0') + ':' + String(date.getMinutes()).padStart(2,'0');
+}
+
+// ==================== 导航系统 ====================
+const MODULE_TITLES = {
+  'survey-maturity': '数字化转型成熟度评估',
+  'data-maturity': '数据管理成熟度评估',
+  'manufacturing': '智能制造成熟度评估',
+  'interview': '调研访谈',
+  'benchmark': '对标企业研究分析',
+  'report-survey': '数字化转型调研诊断分析报告',
+  'vision': '企业数字化转型愿景',
+  'goal': '战略目标设定',
+  'business-arch': '业务架构设计',
+  'data-arch': '数据架构设计',
+  'app-arch': '应用架构设计',
+  'tech-arch': '技术架构设计',
+  'security-arch': '安全架构设计',
+  'governance': '治理架构设计',
+  'report-plan': '数字化转型总体规划报告',
+  'priority': '项目优先级评估',
+  'timeline': '实施进度安排（五年期）',
+  'modules': '系统功能模块规划',
+  'integration': '系统集成关系',
+  'investment': '项目建设投资费用估算',
+  'report-impl': '数字化转型实施路径报告'
+};
+
+const MODULE_FILES = {
+  'survey-maturity': 'tools/数字化转型成熟度评测小工具.html',
+  'data-maturity': 'tools/数据管理成熟度评估模型.html',
+  'manufacturing': 'tools/智能制造评估 - 不导出.html',
+  'interview': 'tools/访谈挖掘机.html',
+  'benchmark': 'tools/ADTO评分工具.html',
+  'report-survey': 'tools/诊断分析报告.html',
+  'vision': 'tools/转型愿景设计.html',
+  'goal': 'tools/战略目标.html',
+  'business-arch': 'tools/业务架构设计.html',
+  'data-arch': 'tools/数据架构设计.html',
+  'app-arch': 'tools/应用架构设计.html',
+  'tech-arch': 'tools/技术架构设计.html',
+  'security-arch': 'tools/安全架构设计.html',
+  'governance': 'tools/治理架构设计.html',
+  'report-plan': 'tools/总体规划报告.html',
+  'priority': 'tools/项目优先级矩阵.html',
+  'timeline': 'tools/实施进度安排.html',
+  'modules': 'tools/系统功能模块规划.html',
+  'integration': 'tools/系统集成关系.html',
+  'investment': 'tools/投资费用估算.html',
+  'report-impl': 'tools/实施路径报告.html'
+};
+
+function navigateTo(page) {
+  document.querySelectorAll('.nav-item, .nav-sub').forEach(el => el.classList.remove('active'));
+  event && event.target && event.target.classList.add('active');
+  if (page === 'home') {
+    document.getElementById('page-home').style.display = 'block';
+    document.getElementById('page-iframe').style.display = 'none';
+    return;
+  }
+  document.getElementById('page-home').style.display = 'none';
+  document.getElementById('page-iframe').style.display = 'block';
+  const title = MODULE_TITLES[page] || page;
+  document.getElementById('iframe-title').textContent = title;
+  let src = MODULE_FILES[page];
+  if (!src) {
+    // 动态生成内容页
+    src = 'data:text/html,' + encodeURIComponent(generatePageHTML(page, title));
+  }
+  document.getElementById('content-frame').src = src;
+}
+
+function toggleSub(id) {
+  // 简单的折叠切换
+  const subs = document.querySelectorAll('.nav-sub');
+  subs.forEach(s => {
+    if (s.onclick.toString().includes("'" + id + "'") || s.onclick.toString().includes('"' + id)) {
+      s.classList.toggle('active');
+    }
+  });
+}
+
+// ==================== 动态生成页面HTML ====================
+function generatePageHTML(page, title) {
+  const contents = {
+    'report-survey': `
+      <div style="padding:2rem;font-family:Segoe UI,sans-serif;max-width:900px;margin:0 auto">
+        <h1 style="font-size:1.5rem;margin-bottom:1rem">📄 数字化转型调研诊断分析报告</h1>
+        <p style="color:#64748b;margin-bottom:2rem">请先在左侧完成所有调研诊断模块的评估，再导出完整报告。</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:2rem">
+          <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:1rem"><h4>✅ 已完成</h4><ul style="color:#64748b;font-size:.85rem"><li>数字化转型成熟度评估</li><li>数据管理成熟度评估</li><li>智能制造成熟度评估</li></ul></div>
+          <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:1rem"><h4>📋 待完成</h4><ul style="color:#64748b;font-size:.85rem"><li>调研访谈记录</li><li>对标企业分析</li></ul></div>
+        </div>
+        <button onclick="exportWordReport()" style="background:#1a56db;color:#fff;border:none;padding:.75rem 2rem;border-radius:8px;font-size:1rem;cursor:pointer">📥 导出Word报告</button>
+        <div id="exportStatus" style="margin-top:1rem;color:#10b981;font-size:.9rem"></div>
+      </div>
+      <script>
+        function exportWordReport() {
+          var docx = '\\uFEFF<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\\n';
+          docx += '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">\\n<w:body>\\n';
+          docx += '<w:p><w:r><w:rPr><w:b/><w:sz w:val="36"/></w:rPr><w:t>企业数字化转型调研诊断分析报告</w:t></w:r></w:p>\\n';
+          docx += '<w:p><w:r><w:rPr><w:color w:val="64748b"/></w:rPr><w:t>报告生成日期：' + new Date().toLocaleDateString('zh-CN') + '</w:t></w:r></w:p>\\n';
+          docx += '<w:p><w:r><w:rPr><w:b/><w:sz w:val="28"/></w:rPr><w:t>一、评估摘要</w:t></w:r></w:p>\\n';
+          docx += '<w:p><w:r><w:t>本报告基于数字化转型成熟度评估模型、数据管理成熟度评估模型和智能制造成熟度评估模型，对企业数字化现状进行了系统性诊断。评估结果显示企业在各维度的发展水平，为后续规划提供数据支撑。</w:t></w:r></w:p>\\n';
+          docx += '<w:p><w:r><w:rPr><w:b/><w:sz w:val="28"/></w:rPr><w:t>二、主要发现</w:t></w:r></w:p>\\n';
+          docx += '<w:p><w:ul><w:li><w:r><w:t>数字化战略：企业已制定初步数字化战略，但与业务融合深度有待加强</w:t></w:r></w:li><w:li><w:r><w:t>技术基础：基础设施基本完备，数据治理能力需重点提升</w:t></w:r></w:li><w:li><w:r><w:t>组织能力：数字化人才储备不足，需加强引进与培养</w:t></w:r></w:li><w:li><w:r><w:t>智能制造：生产自动化水平较高，但数字化协同能力待提升</w:t></w:r></w:li></w:p>\\n';
+          docx += '<w:p><w:r><w:rPr><w:b/><w:sz w:val="28"/></w:rPr><w:t>三、改进建议</w:t></w:r></w:p>\\n';
+          docx += '<w:p><w:ol><w:li><w:r><w:t>完善数据治理体系，建立统一数据标准</w:t></w:r></w:li><w:li><w:r><w:t>加强数字化人才培养和引进</w:t></w:r></w:li><w:li><w:r><w:t>推进核心业务系统集成与数据贯通</w:t></w:r></w:li><w:li><w:r><w:t>构建数字化转型评估与迭代优化机制</w:t></w:r></w:li></w:ol></w:p>\\n';
+          docx += '</w:body></w:document>';
+          var blob = new Blob([docx], {type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
+          var url = URL.createObjectURL(blob);
+          var a = document.createElement('a'); a.href = url; a.download = '数字化转型调研诊断分析报告.docx'; a.click();
+          document.getElementById('exportStatus').textContent = '报告已导出！';
+        }
+      <\/script>`,
+    'report-plan': `
+      <div style="padding:2rem;font-family:Segoe UI,sans-serif;max-width:900px;margin:0 auto">
+        <h1 style="font-size:1.5rem;margin-bottom:1rem">📊 数字化转型总体规划报告</h1>
+        <p style="color:#64748b;margin-bottom:2rem">基于TOGAF方法论的企业架构设计报告，可导出为PPT格式。</p>
+        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:1.5rem;margin-bottom:2rem">
+          <h3 style="margin-bottom:1rem">📐 TOGAF架构规划</h3>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem">
+            <div style="text-align:center;padding:1rem;background:#fff;border-radius:8px;border:1px solid #e2e8f0"><div style="font-size:1.5rem;margin-bottom:.5rem">🎯</div><div style="font-weight:600;font-size:.88rem">愿景使命</div></div>
+            <div style="text-align:center;padding:1rem;background:#fff;border-radius:8px;border:1px solid #e2e8f0"><div style="font-size:1.5rem;margin-bottom:.5rem">📋</div><div style="font-weight:600;font-size:.88rem">业务架构</div></div>
+            <div style="text-align:center;padding:1rem;background:#fff;border-radius:8px;border:1px solid #e2e8f0"><div style="font-size:1.5rem;margin-bottom:.5rem">💾</div><div style="font-weight:600;font-size:.88rem">数据架构</div></div>
+            <div style="text-align:center;padding:1rem;background:#fff;border-radius:8px;border:1px solid #e2e8f0"><div style="font-size:1.5rem;margin-bottom:.5rem">🖥️</div><div style="font-weight:600;font-size:.88rem">应用架构</div></div>
+          </div>
+        </div>
+        <button onclick="exportPPT()" style="background:#6366f1;color:#fff;border:none;padding:.75rem 2rem;border-radius:8px;font-size:1rem;cursor:pointer">📥 导出PPT报告</button>
+        <div id="exportStatus2" style="margin-top:1rem;color:#10b981;font-size:.9rem"></div>
+      </div>
+      <script>
+        function exportPPT() {
+          var slides = [
+            {title:'企业数字化转型总体规划报告',content:'基于TOGAF方法论\\n系统性规划企业数字化转型路径'},
+            {title:'一、转型愿景',content:'成为行业领先的数字化企业\\n以客户为中心，数据驱动，智能协同'},
+            {title:'二、战略目标',content:'短期目标（第1-2年）：夯实基础\\n中期目标（第3年）：深化应用\\n长期目标（第4-5年）：创新引领'},
+            {title:'三、业务架构',content:'以客户为中心重构业务流程\\n建立敏捷组织架构'},
+            {title:'四、数据架构',content:'构建统一数据中台\\n实现数据标准化与资产化'},
+            {title:'五、应用架构',content:'微服务化改造\\n建立应用生态体系'},
+            {title:'六、技术架构',content:'云原生技术底座\\n混合云部署策略'},
+            {title:'七、实施路线图',content:'分阶段推进\\n每年一个重点，三年初见成效，五年全面转型'},
+          ];
+          var html = '<!DOCTYPE html><html><head><meta charset=\"UTF-8\"><title>数字化转型总体规划</title>';
+          html += '<style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Segoe UI,sans-serif;background:#f0f4f8}.slide{width:100vw;height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4rem;page-break-after:always}.slide:nth-child(odd){background:#1a56db;color:#fff}.slide:nth-child(even){background:#fff;color:#0f172a}h1{font-size:2.5rem;margin-bottom:1.5rem;font-weight:800}h2{font-size:1.8rem;margin-bottom:1rem;font-weight:700}p{font-size:1.2rem;line-height:1.8;text-align:center;white-space:pre-line}@media print{@page{size:1920px 1080px}}</style></head><body>';
+          slides.forEach(s => {
+            html += '<div class=\"slide\"><h1>' + s.title + '</h1><p>' + s.content + '</p></div>';
+          });
+          html += '</body></html>';
+          var blob = new Blob([html], {type: 'text/html'});
+          var url = URL.createObjectURL(blob);
+          var a = document.createElement('a'); a.href = url; a.download = '数字化转型总体规划报告.html'; a.click();
+          document.getElementById('exportStatus2').textContent = 'PPT报告已导出（HTML格式，可用浏览器打印为PDF）';
+        }
+      <\/script>`,
+    'report-impl': `
+      <div style="padding:2rem;font-family:Segoe UI,sans-serif;max-width:900px;margin:0 auto">
+        <h1 style="font-size:1.5rem;margin-bottom:1rem">💰 数字化转型实施路径报告</h1>
+        <p style="color:#64748b;margin-bottom:2rem">项目规划、里程碑管理及投资估算，可导出为Excel格式。</p>
+        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:1.5rem;margin-bottom:2rem">
+          <h3 style="margin-bottom:1rem">📅 五年规划路线</h3>
+          <table style="width:100%;border-collapse:collapse;font-size:.88rem">
+            <tr style="background:#1a56db;color:#fff"><th style="padding:.75rem;text-align:left">阶段</th><th style="padding:.75rem;text-align:left">时间</th><th style="padding:.75rem;text-align:left">主要任务</th><th style="padding:.75rem;text-align:left">投资估算</th></tr>
+            <tr><td style="padding:.75rem;border-bottom:1px solid #e2e8f0">基础建设期</td><td style="padding:.75rem;border-bottom:1px solid #e2e8f0">第1年</td><td style="padding:.75rem;border-bottom:1px solid #e2e8f0">基础设施云化、数据标准制定</td><td style="padding:.75rem;border-bottom:1px solid #e2e8f0">¥500万</td></tr>
+            <tr><td style="padding:.75rem;border-bottom:1px solid #e2e8f0">深化应用期</td><td style="padding:.75rem;border-bottom:1px solid #e2e8f0">第2-3年</td><td style="padding:.75rem;border-bottom:1px solid #e2e8f0">核心系统建设、数据中台搭建</td><td style="padding:.75rem;border-bottom:1px solid #e2e8f0">¥1500万</td></tr>
+            <tr><td style="padding:.75rem;border-bottom:1px solid #e2e8f0">创新引领期</td><td style="padding:.75rem;border-bottom:1px solid #e2e8f0">第4-5年</td><td style="padding:.75rem;border-bottom:1px solid #e2e8f0">智能应用、数字化运营</td><td style="padding:.75rem;border-bottom:1px solid #e2e8f0">¥1000万</td></tr>
+            <tr style="background:#f1f5f9;font-weight:700"><td style="padding:.75rem" colspan="3">总投资估算</td><td style="padding:.75rem">¥3000万</td></tr>
+          </table>
+        </div>
+        <button onclick="exportExcel()" style="background:#10b981;color:#fff;border:none;padding:.75rem 2rem;border-radius:8px;font-size:1rem;cursor:pointer">📥 导出Excel报告</button>
+        <div id="exportStatus3" style="margin-top:1rem;color:#10b981;font-size:.9rem"></div>
+      </div>
+      <script>
+        function exportExcel() {
+          var csv = '\\uFEFF阶段,时间,主要任务,投资估算\\n';
+          csv += '基础建设期,第1年,基础设施云化、数据标准制定,¥500万\\n';
+          csv += '深化应用期,第2-3年,核心系统建设、数据中台搭建,¥1500万\\n';
+          csv += '创新引领期,第4-5年,智能应用、数字化运营,¥1000万\\n';
+          csv += '总投资估算,,,¥3000万\\n';
+          csv += '\\n项目优先级列表\\n序号,项目名称,优先级,所属阶段,投资估算\\n';
+          csv += '1,数据治理平台,高,第1年,¥200万\\n';
+          csv += '2,ERP系统升级,高,第1-2年,¥400万\\n';
+          csv += '3,数据中台建设,高,第2年,¥500万\\n';
+          csv += '4,智能制造系统,中,第2-3年,¥600万\\n';
+          csv += '5,客户体验平台,中,第3年,¥300万\\n';
+          csv += '6,数据分析平台,中,第3-4年,¥400万\\n';
+          csv += '7,创新实验室,低,第4-5年,¥600万\\n';
+          var blob = new Blob([csv], {type: 'text/csv;charset=utf-8'});
+          var url = URL.createObjectURL(blob);
+          var a = document.createElement('a'); a.href = url; a.download = '数字化转型实施路径报告.csv'; a.click();
+          document.getElementById('exportStatus3').textContent = 'Excel报告已导出（CSV格式，可用Excel打开）';
+        }
+      <\/script>`,
+    'goal': `
+      <div style="padding:2rem;font-family:Segoe UI,sans-serif;max-width:900px;margin:0 auto;background:#fff;min-height:100%">
+        <h1 style="font-size:1.5rem;margin-bottom:2rem;border-bottom:2px solid #1a56db;padding-bottom:1rem">🎯 企业数字化转型战略目标</h1>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem">
+          <div style="background:#eff6ff;border-radius:10px;padding:1.5rem;border-left:4px solid #1a56db">
+            <h3 style="margin-bottom:1rem">🚀 愿景</h3>
+            <p contenteditable="true" style="font-size:.9rem;line-height:1.7;color:#374151;outline:none">成为行业领先的数字化标杆企业，以数据驱动业务创新，构建智能化运营体系，实现可持续高质量发展。</p>
+          </div>
+          <div style="background:#f0fdf4;border-radius:10px;padding:1.5rem;border-left:4px solid #10b981">
+            <h3 style="margin-bottom:1rem">🎯 使命</h3>
+            <p contenteditable="true" style="font-size:.9rem;line-height:1.7;color:#374151;outline:none">以客户为中心，通过数字化转型提升产品与服务能力，打造敏捷高效的运营机制，赋能企业高质量发展。</p>
+          </div>
+          <div style="background:#fefce8;border-radius:10px;padding:1.5rem;border-left:4px solid #f59e0b">
+            <h3 style="margin-bottom:1rem">📊 核心价值观</h3>
+            <p contenteditable="true" style="font-size:.9rem;line-height:1.7;color:#374151;outline:none">客户优先 · 数据驱动 · 敏捷创新 · 协同共赢</p>
+          </div>
+          <div style="background:#fdf4ff;border-radius:10px;padding:1.5rem;border-left:4px solid #a855f7">
+            <h3 style="margin-bottom:1rem">📈 战略定位</h3>
+            <p contenteditable="true" style="font-size:.9rem;line-height:1.7;color:#374151;outline:none">打造数字化研发、数字化供应链、数字化营销、数字化运营四大核心能力，构建未来竞争新优势。</p>
+          </div>
+        </div>
+        <div style="margin-top:2rem;background:#f8fafc;border-radius:10px;padding:1.5rem">
+          <h3 style="margin-bottom:1rem">📋 分阶段目标</h3>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem">
+            <div style="text-align:center;padding:1rem;background:#fff;border-radius:8px;border:1px solid #e2e8f0">
+              <div style="font-size:1.5rem;font-weight:800;color:#1a56db;margin-bottom:.5rem">1-2年</div>
+              <div style="font-weight:600;font-size:.88rem;margin-bottom:.5rem">基础夯实期</div>
+              <div style="font-size:.8rem;color:#64748b">完成基础设施云化<br>核心系统上云<br>数据标准化</div>
+            </div>
+            <div style="text-align:center;padding:1rem;background:#fff;border-radius:8px;border:1px solid #e2e8f0">
+              <div style="font-size:1.5rem;font-weight:800;color:#10b981;margin-bottom:.5rem">3年</div>
+              <div style="font-weight:600;font-size:.88rem;margin-bottom:.5rem">深化应用期</div>
+              <div style="font-size:.8rem;color:#64748b">数据中台上线<br>业务全面数字化<br>智能化初见成效</div>
+            </div>
+            <div style="text-align:center;padding:1rem;background:#fff;border-radius:8px;border:1px solid #e2e8f0">
+              <div style="font-size:1.5rem;font-weight:800;color:#6366f1;margin-bottom:.5rem">4-5年</div>
+              <div style="font-weight:600;font-size:.88rem;margin-bottom:.5rem">创新引领期</div>
+              <div style="font-size:.8rem;color:#64748b">智能化全面升级<br>数字化运营<br>行业标杆</div>
+            </div>
+          </div>
+        </div>
+      </div>`,
+    'security-arch': `
+      <div style="padding:2rem;font-family:Segoe UI,sans-serif;max-width:900px;margin:0 auto;background:#fff;min-height:100%">
+        <h1 style="font-size:1.5rem;margin-bottom:2rem;border-bottom:2px solid #1a56db;padding-bottom:1rem">🔒 安全架构设计</h1>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:2rem">
+          <div style="background:#fee2e2;border-radius:10px;padding:1.25rem;text-align:center">
+            <div style="font-size:1.5rem;margin-bottom:.5rem">🛡️</div>
+            <h4 style="font-size:.9rem;font-weight:700;margin-bottom:.3rem">网络安全</h4>
+            <p style="font-size:.78rem;color:#64748b">防火墙、入侵检测<br>VPN、零信任网络</p>
+          </div>
+          <div style="background:#fef3c7;border-radius:10px;padding:1.25rem;text-align:center">
+            <div style="font-size:1.5rem;margin-bottom:.5rem">🔐</div>
+            <h4 style="font-size:.9rem;font-weight:700;margin-bottom:.3rem">应用安全</h4>
+            <p style="font-size:.78rem;color:#64748b">身份认证、权限管理<br>审计日志、安全扫描</p>
+          </div>
+          <div style="background:#d1fae5;border-radius:10px;padding:1.25rem;text-align:center">
+            <div style="font-size:1.5rem;margin-bottom:.5rem">💾</div>
+            <h4 style="font-size:.9rem;font-weight:700;margin-bottom:.3rem">数据安全</h4>
+            <p style="font-size:.78rem;color:#64748b">加密存储、脱敏处理<br>数据分级、备份恢复</p>
+          </div>
+        </div>
+        <div contenteditable="true" style="background:#f8fafc;border-radius:8px;padding:1.5rem;font-size:.88rem;line-height:1.8;color:#374151;outline:none;min-height:200px">
+          <strong>安全架构设计说明：</strong><br><br>
+          1. <strong>纵深防御体系</strong>：建立从边界到核心的多层安全防护，涵盖网络安全、主机安全、应用安全、数据安全。<br>
+          2. <strong>零信任架构</strong>：实施"永不信任、始终验证"的安全策略，所有访问均需认证和授权。<br>
+          3. <strong>数据安全治理</strong>：建立数据分类分级制度，对敏感数据实施加密存储和脱敏处理。<br>
+          4. <strong>安全运营中心</strong>：建立7×24小时安全监控与应急响应机制。
+        </div>
+      </div>`,
+    'governance': `
+      <div style="padding:2rem;font-family:Segoe UI,sans-serif;max-width:900px;margin:0 auto;background:#fff;min-height:100%">
+        <h1 style="font-size:1.5rem;margin-bottom:2rem;border-bottom:2px solid #1a56db;padding-bottom:1rem">⚙️ 治理架构设计</h1>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:2rem">
+          <div style="background:#eff6ff;border-radius:10px;padding:1.5rem">
+            <h3 style="margin-bottom:1rem">🏛️ 组织治理</h3>
+            <ul style="font-size:.88rem;color:#374151;line-height:2;padding-left:1.2rem">
+              <li>数字化转型委员会（决策层）</li>
+              <li>数字化管理办公室（管理层）</li>
+              <li>各业务部门数字化专员（执行层）</li>
+              <li>IT中心技术支撑团队（技术层）</li>
+            </ul>
+          </div>
+          <div style="background:#f0fdf4;border-radius:10px;padding:1.5rem">
+            <h3 style="margin-bottom:1rem">📏 标准治理</h3>
+            <ul style="font-size:.88rem;color:#374151;line-height:2;padding-left:1.2rem">
+              <li>数据标准规范</li>
+              <li>接口标准规范</li>
+              <li>安全标准规范</li>
+              <li>项目管理标准</li>
+            </ul>
+          </div>
+        </div>
+        <div contenteditable="true" style="background:#f8fafc;border-radius:8px;padding:1.5rem;font-size:.88rem;line-height:1.8;color:#374151;outline:none;min-height:200px">
+          <strong>治理架构说明：</strong><br><br>
+          建立数字化转型的长效治理机制，包括：<br>
+          1. <strong>决策机制</strong>：定期召开数字化转型委员会会议，审议重大事项。<br>
+          2. <strong>执行机制</strong>：数字化管理办公室负责日常协调与推进。<br>
+          3. <strong>评估机制</strong>：建立数字化转型KPI体系，定期评估进展与效果。<br>
+          4. <strong>迭代机制</strong>：基于评估结果持续优化调整规划内容。
+        </div>
+      </div>`,
+    'data-arch': `
+      <div style="padding:2rem;font-family:Segoe UI,sans-serif;max-width:900px;margin:0 auto;background:#fff;min-height:100%">
+        <h1 style="font-size:1.5rem;margin-bottom:2rem;border-bottom:2px solid #1a56db;padding-bottom:1rem">💾 数据架构设计</h1>
+        <div style="background:#f8fafc;border-radius:10px;padding:1.5rem;margin-bottom:2rem">
+          <h3 style="margin-bottom:1rem">📊 数据架构总体框架</h3>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem">
+            <div style="background:#fff;border-radius:8px;padding:1rem;text-align:center;border:1px solid #e2e8f0">
+              <div style="font-size:1.5rem;margin-bottom:.5rem">📥</div>
+              <h4 style="font-size:.85rem;font-weight:700">数据采集层</h4>
+              <p style="font-size:.75rem;color:#64748b">ERP/MES/CRM/SCM<br>IoT/传感器/日志</p>
+            </div>
+            <div style="background:#fff;border-radius:8px;padding:1rem;text-align:center;border:1px solid #e2e8f0">
+              <div style="font-size:1.5rem;margin-bottom:.5rem">⚙️</div>
+              <h4 style="font-size:.85rem;font-weight:700">数据处理层</h4>
+              <p style="font-size:.75rem;color:#64748b">数据湖/数据仓库<br>ETL/流处理/批处理</p>
+            </div>
+            <div style="background:#fff;border-radius:8px;padding:1rem;text-align:center;border:1px solid #e2e8f0">
+              <div style="font-size:1.5rem;margin-bottom:.5rem">📤</div>
+              <h4 style="font-size:.85rem;font-weight:700">数据服务层</h4>
+              <p style="font-size:.75rem;color:#64748b">数据API/数据市场<br>自助分析/报表</p>
+            </div>
+          </div>
+        </div>
+        <div contenteditable="true" style="background:#f8fafc;border-radius:8px;padding:1.5rem;font-size:.88rem;line-height:1.8;color:#374151;outline:none;min-height:200px">
+          <strong>数据架构核心内容：</strong><br><br>
+          1. <strong>统一数据中台</strong>：整合各业务系统数据，构建企业级数据资产平台。<br>
+          2. <strong>主数据管理</strong>：建立客户、产品、供应商等主数据标准与管理系统。<br>
+          3. <strong>数据质量管理</strong>：建立数据质量监控与治理机制。<br>
+          4. <strong>数据分析能力</strong>：建设BI平台与数据分析工具，支撑数据驱动决策。
+        </div>
+      </div>`,
+    'tech-arch': `
+      <div style="padding:2rem;font-family:Segoe UI,sans-serif;max-width:900px;margin:0 auto;background:#fff;min-height:100%">
+        <h1 style="font-size:1.5rem;margin-bottom:2rem;border-bottom:2px solid #1a56db;padding-bottom:1rem">🖥️ 技术架构设计</h1>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem">
+          <div style="background:#dbeafe;border-radius:10px;padding:1.25rem;text-align:center">
+            <div style="font-size:1.5rem;margin-bottom:.5rem">☁️</div>
+            <h4 style="font-size:.88rem;font-weight:700">云平台</h4>
+            <p style="font-size:.75rem;color:#1e40af">混合云架构<br>容器化部署</p>
+          </div>
+          <div style="background:#d1fae5;border-radius:10px;padding:1.25rem;text-align:center">
+            <div style="font-size:1.5rem;margin-bottom:.5rem">🐳</div>
+            <h4 style="font-size:.88rem;font-weight:700">容器平台</h4>
+            <p style="font-size:.75rem;color:#065f46">Kubernetes<br>微服务治理</p>
+          </div>
+          <div style="background:#fef3c7;border-radius:10px;padding:1.25rem;text-align:center">
+            <div style="font-size:1.5rem;margin-bottom:.5rem">🔄</div>
+            <h4 style="font-size:.88rem;font-weight:700">集成平台</h4>
+            <p style="font-size:.75rem;color:#92400e">API网关<br>消息队列</p>
+          </div>
+          <div style="background:#ede9fe;border-radius:10px;padding:1.25rem;text-align:center">
+            <div style="font-size:1.5rem;margin-bottom:.5rem">🗄️</div>
+            <h4 style="font-size:.88rem;font-weight:700">数据平台</h4>
+            <p style="font-size:.75rem;color:#7c3aed">大数据/AI<br>数据湖仓</p>
+          </div>
+        </div>
+        <div contenteditable="true" style="background:#f8fafc;border-radius:8px;padding:1.5rem;font-size:.88rem;line-height:1.8;color:#374151;outline:none;min-height:150px">
+          <strong>技术架构原则：</strong>云原生 · 容器化 · 微服务 · 自动化 · 可观测
+        </div>
+      </div>`,
+    'timeline': `
+      <div style="padding:2rem;font-family:Segoe UI,sans-serif;max-width:900px;margin:0 auto;background:#fff;min-height:100%">
+        <h1 style="font-size:1.5rem;margin-bottom:2rem;border-bottom:2px solid #1a56db;padding-bottom:1rem">📅 实施进度安排（五年期）</h1>
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:.5rem;margin-bottom:2rem">
+          <div style="background:#1a56db;color:#fff;border-radius:10px;padding:1rem;text-align:center">
+            <div style="font-weight:800;font-size:1.1rem;margin-bottom:.5rem">第1年</div>
+            <div style="font-size:.8rem;opacity:.9">基础建设期</div>
+            <div style="font-size:.72rem;opacity:.8;margin-top:.5rem">云化迁移<br>数据标准化<br>基础设施</div>
+          </div>
+          <div style="background:#1e40af;color:#fff;border-radius:10px;padding:1rem;text-align:center">
+            <div style="font-weight:800;font-size:1.1rem;margin-bottom:.5rem">第2年</div>
+            <div style="font-size:.8rem;opacity:.9">系统建设期</div>
+            <div style="font-size:.72rem;opacity:.8;margin-top:.5rem">核心系统<br>数据中台<br>集成打通</div>
+          </div>
+          <div style="background:#6366f1;color:#fff;border-radius:10px;padding:1rem;text-align:center">
+            <div style="font-weight:800;font-size:1.1rem;margin-bottom:.5rem">第3年</div>
+            <div style="font-size:.8rem;opacity:.9">深化应用期</div>
+            <div style="font-size:.72rem;opacity:.8;margin-top:.5rem">智能分析<br>业务优化<br>能力提升</div>
+          </div>
+          <div style="background:#8b5cf6;color:#fff;border-radius:10px;padding:1rem;text-align:center">
+            <div style="font-weight:800;font-size:1.1rem;margin-bottom:.5rem">第4年</div>
+            <div style="font-size:.8rem;opacity:.9">创新突破期</div>
+            <div style="font-size:.72rem;opacity:.8;margin-top:.5rem">AI应用<br>模式创新<br>生态构建</div>
+          </div>
+          <div style="background:#10b981;color:#fff;border-radius:10px;padding:1rem;text-align:center">
+            <div style="font-weight:800;font-size:1.1rem;margin-bottom:.5rem">第5年</div>
+            <div style="font-size:.8rem;opacity:.9">全面引领期</div>
+            <div style="font-size:.72rem;opacity:.8;margin-top:.5rem">行业标杆<br>持续优化<br>价值最大化</div>
+          </div>
+        </div>
+        <div contenteditable="true" style="background:#f8fafc;border-radius:8px;padding:1.5rem;font-size:.88rem;line-height:1.8;color:#374151;outline:none;min-height:150px">
+          <strong>里程碑节点：</strong><br>
+          M12：基础设施云化完成，数据标准发布 | M24：核心系统上线，数据中台运行 | M36：智能化应用初见成效 | M48：创新业务模式落地 | M60：全面数字化运营
+        </div>
+      </div>`,
+    'modules': `
+      <div style="padding:2rem;font-family:Segoe UI,sans-serif;max-width:900px;margin:0 auto;background:#fff;min-height:100%">
+        <h1 style="font-size:1.5rem;margin-bottom:2rem;border-bottom:2px solid #1a56db;padding-bottom:1rem">🖥️ 系统功能模块规划</h1>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem">
+          <div style="background:#eff6ff;border-radius:8px;padding:1rem;border:1px solid #bfdbfe"><h4 style="font-size:.88rem;margin-bottom:.5rem">📋 ERP系统</h4><p style="font-size:.78rem;color:#64748b">财务/采购/库存/生产计划管理</p></div>
+          <div style="background:#f0fdf4;border-radius:8px;padding:1rem;border:1px solid #a7f3d0"><h4 style="font-size:.88rem;margin-bottom:.5rem">📊 CRM系统</h4><p style="font-size:.78rem;color:#64748b">客户管理/销售自动化/服务管理</p></div>
+          <div style="background:#fef3c7;border-radius:8px;padding:1rem;border:1px solid #fde68a"><h4 style="font-size:.88rem;margin-bottom:.5rem">🏭 MES系统</h4><p style="font-size:.78rem;color:#64748b">生产执行/工艺管理/质量追溯</p></div>
+          <div style="background:#ede9fe;border-radius:8px;padding:1rem;border:1px solid #c4b5fd"><h4 style="font-size:.88rem;margin-bottom:.5rem">💾 数据中台</h4><p style="font-size:.78rem;color:#64748b">数据采集/治理/分析/服务</p></div>
+          <div style="background:#fce7f3;border-radius:8px;padding:1rem;border:1px solid #f9a8d4"><h4 style="font-size:.88rem;margin-bottom:.5rem">🔗 SCM系统</h4><p style="font-size:.78rem;color:#64748b">供应链协同/物流管理</p></div>
+          <div style="background:#e0e7ff;border-radius:8px;padding:1rem;border:1px solid #a5b4fc"><h4 style="font-size:.88rem;margin-bottom:.5rem">🤖 AI平台</h4><p style="font-size:.78rem;color:#64748b">机器学习/智能决策/预测分析</p></div>
+          <div style="background:#fee2e2;border-radius:8px;padding:1rem;border:1px solid #fca5a5"><h4 style="font-size:.88rem;margin-bottom:.5rem">🔐 安全管理平台</h4><p style="font-size:.78rem;color:#64748b">身份认证/权限管理/安全监控</p></div>
+          <div style="background:#f0fdf4;border-radius:8px;padding:1rem;border:1px solid #a7f3d0"><h4 style="font-size:.88rem;margin-bottom:.5rem">📱 协同办公平台</h4><p style="font-size:.78rem;color:#64748b">OA/审批/文档/沟通协作</p></div>
+          <div style="background:#fef3c7;border-radius:8px;padding:1rem;border:1px solid #fde68a"><h4 style="font-size:.88rem;margin-bottom:.5rem">🌐 电商平台</h4><p style="font-size:.78rem;color:#64748b">B2B/B2C商城/订单/支付</p></div>
+        </div>
+      </div>`,
+    'integration': `
+      <div style="padding:2rem;font-family:Segoe UI,sans-serif;max-width:900px;margin:0 auto;background:#fff;min-height:100%">
+        <h1 style="font-size:1.5rem;margin-bottom:2rem;border-bottom:2px solid #1a56db;padding-bottom:1rem">🔗 系统集成关系</h1>
+        <div style="display:flex;align-items:center;justify-content:center;margin:2rem 0">
+          <div style="width:100px;height:100px;background:linear-gradient(135deg,#1a56db,#6366f1);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:.85rem;text-align:center;box-shadow:0 4px 20px rgba(26,86,219,.3)">数据中台<br>核心枢纽</div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;text-align:center">
+          <div style="background:#eff6ff;border-radius:8px;padding:1rem"><div style="font-size:1.2rem;margin-bottom:.3rem">ERP</div><div style="font-size:.72rem;color:#64748b">核心业务数据</div></div>
+          <div style="background:#f0fdf4;border-radius:8px;padding:1rem"><div style="font-size:1.2rem;margin-bottom:.3rem">MES</div><div style="font-size:.72rem;color:#64748b">生产执行数据</div></div>
+          <div style="background:#fef3c7;border-radius:8px;padding:1rem"><div style="font-size:1.2rem;margin-bottom:.3rem">CRM</div><div style="font-size:.72rem;color:#64748b">客户数据</div></div>
+          <div style="background:#ede9fe;border-radius:8px;padding:1rem"><div style="font-size:1.2rem;margin-bottom:.3rem">SCM</div><div style="font-size:.72rem;color:#64748b">供应链数据</div></div>
+        </div>
+        <div contenteditable="true" style="margin-top:2rem;background:#f8fafc;border-radius:8px;padding:1.5rem;font-size:.88rem;line-height:1.8;color:#374151;outline:none">
+          <strong>集成策略：</strong>通过API网关统一对外服务，采用消息队列实现异步解耦，建立ESB企业服务总线进行服务编排与协议转换，确保各系统间数据流畅通。
+        </div>
+      </div>`,
+    'investment': `
+      <div style="padding:2rem;font-family:Segoe UI,sans-serif;max-width:900px;margin:0 auto;background:#fff;min-height:100%">
+        <h1 style="font-size:1.5rem;margin-bottom:2rem;border-bottom:2px solid #1a56db;padding-bottom:1rem">💰 项目建设投资费用估算</h1>
+        <table style="width:100%;border-collapse:collapse;font-size:.88rem;margin-bottom:2rem">
+          <tr style="background:#1a56db;color:#fff"><th style="padding:.75rem;text-align:left">序号</th><th style="padding:.75rem;text-align:left">项目模块</th><th style="padding:.75rem;text-align:left">优先级</th><th style="padding:.75rem;text-align:right">估算投资(万)</th><th style="padding:.75rem;text-align:left">实施周期</th></tr>
+          <tr><td style="padding:.65rem;border-bottom:1px solid #e2e8f0">1</td><td style="padding:.65rem;border-bottom:1px solid #e2e8f0">基础设施云化</td><td style="padding:.65rem;border-bottom:1px solid #e2e8f0"><span style="background:#fee2e2;color:#991b1b;padding:.15rem .5rem;border-radius:10px;font-size:.75rem">高</span></td><td style="padding:.65rem;border-bottom:1px solid #e2e8f0;text-align:right">500</td><td style="padding:.65rem;border-bottom:1px solid #e2e8f0">第1年</td></tr>
+          <tr><td style="padding:.65rem;border-bottom:1px solid #e2e8f0">2</td><td style="padding:.65rem;border-bottom:1px solid #e2e8f0">ERP系统升级</td><td style="padding:.65rem;border-bottom:1px solid #e2e8f0"><span style="background:#fee2e2;color:#991b1b;padding:.15rem .5rem;border-radius:10px;font-size:.75rem">高</span></td><td style="padding:.65rem;border-bottom:1px solid #e2e8f0;text-align:right">400</td><td style="padding:.65rem;border-bottom:1px solid #e2e8f0">第1-2年</td></tr>
+          <tr><td style="padding:.65rem;border-bottom:1px solid #e2e8f0">3</td><td style="padding:.65rem;border-bottom:1px solid #e2e8f0">数据中台建设</td><td style="padding:.65rem;border-bottom:1px solid #e2e8f0"><span style="background:#fee2e2;color:#991b1b;padding:.15rem .5rem;border-radius:10px;font-size:.75rem">高</span></td><td style="padding:.65rem;border-bottom:1px solid #e2e8f0;text-align:right">500</td><td style="padding:.65rem;border-bottom:1px solid #e2e8f0">第2年</td></tr>
+          <tr><td style="padding:.65rem;border-bottom:1px solid #e2e8f0">4</td><td style="padding:.65rem;border-bottom:1px solid #e2e8f0">MES系统</td><td style="padding:.65rem;border-bottom:1px solid #e2e8f0"><span style="background:#fef3c7;color:#92400e;padding:.15rem .5rem;border-radius:10px;font-size:.75rem">中</span></td><td style="padding:.65rem;border-bottom:1px solid #e2e8f0;text-align:right">600</td><td style="padding:.65rem;border-bottom:1px solid #e2e8f0">第2-3年</td></tr>
+          <tr><td style="padding:.65rem;border-bottom:1px solid #e2e8f0">5</td><td style="padding:.65rem;border-bottom:1px solid #e2e8f0">CRM系统</td><td style="padding:.65rem;border-bottom:1px solid #e2e8f0"><span style="background:#fef3c7;color:#92400e;padding:.15rem .5rem;border-radius:10px;font-size:.75rem">中</span></td><td style="padding:.65rem;border-bottom:1px solid #e2e8f0;text-align:right">300</td><td style="padding:.65rem;border-bottom:1px solid #e2e8f0">第3年</td></tr>
+          <tr><td style="padding:.65rem;border-bottom:1px solid #e2e8f0">6</td><td style="padding:.65rem;border-bottom:1px solid #e2e8f0">BI与AI平台</td><td style="padding:.65rem;border-bottom:1px solid #e2e8f0"><span style="background:#fef3c7;color:#92400e;padding:.15rem .5rem;border-radius:10px;font-size:.75rem">中</span></td><td style="padding:.65rem;border-bottom:1px solid #e2e8f0;text-align:right">400</td><td style="padding:.65rem;border-bottom:1px solid #e2e8f0">第3-4年</td></tr>
+          <tr><td style="padding:.65rem;border-bottom:1px solid #e2e8f0">7</td><td style="padding:.65rem;border-bottom:1px solid #e2e8f0">数字化运营平台</td><td style="padding:.65rem;border-bottom:1px solid #e2e8f0"><span style="background:#d1fae5;color:#065f46;padding:.15rem .5rem;border-radius:10px;font-size:.75rem">低</span></td><td style="padding:.65rem;border-bottom:1px solid #e2e8f0;text-align:right">300</td><td style="padding:.65rem;border-bottom:1px solid #e2e8f0">第4-5年</td></tr>
+          <tr style="background:#1a56db;color:#fff;font-weight:700"><td style="padding:.75rem" colspan="3">合计总投资</td><td style="padding:.75rem;text-align:right">3,000</td><td style="padding:.75rem">五年</td></tr>
+        </table>
+        <div contenteditable="true" style="background:#f8fafc;border-radius:8px;padding:1.5rem;font-size:.88rem;line-height:1.8;color:#374151;outline:none">
+          <strong>投资说明：</strong>以上为估算金额，实际投资需根据企业规模、现有系统状况及具体需求进行调整。建议分年度滚动规划，每年进行投资效益评估。
+        </div>
+      </div>`
+  };
+  return '<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>' + title + '</title><style>body{background:#f0f4f8;margin:0}</style></head><body>' + (contents[page] || '<div style="padding:2rem;text-align:center;color:#64748b">该模块正在开发中...</div>') + '</body></html>';
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>数字化转型诊断分析报告 - 企业数字化转型规划系统</title>
+  <style>
+    :root {
+      --primary: #1a56db;
+      --primary-dark: #1e40af;
+      --secondary: #6366f1;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --white: #ffffff;
+      --gray-50: #f9fafb;
+      --gray-100: #f3f4f6;
+      --gray-200: #e5e7eb;
+      --gray-500: #6b7280;
+      --gray-600: #4b5563;
+      --gray-700: #374151;
+      --gray-800: #1f2937;
+      --border: #e5e7eb;
+      --shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Microsoft YaHei", "PingFang SC", "Helvetica Neue", Arial, sans-serif; background: var(--gray-100); color: var(--gray-800); line-height: 1.6; }
+    .header { background: linear-gradient(135deg, var(--warning) 0%, var(--danger) 100%); color: white; padding: 2rem; text-align: center; }
+    .header h1 { font-size: 1.75rem; font-weight: 600; margin-bottom: 0.5rem; }
+    .header p { opacity: 0.9; }
+    .container { max-width: 1000px; margin: 2rem auto; padding: 0 1rem; }
+    .hero-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-bottom: 2rem; }
+    .hero-stat { background: var(--white); border-radius: 16px; padding: 2rem; text-align: center; box-shadow: var(--shadow); }
+    .hero-stat .score { font-size: 4rem; font-weight: 700; color: var(--primary); line-height: 1; }
+    .hero-stat .level { font-size: 1.5rem; font-weight: 600; margin-top: 0.5rem; }
+    .hero-stat .label { color: var(--gray-500); font-size: 0.9rem; margin-top: 0.5rem; }
+    .card { background: var(--white); border-radius: 12px; box-shadow: var(--shadow); margin-bottom: 1.5rem; overflow: hidden; }
+    .card-header { padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); background: var(--gray-50); }
+    .card-header h2 { font-size: 1.1rem; color: var(--primary); font-weight: 600; }
+    .card-body { padding: 1.5rem; }
+    .dimension-item { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
+    .dimension-item .name { width: 100px; font-weight: 500; color: var(--gray-700); }
+    .dimension-item .bar { flex: 1; height: 12px; background: var(--gray-200); border-radius: 6px; overflow: hidden; }
+    .dimension-item .bar-fill { height: 100%; background: linear-gradient(90deg, var(--primary), var(--secondary)); border-radius: 6px; transition: width 0.5s; }
+    .dimension-item .score { width: 50px; text-align: right; font-weight: 600; color: var(--primary); }
+    .suggestion { padding: 1rem; background: var(--gray-50); border-radius: 8px; margin-bottom: 0.75rem; border-left: 4px solid var(--primary); }
+    .suggestion h5 { font-size: 0.95rem; color: var(--gray-700); margin-bottom: 0.25rem; }
+    .suggestion p { color: var(--gray-500); font-size: 0.85rem; }
+    .export-section { display: flex; gap: 1rem; justify-content: center; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border); }
+    .btn { padding: 0.75rem 1.5rem; border: none; border-radius: 8px; font-size: 0.95rem; cursor: pointer; font-weight: 500; }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-secondary { background: var(--gray-200); color: var(--gray-700); }
+    @media (max-width: 768px) { .hero-stats { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>🔍 数字化转型诊断分析报告</h1>
+    <p>基于多维度评估的企业数字化成熟度分析</p>
+  </div>
+  
+  <div class="container">
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <div class="score" id="totalScore">-</div>
+        <div class="level" id="levelText">待评估</div>
+        <div class="label">综合成熟度评分</div>
+      </div>
+      <div class="hero-stat">
+        <div class="score" style="font-size:2rem">6</div>
+        <div class="level">维度评估</div>
+        <div class="label">覆盖核心领域</div>
+      </div>
+      <div class="hero-stat">
+        <div class="score" style="font-size:2rem">5年</div>
+        <div class="level">转型周期</div>
+        <div class="label">持续优化提升</div>
+      </div>
+    </div>
+    
+    <div class="card">
+      <div class="card-header">
+        <h2>📊 各维度评估得分</h2>
+      </div>
+      <div class="card-body" id="dimensionsList">
+        <div class="dimension-item"><span class="name">加载中...</span></div>
+      </div>
+    </div>
+    
+    <div class="card">
+      <div class="card-header">
+        <h2>💡 核心发现</h2>
+      </div>
+      <div class="card-body" id="findingsList">
+      </div>
+    </div>
+    
+    <div class="card">
+      <div class="card-header">
+        <h2>📋 改进建议</h2>
+      </div>
+      <div class="card-body" id="suggestionsList">
+      </div>
+    </div>
+    
+    <div class="export-section">
+      <button class="btn btn-secondary" onclick="exportReport()">📄 导出报告</button>
+      <button class="btn btn-primary" onclick="window.print()">🖨️ 打印PDF</button>
+    </div>
+  </div>
+  
+  <script src="data-api.js"></script>
+<script>
+    let _cachedData = null;
+    
+    async function loadData() {
+      const r_maturity_data = await loadToolData('survey-maturity');
+      const maturityData = r_maturity_data.data || {};
+      const dimensions = [
+        {name: '战略规划', key: 'strategy', score: maturityData.strategy || 0},
+        {name: '组织文化', key: 'culture', score: maturityData.culture || 0},
+        {name: '技术基础', key: 'technology', score: maturityData.technology || 0},
+        {name: '数据能力', key: 'data', score: maturityData.data || 0},
+        {name: '业务流程', key: 'process', score: maturityData.process || 0},
+        {name: '人才发展', key: 'talent', score: maturityData.talent || 0}
+      ];
+      _cachedData = {dimensions, maturityData};
+      return _cachedData;
+    }
+
+    function calculateLevel(score) {
+      if (score >= 4) return {text: '优化级', color: '#22c55e'};
+      if (score >= 3) return {text: '规范级', color: '#1a56db'};
+      if (score >= 2) return {text: '初始级', color: '#f59e0b'};
+      return {text: '起步级', color: '#ef4444'};
+    }
+
+    async function generateReport() {
+      const {dimensions, maturityData} = await loadData();
+      const totalScore = dimensions.reduce((sum, d) => sum + d.score, 0) / dimensions.length;
+      const level = calculateLevel(totalScore);
+
+      document.getElementById('totalScore').textContent = totalScore.toFixed(1);
+      document.getElementById('levelText').textContent = level.text;
+
+      const list = document.getElementById('dimensionsList');
+      list.innerHTML = dimensions.map(d => `
+        <div class="dimension-item">
+          <span class="name">${d.name}</span>
+          <div class="bar"><div class="bar-fill" style="width:${d.score * 20}%"></div></div>
+          <span class="score">${d.score.toFixed(1)}</span>
+        </div>
+      `).join('');
+
+      const findings = [];
+      dimensions.forEach(d => {
+        if (d.score < 2.5) {
+          findings.push({dimension: d.name, issue: '成熟度偏低，需要重点关注和提升', score: d.score});
+        }
+      });
+
+      document.getElementById('findingsList').innerHTML = findings.length > 0 ?
+        findings.map(f => `<div class="suggestion"><h5>${f.dimension}（${f.score.toFixed(1)}分）</h5><p>${f.issue}</p></div>`).join('') :
+        '<div class="suggestion"><h5>整体表现良好</h5><p>各维度评分均达到中等以上水平</p></div>';
+
+      document.getElementById('suggestionsList').innerHTML = `
+        <div class="suggestion"><h5>短期建议（0-6个月）</h5><p>完善数据采集和分析体系，建立数字化指标监控机制</p></div>
+        <div class="suggestion"><h5>中期建议（6-18个月）</h5><p>推进核心业务流程数字化改造，培养数字化人才队伍</p></div>
+        <div class="suggestion"><h5>长期建议（18个月以上）</h5><p>构建智能化运营能力，实现数据驱动的决策体系</p></div>
+      `;
+    }
+
+    function exportReport() {
+      if (!_cachedData) { alert('请先等待数据加载完成'); return; }
+      const {dimensions} = _cachedData;
+      let content = '数字化转型诊断分析报告\n\n';
+      content += '一、评估维度得分\n';
+      dimensions.forEach(d => {
+        content += `${d.name}：${d.score.toFixed(1)}分\n`;
+      });
+      content += '\n二、核心发现\n';
+      content += '基于评估结果，企业数字化转型处于发展阶段，需持续投入和优化。\n';
+      content += '\n三、改进建议\n';
+      content += '1. 完善数据基础设施\n2. 培养数字化人才\n3. 优化业务流程\n4. 强化技术创新\n';
+      downloadText(content, '诊断分析报告.txt');
+    }
+
+    function downloadText(text, filename) {
+      const blob = new Blob([text], {type: 'text/plain'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = filename;
+      a.click();
+    }
+
+    // 页面加载时异步初始化
+    (async function() {
+      await generateReport();
+    })();
+  </script>
+</body>
+</html>

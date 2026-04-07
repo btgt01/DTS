@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>安全架构设计 - 数字化转型规划系统</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Inter','Microsoft YaHei',sans-serif;background:#f8fafc;color:#1e293b;line-height:1.6;padding:1.5rem}
+    .page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;padding-bottom:1rem;border-bottom:2px solid #e2e8f0}
+    h1{font-size:1.4rem;font-weight:700;color:#0f172a}
+    .btn{padding:.6rem 1.2rem;border-radius:8px;font-size:.85rem;font-weight:500;cursor:pointer;border:none;transition:all .2s}
+    .btn-primary{background:#1a56db;color:#fff}
+    .btn-primary:hover{background:#1e40af}
+    .btn-outline{background:#fff;color:#1a56db;border:1.5px solid #1a56db}
+    .btn-outline:hover{background:#eff6ff}
+    .btn-sm{padding:.4rem .8rem;font-size:.8rem}
+    .btn-danger{background:#dc2626;color:#fff}
+    .btn-danger:hover{background:#b91c1c}
+    .card{background:#fff;border-radius:12px;border:1px solid #e2e8f0;padding:1.25rem;margin-bottom:1.25rem;box-shadow:0 2px 8px rgba(0,0,0,.03)}
+    .card h3{font-size:1rem;font-weight:600;color:#0f172a;margin-bottom:1rem;padding-bottom:.5rem;border-bottom:1px solid #e2e8f0}
+    .section{margin-bottom:1.5rem}
+    .section h4{font-size:.95rem;font-weight:600;color:#0f172a;margin-bottom:.75rem;padding-left:.75rem;border-left:3px solid #1a56db}
+    .domain-card{background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:1rem;margin-bottom:.75rem}
+    .domain-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem}
+    .domain-header h5{font-size:.95rem;font-weight:600;color:#0f172a}
+    .domain-tag{display:inline-block;padding:.2rem .6rem;border-radius:4px;font-size:.7rem}
+    .tag-high{background:#fee2e2;color:#991b1b}
+    .tag-medium{background:#fef3c7;color:#92400e}
+    .tag-low{background:#dcfce7;color:#166534}
+    .controls{margin-left:1rem;font-size:.85rem;color:#64748b}
+    .controls li{margin-bottom:.3rem}
+    .form-group{margin-bottom:1rem}
+    label{display:block;font-size:.85rem;font-weight:500;color:#475569;margin-bottom:.4rem}
+    input,select,textarea{width:100%;padding:.65rem 1rem;border:1.5px solid #e2e8f0;border-radius:8px;font-size:.9rem;transition:border-color .2s}
+    input:focus,select:focus,textarea:focus{outline:none;border-color:#1a56db}
+    textarea{resize:vertical;min-height:80px}
+    .empty-state{text-align:center;padding:3rem;color:#64748b}
+    .empty-state .icon{font-size:3rem;margin-bottom:1rem}
+    .modal{background:#fff;padding:1.5rem;border-radius:12px;width:90%;max-width:500px}
+    .modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:1000;display:none;align-items:center;justify-content:center}
+    .alert{padding:1rem;border-radius:8px;margin-bottom:1rem;font-size:.9rem}
+    .alert-success{background:#dcfce7;color:#166534}
+    .alert-error{background:#fee2e2;color:#991b1b}
+  </style>
+</head>
+<body>
+  <div class="page-header">
+    <h1>🔒 安全架构设计</h1>
+    <div>
+      <button class="btn btn-outline btn-sm" onclick="exportSecurity()">📥 导出</button>
+      <button class="btn btn-primary btn-sm" onclick="showAddDomain()">+ 添加安全域</button>
+    </div>
+  </div>
+
+  <div id="alertBox"></div>
+
+  <div class="card">
+    <h3>安全架构概览</h3>
+    <div id="overviewStats" style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem">
+      <div style="text-align:center;padding:1rem;background:#f8fafc;border-radius:8px">
+        <div style="font-size:1.5rem;font-weight:700;color:#1a56db" id="totalDomains">0</div>
+        <div style="font-size:.75rem;color:#64748b">安全域</div>
+      </div>
+      <div style="text-align:center;padding:1rem;background:#f8fafc;border-radius:8px">
+        <div style="font-size:1.5rem;font-weight:700;color:#dc2626" id="highRisk">0</div>
+        <div style="font-size:.75rem;color:#64748b">高风险</div>
+      </div>
+      <div style="text-align:center;padding:1rem;background:#f8fafc;border-radius:8px">
+        <div style="font-size:1.5rem;font-weight:700;color:#f59e0b" id="mediumRisk">0</div>
+        <div style="font-size:.75rem;color:#64748b">中风险</div>
+      </div>
+      <div style="text-align:center;padding:1rem;background:#f8fafc;border-radius:8px">
+        <div style="font-size:1.5rem;font-weight:700;color:#22c55e" id="lowRisk">0</div>
+        <div style="font-size:.75rem;color:#64748b">低风险</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>安全域清单</h3>
+    <div id="domainsList">
+      <div class="empty-state">
+        <div class="icon">🔐</div>
+        <p>暂无安全域配置，请点击"添加安全域"开始设计</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>安全架构框架</h3>
+    <div class="section">
+      <h4>应用安全</h4>
+      <div class="domain-card">
+        <div class="domain-header">
+          <h5>身份认证与访问控制</h5>
+          <span class="domain-tag tag-high">高</span>
+        </div>
+        <ul class="controls">
+          <li>多因素认证（MFA）部署</li>
+          <li>单点登录（SSO）集成</li>
+          <li>基于角色的访问控制（RBAC）</li>
+          <li>最小权限原则实施</li>
+        </ul>
+      </div>
+      <div class="domain-card">
+        <div class="domain-header">
+          <h5>数据安全</h5>
+          <span class="domain-tag tag-high">高</span>
+        </div>
+        <ul class="controls">
+          <li>数据分类分级管理</li>
+          <li>敏感数据加密存储</li>
+          <li>数据传输加密（TLS）</li>
+          <li>数据脱敏处理</li>
+        </ul>
+      </div>
+    </div>
+    <div class="section">
+      <h4>基础设施安全</h4>
+      <div class="domain-card">
+        <div class="domain-header">
+          <h5>网络安全</h5>
+          <span class="domain-tag tag-medium">中</span>
+        </div>
+        <ul class="controls">
+          <li>网络分区隔离（DMZ）</li>
+          <li>防火墙策略管理</li>
+          <li>入侵检测与防御（IDS/IPS）</li>
+          <li>DDoS防护机制</li>
+        </ul>
+      </div>
+      <div class="domain-card">
+        <div class="domain-header">
+          <h5>主机与终端安全</h5>
+          <span class="domain-tag tag-medium">中</span>
+        </div>
+        <ul class="controls">
+          <li>终端安全管理（EDR）</li>
+          <li>漏洞扫描与修复</li>
+          <li>安全配置基线</li>
+          <li>日志审计与分析</li>
+        </ul>
+      </div>
+    </div>
+    <div class="section">
+      <h4>运营安全</h4>
+      <div class="domain-card">
+        <div class="domain-header">
+          <h5>安全运营中心（SOC）</h5>
+          <span class="domain-tag tag-low">低</span>
+        </div>
+        <ul class="controls">
+          <li>安全事件监控与分析</li>
+          <li>威胁情报整合</li>
+          <li>应急响应流程</li>
+          <li>安全合规审计</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- 添加安全域弹窗 -->
+  <div id="domainModal" class="modal-overlay">
+    <div class="modal">
+      <h3 style="font-size:1.1rem;margin-bottom:1rem">添加安全域</h3>
+      <div class="form-group">
+        <label>安全域名称</label>
+        <input type="text" id="domainName" placeholder="如：身份认证与访问控制">
+      </div>
+      <div class="form-group">
+        <label>风险等级</label>
+        <select id="domainRisk">
+          <option value="high">高风险</option>
+          <option value="medium">中风险</option>
+          <option value="low">低风险</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>安全措施</label>
+        <textarea id="domainControls" placeholder="输入安全控制措施，每行一条"></textarea>
+      </div>
+      <div class="form-group">
+        <label>备注说明</label>
+        <textarea id="domainNote" placeholder="补充说明"></textarea>
+      </div>
+      <div style="display:flex;gap:.75rem;justify-content:flex-end;margin-top:1rem">
+        <button class="btn btn-outline" onclick="closeDomainModal()">取消</button>
+        <button class="btn btn-primary" onclick="saveDomain()">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="data-api.js"></script>
+<script>
+    let domains = [];
+
+    // 初始化：从服务器加载数据
+    (async function initDomains() {
+      const result = await loadToolData('security-arch');
+      if (result.data) domains = result.data;
+      renderDomains();
+    })();
+
+    function renderDomains() {
+      const list = document.getElementById('domainsList');
+      if (domains.length === 0) {
+        list.innerHTML = '<div class="empty-state"><div class="icon">🔐</div><p>暂无安全域配置，请点击"添加安全域"开始设计</p></div>';
+      } else {
+        list.innerHTML = domains.map((d, i) => `
+          <div class="domain-card">
+            <div class="domain-header">
+              <h5>${d.name}</h5>
+              <span class="domain-tag tag-${d.risk}">${d.risk === 'high' ? '高' : d.risk === 'medium' ? '中' : '低'}风险</span>
+            </div>
+            <ul class="controls">${(d.controls || '').split('\n').filter(c => c.trim()).map(c => `<li>${c}</li>`).join('')}</ul>
+            ${d.note ? `<p style="margin-top:.5rem;font-size:.85rem;color:#64748b">${d.note}</p>` : ''}
+            <div style="margin-top:.75rem">
+              <button class="btn btn-outline btn-sm" onclick="editDomain(${i})">编辑</button>
+              <button class="btn btn-outline btn-sm" style="color:#dc2626" onclick="deleteDomain(${i})">删除</button>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      document.getElementById('totalDomains').textContent = domains.length;
+      document.getElementById('highRisk').textContent = domains.filter(d => d.risk === 'high').length;
+      document.getElementById('mediumRisk').textContent = domains.filter(d => d.risk === 'medium').length;
+      document.getElementById('lowRisk').textContent = domains.filter(d => d.risk === 'low').length;
+    }
+
+    function showAddDomain() {
+      document.getElementById('domainModal').style.display = 'flex';
+      document.getElementById('domainName').value = '';
+      document.getElementById('domainControls').value = '';
+      document.getElementById('domainNote').value = '';
+    }
+
+    function closeDomainModal() {
+      document.getElementById('domainModal').style.display = 'none';
+    }
+
+    async function saveDomain() {
+      const name = document.getElementById('domainName').value.trim();
+      if (!name) { alert('请输入安全域名称'); return; }
+      domains.push({
+        name: name,
+        risk: document.getElementById('domainRisk').value,
+        controls: document.getElementById('domainControls').value,
+        note: document.getElementById('domainNote').value
+      });
+      await saveToolData('security-arch', domains);
+      renderDomains();
+      closeDomainModal();
+      showAlert('安全域添加成功', 'success');
+    }
+
+    async function deleteDomain(index) {
+      if (confirm('确定删除此安全域？')) {
+        domains.splice(index, 1);
+        await saveToolData('security-arch', domains);
+        renderDomains();
+        showAlert('安全域已删除', 'success');
+      }
+    }
+
+    function editDomain(index) {
+      const d = domains[index];
+      document.getElementById('domainModal').style.display = 'flex';
+      document.getElementById('domainName').value = d.name;
+      document.getElementById('domainRisk').value = d.risk;
+      document.getElementById('domainControls').value = d.controls;
+      document.getElementById('domainNote').value = d.note;
+      domains.splice(index, 1);
+    }
+
+
+    function exportSecurity() {
+      let content = '安全架构设计方案\n\n';
+      domains.forEach(d => {
+        content += `【${d.name}】风险等级：${d.risk === 'high' ? '高' : d.risk === 'medium' ? '中' : '低'}\n`;
+        content += `控制措施：\n${(d.controls || '').split('\n').map(c => c.trim() ? '  • ' + c : '').join('\n')}\n\n`;
+      });
+      downloadText(content, '安全架构设计.txt');
+    }
+
+    function downloadText(text, filename) {
+      const blob = new Blob([text], {type: 'text/plain'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = filename;
+      a.click();
+    }
+
+    function showAlert(msg, type) {
+      const box = document.getElementById('alertBox');
+      box.innerHTML = `<div class="alert alert-${type}">${msg}</div>`;
+      setTimeout(() => box.innerHTML = '', 3000);
+    }
+
+    renderDomains();
+  </script>
+</body>
+</html>

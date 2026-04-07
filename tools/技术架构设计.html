@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>技术架构设计 - 企业数字化转型规划系统</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Microsoft YaHei", "PingFang SC", sans-serif; background: #f5f7fa; color: #1a1a2e; }
+    
+    .header { background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%); color: white; padding: 1.5rem 2rem; }
+    .header h1 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+    .header p { opacity: 0.9; font-size: 0.9rem; }
+    
+    .container { max-width: 1400px; margin: 2rem auto; padding: 0 1rem; }
+    
+    .card { background: white; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); margin-bottom: 1.5rem; overflow: hidden; }
+    .card-header { padding: 1rem 1.5rem; border-bottom: 1px solid #eee; background: #fafbfc; }
+    .card-header h2 { font-size: 1.1rem; color: #0891b2; display: flex; align-items: center; gap: 0.5rem; }
+    .card-body { padding: 1.5rem; }
+    
+    .btn { padding: 0.6rem 1.2rem; border: none; border-radius: 6px; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; }
+    .btn-primary { background: #0891b2; color: white; }
+    .btn-primary:hover { background: #0e7490; }
+    .btn-secondary { background: #6b7280; color: white; }
+    .btn-outline { background: white; color: #0891b2; border: 1px solid #0891b2; }
+    
+    .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
+    .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; }
+    
+    .tech-card { border: 1px solid #e5e7eb; border-radius: 12px; padding: 1.5rem; background: linear-gradient(135deg, #f0fdfa 0%, #ecfeff 100%); }
+    .tech-card h3 { color: #0e7490; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+    .tech-card .icon { font-size: 1.5rem; }
+    
+    .tech-item { background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 1rem; margin-bottom: 0.75rem; cursor: pointer; transition: all 0.2s; }
+    .tech-item:hover { border-color: #0891b2; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(8,145,178,0.1); }
+    .tech-item.selected { background: #0891b2; color: white; border-color: #0891b2; }
+    .tech-item.selected .tech-desc { color: rgba(255,255,255,0.8); }
+    .tech-item .tech-name { font-weight: 600; margin-bottom: 0.25rem; }
+    .tech-item .tech-desc { font-size: 0.85rem; color: #6b7280; }
+    
+    .checkbox-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.75rem; }
+    .checkbox-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem; background: #f9fafb; border-radius: 6px; cursor: pointer; }
+    .checkbox-item:hover { background: #f3f4f6; }
+    .checkbox-item.checked { background: #0891b2; color: white; }
+    .checkbox-item input { width: 18px; height: 18px; cursor: pointer; }
+    
+    /* 架构图 */
+    .arch-diagram { background: #fafbfc; border: 1px solid #e5e7eb; border-radius: 8px; min-height: 500px; padding: 1rem; position: relative; }
+    .arch-layer { margin-bottom: 1.5rem; }
+    .arch-layer-title { font-weight: 600; color: #0891b2; margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 2px solid #0891b2; }
+    .arch-components { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+    .arch-component { background: white; border: 2px solid #0891b2; border-radius: 8px; padding: 0.75rem 1.25rem; font-size: 0.85rem; text-align: center; min-width: 100px; }
+    .arch-component.core { background: #0891b2; color: white; }
+    .arch-component.data { border-color: #8b5cf6; }
+    .arch-component.service { border-color: #f59e0b; }
+    .arch-component.front { border-color: #10b981; }
+    
+    /* 基础设施规划 */
+    .infra-table { width: 100%; border-collapse: collapse; }
+    .infra-table th, .infra-table td { border: 1px solid #e5e7eb; padding: 0.75rem; text-align: left; }
+    .infra-table th { background: #f8fafc; font-weight: 600; }
+    .infra-table input, .infra-table select { width: 100%; padding: 0.5rem; border: 1px solid #e5e7eb; border-radius: 4px; }
+    
+    /* 安全架构 */
+    .security-domain { background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; }
+    .security-domain h4 { color: #991b1b; margin-bottom: 0.75rem; }
+    .security-items { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .security-item { background: white; border: 1px solid #e5e7eb; border-radius: 4px; padding: 0.5rem 0.75rem; font-size: 0.85rem; }
+    
+    /* 部署架构 */
+    .deploy-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; }
+    .deploy-option { border: 2px solid #e5e7eb; border-radius: 12px; padding: 1.5rem; cursor: pointer; transition: all 0.2s; }
+    .deploy-option:hover { border-color: #0891b2; }
+    .deploy-option.selected { border-color: #0891b2; background: #ecfeff; }
+    .deploy-option h4 { color: #0891b2; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
+    .deploy-option p { font-size: 0.85rem; color: #6b7280; }
+    
+    .export-section { text-align: center; margin-top: 2rem; padding-top: 2rem; border-top: 1px solid #e5e7eb; }
+    
+    .tab-nav { display: flex; gap: 0.5rem; margin-bottom: 1rem; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.5rem; flex-wrap: wrap; }
+    .tab-nav button { padding: 0.5rem 1rem; border: none; background: none; cursor: pointer; font-size: 0.9rem; color: #6b7280; border-bottom: 2px solid transparent; margin-bottom: -0.5rem; }
+    .tab-nav button.active { color: #0891b2; border-bottom-color: #0891b2; font-weight: 600; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    
+    @media (max-width: 768px) {
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+      .checkbox-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>⚙️ 技术架构设计</h1>
+    <p>基于TOGAF技术架构方法论，规划企业技术基础设施与技术选型</p>
+  </div>
+  
+  <div class="container">
+    <!-- 标签页 -->
+    <div class="card">
+      <div class="tab-nav">
+        <button class="active" onclick="switchTab('infrastructure')">🏗️ 基础设施规划</button>
+        <button onclick="switchTab('tech-stack')">🛠️ 技术栈选型</button>
+        <button onclick="switchTab('security')">🛡️ 安全架构</button>
+        <button onclick="switchTab('deploy')">📦 部署架构</button>
+        <button onclick="switchTab('arch-diagram')">📐 架构总览图</button>
+      </div>
+      
+      <!-- 基础设施规划 -->
+      <div class="tab-content active" id="tab-infrastructure">
+        <div style="margin-bottom: 1rem;">
+          <button class="btn btn-primary" onclick="addInfraRow()">+ 添加基础设施组件</button>
+        </div>
+        
+        <table class="infra-table">
+          <thead>
+            <tr>
+              <th style="width: 40px;">序号</th>
+              <th>类别</th>
+              <th>组件名称</th>
+              <th>规格要求</th>
+              <th>数量/容量</th>
+              <th>部署方式</th>
+              <th>备注</th>
+              <th style="width: 80px;">操作</th>
+            </tr>
+          </thead>
+          <tbody id="infraTableBody">
+            <tr>
+              <td>1</td>
+              <td>
+                <select onchange="onCategoryChange(this)">
+                  <option value="">请选择</option>
+                  <option value="compute">计算资源</option>
+                  <option value="storage">存储资源</option>
+                  <option value="network">网络资源</option>
+                  <option value="middleware">中间件</option>
+                  <option value="database">数据库</option>
+                </select>
+              </td>
+              <td><input type="text" placeholder="组件名称"></td>
+              <td><input type="text" placeholder="CPU/内存/带宽等"></td>
+              <td><input type="text" placeholder="数量或容量"></td>
+              <td>
+                <select>
+                  <option value="cloud">公有云</option>
+                  <option value="private">私有云</option>
+                  <option value="hybrid">混合云</option>
+                  <option value="onpremise">本地部署</option>
+                </select>
+              </td>
+              <td><input type="text" placeholder="备注信息"></td>
+              <td><button class="btn btn-secondary" onclick="deleteInfraRow(this)">删除</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      
+      <!-- 技术栈选型 -->
+      <div class="tab-content" id="tab-tech-stack">
+        <div class="grid-3">
+          <div class="tech-card">
+            <h3><span class="icon">🖥️</span> 前端技术</h3>
+            <div class="tech-item" onclick="toggleTech(this, 'vue')">
+              <div class="tech-name">Vue.js</div>
+              <div class="tech-desc">渐进式JavaScript框架，适合企业级应用</div>
+            </div>
+            <div class="tech-item" onclick="toggleTech(this, 'react')">
+              <div class="tech-name">React</div>
+              <div class="tech-desc">Facebook推出的UI库，生态丰富</div>
+            </div>
+            <div class="tech-item" onclick="toggleTech(this, 'angular')">
+              <div class="tech-name">Angular</div>
+              <div class="tech-desc">Google推出的完整前端框架</div>
+            </div>
+            <div class="tech-item" onclick="toggleTech(this, 'uniapp')">
+              <div class="tech-name">uni-app</div>
+              <div class="tech-desc">跨平台开发框架，一套代码多端运行</div>
+            </div>
+          </div>
+          
+          <div class="tech-card">
+            <h3><span class="icon">⚙️</span> 后端技术</h3>
+            <div class="tech-item" onclick="toggleTech(this, 'java')">
+              <div class="tech-name">Java / Spring Boot</div>
+              <div class="tech-desc">成熟稳定，适合大型企业应用</div>
+            </div>
+            <div class="tech-item" onclick="toggleTech(this, 'python')">
+              <div class="tech-name">Python / Django</div>
+              <div class="tech-desc">开发效率高，适合数据处理和AI</div>
+            </div>
+            <div class="tech-item" onclick="toggleTech(this, 'nodejs')">
+              <div class="tech-name">Node.js</div>
+              <div class="tech-desc">高性能，适合I/O密集型应用</div>
+            </div>
+            <div class="tech-item" onclick="toggleTech(this, 'go')">
+              <div class="tech-name">Go</div>
+              <div class="tech-desc">高并发，云原生首选</div>
+            </div>
+          </div>
+          
+          <div class="tech-card">
+            <h3><span class="icon">💾</span> 数据库</h3>
+            <div class="tech-item" onclick="toggleTech(this, 'mysql')">
+              <div class="tech-name">MySQL</div>
+              <div class="tech-desc">开源关系型数据库，主流选择</div>
+            </div>
+            <div class="tech-item" onclick="toggleTech(this, 'postgresql')">
+              <div class="tech-name">PostgreSQL</div>
+              <div class="tech-desc">功能强大的开源关系型数据库</div>
+            </div>
+            <div class="tech-item" onclick="toggleTech(this, 'mongodb')">
+              <div class="tech-name">MongoDB</div>
+              <div class="tech-desc">文档型数据库，适合灵活数据结构</div>
+            </div>
+            <div class="tech-item" onclick="toggleTech(this, 'redis')">
+              <div class="tech-name">Redis</div>
+              <div class="tech-desc">内存数据库，高性能缓存</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="grid-2" style="margin-top: 1.5rem;">
+          <div class="tech-card">
+            <h3><span class="icon">☁️</span> 云服务</h3>
+            <div class="checkbox-grid">
+              <label class="checkbox-item"><input type="checkbox" value="ecs"> 云服务器ECS</label>
+              <label class="checkbox-item"><input type="checkbox" value="oss"> 对象存储OSS</label>
+              <label class="checkbox-item"><input type="checkbox" value="rds"> 云数据库RDS</label>
+              <label class="checkbox-item"><input type="checkbox" value="redis"> 云缓存Redis</label>
+              <label class="checkbox-item"><input type="checkbox" value="slb"> 负载均衡SLB</label>
+              <label class="checkbox-item"><input type="checkbox" value="vpc"> 专有网络VPC</label>
+              <label class="checkbox-item"><input type="checkbox" value="cdn"> CDN加速</label>
+              <label class="checkbox-item"><input type="checkbox" value="mq"> 消息队列MQ</label>
+            </div>
+          </div>
+          
+          <div class="tech-card">
+            <h3><span class="icon">🔧</span> DevOps工具链</h3>
+            <div class="checkbox-grid">
+              <label class="checkbox-item"><input type="checkbox" value="git"> Git代码管理</label>
+              <label class="checkbox-item"><input type="checkbox" value="ci"> CI/CD流水线</label>
+              <label class="checkbox-item"><input type="checkbox" value="docker"> Docker容器</label>
+              <label class="checkbox-item"><input type="checkbox" value="k8s"> Kubernetes</label>
+              <label class="checkbox-item"><input type="checkbox" value="jenkins"> Jenkins</label>
+              <label class="checkbox-item"><input type="checkbox" value="gitlab"> GitLab</label>
+              <label class="checkbox-item"><input type="checkbox" value="sonar"> SonarQube</label>
+              <label class="checkbox-item"><input type="checkbox" value="elk"> ELK日志</label>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 安全架构 -->
+      <div class="tab-content" id="tab-security">
+        <div class="grid-2">
+          <div class="security-domain">
+            <h4>🔐 边界安全</h4>
+            <div class="security-items">
+              <span class="security-item" onclick="toggleSecurity(this)">防火墙FW</span>
+              <span class="security-item" onclick="toggleSecurity(this)">入侵检测IDS</span>
+              <span class="security-item" onclick="toggleSecurity(this)">入侵防御IPS</span>
+              <span class="security-item" onclick="toggleSecurity(this)">Web应用防火墙WAF</span>
+              <span class="security-item" onclick="toggleSecurity(this)">抗DDoS</span>
+            </div>
+          </div>
+          
+          <div class="security-domain">
+            <h4>🔑 身份认证</h4>
+            <div class="security-items">
+              <span class="security-item" onclick="toggleSecurity(this)">统一身份认证IAM</span>
+              <span class="security-item" onclick="toggleSecurity(this)">单点登录SSO</span>
+              <span class="security-item" onclick="toggleSecurity(this)">多因素认证MFA</span>
+              <span class="security-item" onclick="toggleSecurity(this)">OAuth2.0</span>
+              <span class="security-item" onclick="toggleSecurity(this)">LDAP目录服务</span>
+            </div>
+          </div>
+          
+          <div class="security-domain">
+            <h4>📊 数据安全</h4>
+            <div class="security-items">
+              <span class="security-item" onclick="toggleSecurity(this)">数据加密存储</span>
+              <span class="security-item" onclick="toggleSecurity(this)">数据传输加密TLS</span>
+              <span class="security-item" onclick="toggleSecurity(this)">数据脱敏</span>
+              <span class="security-item" onclick="toggleSecurity(this)">数据库审计</span>
+              <span class="security-item" onclick="toggleSecurity(this)">数据备份恢复</span>
+            </div>
+          </div>
+          
+          <div class="security-domain">
+            <h4>🛡️ 主机与应用安全</h4>
+            <div class="security-items">
+              <span class="security-item" onclick="toggleSecurity(this)">主机安全加固</span>
+              <span class="security-item" onclick="toggleSecurity(this)">漏洞扫描</span>
+              <span class="security-item" onclick="toggleSecurity(this)">代码安全审计</span>
+              <span class="security-item" onclick="toggleSecurity(this)">API安全网关</span>
+              <span class="security-item" onclick="toggleSecurity(this)">日志审计</span>
+            </div>
+          </div>
+        </div>
+        
+        <div style="margin-top: 1.5rem;">
+          <h4 style="color: #374151; margin-bottom: 1rem;">等保合规要求</h4>
+          <div class="checkbox-grid">
+            <label class="checkbox-item"><input type="checkbox" value="等保二级"> 等保二级</label>
+            <label class="checkbox-item"><input type="checkbox" value="等保三级"> 等保三级</label>
+            <label class="checkbox-item"><input type="checkbox" value="ISO27001"> ISO27001信息安全管理</label>
+            <label class="checkbox-item"><input type="checkbox" value="SOC2"> SOC2审计</label>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 部署架构 -->
+      <div class="tab-content" id="tab-deploy">
+        <h3 style="margin-bottom: 1rem; color: #374151;">选择部署架构模式</h3>
+        <div class="deploy-options">
+          <div class="deploy-option" onclick="selectDeploy(this, 'cloud-native')">
+            <h4>☁️ 云原生架构</h4>
+            <p>基于容器和Kubernetes的现代化架构，支持弹性伸缩和微服务</p>
+          </div>
+          <div class="deploy-option" onclick="selectDeploy(this, 'hybrid')">
+            <h4>🔄 混合云架构</h4>
+            <p>公有云+私有云的组合，兼顾安全性和灵活性</p>
+          </div>
+          <div class="deploy-option" onclick="selectDeploy(this, 'distributed')">
+            <h4>🌐 分布式架构</h4>
+            <p>多数据中心部署，高可用和灾备能力</p>
+          </div>
+          <div class="deploy-option" onclick="selectDeploy(this, 'traditional')">
+            <h4>🏢 传统集中式架构</h4>
+            <p>成熟稳定的架构模式，适合稳态业务</p>
+          </div>
+        </div>
+        
+        <div style="margin-top: 1.5rem;">
+          <h4 style="color: #374151; margin-bottom: 1rem;">高可用设计</h4>
+          <div class="checkbox-grid">
+            <label class="checkbox-item"><input type="checkbox" value="active-active"> Active-Active双活</label>
+            <label class="checkbox-item"><input type="checkbox" value="active-passive"> Active-Passive主备</label>
+            <label class="checkbox-item"><input type="checkbox" value="multi-az"> 多可用区部署</label>
+            <label class="checkbox-item"><input type="checkbox" value="dr"> 灾备中心建设</label>
+            <label class="checkbox-item"><input type="checkbox" value="lb"> 负载均衡</label>
+            <label class="checkbox-item"><input type="checkbox" value="auto-scale"> 自动伸缩</label>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 架构总览图 -->
+      <div class="tab-content" id="tab-arch-diagram">
+        <div class="arch-diagram">
+          <div class="arch-layer">
+            <div class="arch-layer-title">🖥️ 展现层（用户交互）</div>
+            <div class="arch-components">
+              <div class="arch-component front">PC端Web</div>
+              <div class="arch-component front">移动App</div>
+              <div class="arch-component front">企业微信</div>
+              <div class="arch-component front">大屏可视化</div>
+              <div class="arch-component front">API网关</div>
+            </div>
+          </div>
+          
+          <div class="arch-layer">
+            <div class="arch-layer-title">⚙️ 服务层（业务逻辑）</div>
+            <div class="arch-components">
+              <div class="arch-component service core">用户服务</div>
+              <div class="arch-component service core">订单服务</div>
+              <div class="arch-component service core">流程服务</div>
+              <div class="arch-component service">报表服务</div>
+              <div class="arch-component service">消息服务</div>
+              <div class="arch-component service">文件服务</div>
+              <div class="arch-component service">通知服务</div>
+            </div>
+          </div>
+          
+          <div class="arch-layer">
+            <div class="arch-layer-title">💾 数据层（数据管理）</div>
+            <div class="arch-components">
+              <div class="arch-component data core">关系型数据库</div>
+              <div class="arch-component data core">缓存数据库</div>
+              <div class="arch-component data">消息队列</div>
+              <div class="arch-component data">搜索引擎</div>
+              <div class="arch-component data">数据仓库</div>
+              <div class="arch-component data">对象存储</div>
+            </div>
+          </div>
+          
+          <div class="arch-layer">
+            <div class="arch-layer-title">☁️ 基础设施层（运行环境）</div>
+            <div class="arch-components">
+              <div class="arch-component">容器平台K8S</div>
+              <div class="arch-component">云服务器</div>
+              <div class="arch-component">负载均衡</div>
+              <div class="arch-component">专有网络VPC</div>
+              <div class="arch-component">安全组</div>
+            </div>
+          </div>
+        </div>
+        
+        <div style="margin-top: 1rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
+          <span style="font-size: 0.8rem; color: #6b7280;">图例：</span>
+          <span style="font-size: 0.8rem; padding: 0.25rem 0.5rem; background: #0891b2; color: white; border-radius: 4px;">核心组件</span>
+          <span style="font-size: 0.8rem; padding: 0.25rem 0.5rem; background: white; border: 1px solid #0891b2; color: #0891b2; border-radius: 4px;">标准组件</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="export-section">
+      <button class="btn btn-primary" onclick="saveTechArch()">💾 保存配置</button>
+      <button class="btn btn-primary" onclick="exportTechArch()">📥 导出技术架构文档</button>
+    </div>
+  </div>
+  
+  <script src="data-api.js"></script>
+<script>
+    let infraRowCount = 1;
+    let selectedDeployType = null;
+    
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-nav button').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+      document.querySelector(`[onclick="switchTab('${tabId}')"]`).classList.add('active');
+      document.getElementById('tab-' + tabId).classList.add('active');
+    }
+    
+    function addInfraRow() {
+      const tbody = document.getElementById('infraTableBody');
+      infraRowCount++;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${infraRowCount}</td>
+        <td>
+          <select onchange="onCategoryChange(this)">
+            <option value="">请选择</option>
+            <option value="compute">计算资源</option>
+            <option value="storage">存储资源</option>
+            <option value="network">网络资源</option>
+            <option value="middleware">中间件</option>
+            <option value="database">数据库</option>
+          </select>
+        </td>
+        <td><input type="text" placeholder="组件名称"></td>
+        <td><input type="text" placeholder="CPU/内存/带宽等"></td>
+        <td><input type="text" placeholder="数量或容量"></td>
+        <td>
+          <select>
+            <option value="cloud">公有云</option>
+            <option value="private">私有云</option>
+            <option value="hybrid">混合云</option>
+            <option value="onpremise">本地部署</option>
+          </select>
+        </td>
+        <td><input type="text" placeholder="备注信息"></td>
+        <td><button class="btn btn-secondary" onclick="deleteInfraRow(this)">删除</button></td>
+      `;
+      tbody.appendChild(tr);
+    }
+    
+    function deleteInfraRow(btn) {
+      if (confirm('确定删除此行？')) {
+        btn.closest('tr').remove();
+        updateInfraNumbers();
+      }
+    }
+    
+    function updateInfraNumbers() {
+      const rows = document.querySelectorAll('#infraTableBody tr');
+      rows.forEach((row, index) => {
+        row.cells[0].textContent = index + 1;
+      });
+      infraRowCount = rows.length;
+    }
+    
+    function toggleTech(el, tech) {
+      el.classList.toggle('selected');
+    }
+    
+    function toggleSecurity(el) {
+      el.style.background = el.style.background === 'rgb(153, 27, 27)' ? '' : '#991b1b';
+      el.style.color = el.style.color === 'rgb(255, 255, 255)' ? '' : 'white';
+    }
+    
+    function selectDeploy(el, type) {
+      document.querySelectorAll('.deploy-option').forEach(opt => opt.classList.remove('selected'));
+      el.classList.add('selected');
+      selectedDeployType = type;
+    }
+    
+    function onCategoryChange(select) {
+      // 根据选择的类别提供建议
+    }
+    
+    // 复选框点击效果
+    document.querySelectorAll('.checkbox-item input').forEach(input => {
+      input.addEventListener('change', function() {
+        this.parentElement.classList.toggle('checked', this.checked);
+      });
+    });
+    
+    async function saveTechArch() {
+      const data = {
+        infra: [],
+        techStack: [],
+        security: [],
+        deployType: selectedDeployType,
+        timestamp: new Date().toISOString()
+      };
+      await saveToolData('tech-arch', data);
+      alert('✅ 技术架构配置已保存');
+    }
+    
+    function exportTechArch() {
+      var docx = '\uFEFF<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n';
+      docx += '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">\n<w:body>\n';
+      docx += '<w:p><w:r><w:rPr><w:b/><w:sz w:val="40"/></w:rPr><w:t>企业技术架构规划</w:t></w:r></w:p>\n';
+      docx += '<w:p><w:r><w:rPr><w:color w:val="888888"/></w:rPr><w:t>生成日期：' + new Date().toLocaleDateString('zh-CN') + '</w:t></w:r></w:p>\n';
+      
+      docx += '<w:p><w:r><w:rPr><w:b/><w:sz w:val="28"/></w:rPr><w:t>一、技术架构概述</w:t></w:r></w:p>\n';
+      docx += '<w:p><w:r><w:t>本规划基于TOGAF技术架构方法论，从基础设施、技术选型、安全架构、部署架构四个维度进行设计。</w:t></w:r></w:p>\n';
+      
+      docx += '<w:p><w:r><w:rPr><w:b/><w:sz w:val="28"/></w:rPr><w:t>二、部署架构</w:t></w:r></w:p>\n';
+      const deployMap = { 'cloud-native': '云原生架构', 'hybrid': '混合云架构', 'distributed': '分布式架构', 'traditional': '传统集中式架构' };
+      docx += '<w:p><w:r><w:t>采用部署模式：' + (deployMap[selectedDeployType] || '未选择') + '</w:t></w:r></w:p>\n';
+      
+      docx += '</w:body></w:document>';
+      
+      var blob = new Blob([docx], {type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = '技术架构规划.docx';
+      a.click();
+    }
+  </script>
+</body>
+</html>
