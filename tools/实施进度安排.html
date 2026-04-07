@@ -142,7 +142,8 @@
     </div>
   </div>
   
-  <script>
+  <script src="data-api.js"></script>
+<script>
     // 数据结构
     let phases = [
       { id: 1, year: '第1年', title: '基础建设期', color: '#1a56db', tasks: ['基础设施云化', '数据标准化', '核心系统选型'], details: '' },
@@ -298,14 +299,14 @@
     // 保存/加载
     function saveToStorage() {
       const data = { phases, milestones, notes: document.getElementById('notes').value };
-      localStorage.setItem('timeline_data', JSON.stringify(data));
+      await saveToolData('timeline', data);
       alert('✅ 进度安排已保存');
     }
     
-    function loadFromStorage() {
-      const saved = localStorage.getItem('timeline_data');
-      if (saved) {
-        const data = JSON.parse(saved);
+    async function loadFromStorage() {
+      const result = await loadToolData('timeline');
+                if (result.data) {
+                    saved = result.data;
         phases = data.phases || phases;
         milestones = data.milestones || milestones;
         document.getElementById('notes').value = data.notes || '';

@@ -251,7 +251,8 @@
     </div>
   </div>
   
-  <script>
+  <script src="data-api.js"></script>
+<script>
     function addMember(level) {
       const name = prompt('输入岗位名称：');
       if (!name) return;
@@ -305,7 +306,7 @@
       const data = {
         mechanism: document.getElementById('mechanism').value
       };
-      localStorage.setItem('governance_data', JSON.stringify(data));
+      await saveToolData('governance', data);
       alert('✅ 治理架构设计已保存');
     }
     

@@ -282,8 +282,10 @@ iframe{width:100%;height:calc(100vh - 120px);border:none;border-radius:10px;back
 
   <div class="admin-tabs">
     <div class="admin-tab active" onclick="switchAdminTab('stats')" data-tab="stats">📊 数据概览</div>
+    <div class="admin-tab" onclick="switchAdminTab('overview')" data-tab="overview">📈 使用总览</div>
     <div class="admin-tab" onclick="switchAdminTab('pending')" data-tab="pending">⏳ 待审批</div>
     <div class="admin-tab" onclick="switchAdminTab('users')" data-tab="users">👥 用户管理</div>
+    <div class="admin-tab" onclick="switchAdminTab('userdata')" data-tab="userdata">💾 用户数据</div>
     <div class="admin-tab" onclick="switchAdminTab('logs')" data-tab="logs">📋 审计日志</div>
   </div>
 
@@ -335,6 +337,40 @@ iframe{width:100%;height:calc(100vh - 120px);border:none;border-radius:10px;back
       <div class="card">
         <h3>📋 审计日志</h3>
         <div id="auditLogs"><div class="loading"><span class="spinner"></span>加载中...</div></div>
+      </div>
+    </div>
+
+    <!-- 使用总览 -->
+    <div id="tab-overview" class="admin-tab-content" style="display:none">
+      <div class="stats-grid" style="margin-bottom:1.5rem">
+        <div class="stat-card"><div class="num" id="dstat-total">-</div><div class="label">总记录数</div></div>
+        <div class="stat-card approved"><div class="num" id="dstat-users">-</div><div class="label">有过数据的用户</div></div>
+        <div class="stat-card pending"><div class="num" id="dstat-recent">-</div><div class="label">近7天活跃</div></div>
+      </div>
+      <div class="card" style="margin-bottom:1rem">
+        <h3>📊 各模块使用次数</h3>
+        <div id="moduleUsageList"><div class="loading"><span class="spinner"></span>加载中...</div></div>
+      </div>
+    </div>
+
+    <!-- 用户数据 -->
+    <div id="tab-userdata" class="admin-tab-content" style="display:none">
+      <div class="card" style="margin-bottom:1rem">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+          <h3>💾 用户工具数据管理</h3>
+          <button class="btn btn-outline btn-sm" onclick="loadUsersData()">🔄 刷新</button>
+        </div>
+        <div id="usersDataList"><div class="loading"><span class="spinner"></span>加载中...</div></div>
+      </div>
+      <div class="card" id="userDataDetail" style="display:none">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+          <h3 id="userDataTitle">👤 用户数据详情</h3>
+          <div style="display:flex;gap:.5rem">
+            <button class="btn btn-outline btn-sm" id="btnExportUserAll" onclick="exportUserAllData()">📥 导出全部</button>
+            <button class="btn btn-outline btn-sm" onclick="closeUserDataDetail()">关闭</button>
+          </div>
+        </div>
+        <div id="userModulesList"></div>
       </div>
     </div>
   </div>
@@ -635,6 +671,8 @@ function switchAdminTab(tab) {
   else if (tab === 'pending') loadPendingUsers();
   else if (tab === 'users') loadAllUsers();
   else if (tab === 'logs') loadAuditLogs();
+  else if (tab === 'overview') loadDataOverview();
+  else if (tab === 'userdata') loadUsersData();
 }
 
 async function loadAdminStats() {
@@ -803,6 +841,116 @@ async function loadAuditLogs() {
       el.appendChild(div);
     });
   } catch(e) { el.innerHTML = '<p style="color:var(--danger);padding:1rem">加载失败</p>'; }
+}
+
+// ===== 加载使用总览数据 =====
+async function loadDataOverview() {
+  document.getElementById('dstat-total').textContent = '-';
+  document.getElementById('dstat-users').textContent = '-';
+  document.getElementById('dstat-recent').textContent = '-';
+  document.getElementById('moduleUsageList').innerHTML = '<div class="loading"><span class="spinner"></span>加载中...</div>';
+  try {
+    const res = await fetch(API_BASE + '/admin/data-stats', { headers: getAuthHeaders() });
+    const d = await res.json();
+    if (!d.success) return;
+    const s = d.stats;
+    document.getElementById('dstat-total').textContent = s.totalRecords;
+    document.getElementById('dstat-users').textContent = s.activeUsers;
+    document.getElementById('dstat-recent').textContent = s.recentActive;
+
+    const el = document.getElementById('moduleUsageList');
+    if (!s.moduleUsage || s.moduleUsage.length === 0) {
+      el.innerHTML = '<p style="color:var(--gray);text-align:center;padding:1.5rem;font-size:.9rem">暂无使用数据</p>';
+      return;
+    }
+    const maxCount = Math.max(...s.moduleUsage.map(m => m.count), 1);
+    el.innerHTML = '';
+    s.moduleUsage.forEach(m => {
+      const pct = Math.round(m.count / maxCount * 100);
+      const bar = document.createElement('div');
+      bar.style.cssText = 'margin-bottom:.75rem';
+      bar.innerHTML = '<div style="display:flex;justify-content:space-between;font-size:.85rem;margin-bottom:.2rem"><span>' + (MODULE_TITLES[m.module_id] || m.module_name || m.module_id) + '</span><span style="color:#64748b">' + m.count + '条 · ' + m.user_count + '人 · ' + (m.last_update ? formatDate(m.last_update) : '-') + '</span></div><div style="background:#e2e8f0;border-radius:4px;height:8px"><div style="width:' + pct + '%;background:linear-gradient(90deg,#3b82f6,#60a5fa);height:100%;border-radius:4px;transition:width .5s"></div></div>';
+      el.appendChild(bar);
+    });
+  } catch(e) {
+    document.getElementById('moduleUsageList').innerHTML = '<p style="color:var(--danger);padding:1rem">加载失败</p>';
+  }
+}
+
+// ===== 加载用户数据列表 =====
+let _currentUserDataId = '';
+async function loadUsersData() {
+  document.getElementById('usersDataList').innerHTML = '<div class="loading"><span class="spinner"></span>加载中...</div>';
+  try {
+    const res = await fetch(API_BASE + '/admin/users-data', { headers: getAuthHeaders() });
+    const d = await res.json();
+    const el = document.getElementById('usersDataList');
+    if (!d.success || !d.users || d.users.length === 0) {
+      el.innerHTML = '<p style="color:var(--gray);text-align:center;padding:2rem">暂无用户数据</p>';
+      return;
+    }
+    el.innerHTML = '<table style="width:100%;border-collapse:collapse;font-size:.88rem"><thead><tr style="background:#f8fafc;text-align:left"><th style="padding:.6rem .8rem;border-bottom:1px solid #e2e8f0">用户名</th><th style="padding:.6rem .8rem;border-bottom:1px solid #e2e8f0">公司</th><th style="padding:.6rem .8rem;border-bottom:1px solid #e2e8f0">状态</th><th style="padding:.6rem .8rem;border-bottom:1px solid #e2e8f0">已填模块</th><th style="padding:.6rem .8rem;border-bottom:1px solid #e2e8f0">最近活跃</th><th style="padding:.6rem .8rem;border-bottom:1px solid #e2e8f0;text-align:center">操作</th></tr></thead><tbody id="usersDataBody"></tbody></table>';
+    const tb = document.getElementById('usersDataBody');
+    d.users.forEach(u => {
+      const tr = document.createElement('tr');
+      tr.style.cssText = 'border-bottom:1px solid #f1f5f9';
+      tr.innerHTML = '<td style="padding:.6rem .8rem"><strong>' + u.username + '</strong></td><td style="padding:.6rem .8rem;color:#64748b">' + (u.company||'-') + '</td><td style="padding:.6rem .8rem"><span class="status-badge ' + (u.status==='approved'?'approved':'pending') + '">' + (u.status==='approved'?'已批准':'待审批') + '</span></td><td style="padding:.6rem .8rem;text-align:center"><span style="background:#eff6ff;color:#2563eb;padding:.15rem .5rem;border-radius:12px;font-weight:600">' + (u.module_count||0) + '</span></td><td style="padding:.6rem .8rem;color:#64748b;font-size:.82rem">' + (u.last_activity ? formatDate(u.last_activity) : '<span style="color:#cbd5e1">从未活跃</span>') + '</td><td style="padding:.6rem .8rem;text-align:center"><button class="btn btn-outline btn-sm" onclick="viewUserData(\'' + u.id + '\',\'' + u.username + '\')">查看数据</button></td>';
+      tb.appendChild(tr);
+    });
+  } catch(e) {
+    document.getElementById('usersDataList').innerHTML = '<p style="color:var(--danger);padding:1rem">加载失败: ' + e.message + '</p>';
+  }
+}
+
+// ===== 查看指定用户数据 =====
+async function viewUserData(userId, username) {
+  _currentUserDataId = userId;
+  document.getElementById('userDataDetail').style.display = 'block';
+  document.getElementById('userDataTitle').textContent = '👤 ' + username + ' 的工具数据';
+  document.getElementById('userModulesList').innerHTML = '<div class="loading"><span class="spinner"></span>加载中...</div>';
+  try {
+    const res = await fetch(API_BASE + '/admin/user-data/' + userId, { headers: getAuthHeaders() });
+    const d = await res.json();
+    const el = document.getElementById('userModulesList');
+    if (!d.success || !d.modules || d.modules.length === 0) {
+      el.innerHTML = '<p style="color:var(--gray);text-align:center;padding:2rem">该用户暂无任何工具数据</p>';
+      return;
+    }
+    el.innerHTML = '<table style="width:100%;border-collapse:collapse;font-size:.88rem"><thead><tr style="background:#f8fafc;text-align:left"><th style="padding:.6rem .8rem;border-bottom:1px solid #e2e8f0">模块名称</th><th style="padding:.6rem .8rem;border-bottom:1px solid #e2e8f0">最近保存时间</th><th style="padding:.6rem .8rem;border-bottom:1px solid #e2e8f0;text-align:center">操作</th></tr></thead><tbody></tbody></table>';
+    const tb = el.querySelector('tbody');
+    d.modules.forEach(m => {
+      const tr = document.createElement('tr');
+      tr.style.cssText = 'border-bottom:1px solid #f1f5f9';
+      tr.innerHTML = '<td style="padding:.6rem .8rem"><strong>' + (MODULE_TITLES[m.module_id] || m.module_name || m.module_id) + '</strong><br><span style="font-size:.78rem;color:#94a3b8">' + m.module_id + '</span></td><td style="padding:.6rem .8rem;color:#64748b;font-size:.82rem">' + formatDate(m.updated_at) + '</td><td style="padding:.6rem .8rem;text-align:center"><button class="btn btn-outline btn-sm" onclick="exportUserModule(\'' + userId + '\',\'' + m.module_id + '\')">📥 导出</button></td>';
+      tb.appendChild(tr);
+    });
+  } catch(e) {
+    document.getElementById('userModulesList').innerHTML = '<p style="color:var(--danger);padding:1rem">加载失败</p>';
+  }
+}
+
+// ===== 导出用户单模块数据 =====
+async function exportUserModule(userId, moduleId) {
+  try {
+    const res = await fetch(API_BASE + '/admin/export-user-module/' + userId + '/' + moduleId, { headers: getAuthHeaders() });
+    const d = await res.json();
+    if (!d.success) { alert(d.message || '导出失败'); return; }
+    const blob = new Blob([JSON.stringify(d.data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = d.username + '_' + (MODULE_TITLES[moduleId]||moduleId) + '.json'; a.click();
+    URL.revokeObjectURL(url);
+  } catch(e) { alert('导出失败'); }
+}
+
+// ===== 导出用户全部数据 =====
+async function exportUserAllData() {
+  if (!_currentUserDataId) return;
+  window.open(API_BASE + '/admin/export-user-all/' + _currentUserDataId + '?sid=' + (document.cookie.match(/dts_sid=([^;]+)/)||['',''])[1], '_blank');
+}
+
+function closeUserDataDetail() {
+  document.getElementById('userDataDetail').style.display = 'none';
+  _currentUserDataId = '';
 }
 
 function formatDate(d) {

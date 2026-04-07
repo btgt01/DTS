@@ -192,8 +192,16 @@
     </div>
   </div>
 
-  <script>
-    let domains = JSON.parse(localStorage.getItem('security_domains') || '[]');
+  <script src="data-api.js"></script>
+<script>
+    let domains = [];
+
+    // 初始化：从服务器加载数据
+    (async function initDomains() {
+      const result = await loadToolData('security-arch');
+      if (result.data) domains = result.data;
+      renderDomains();
+    })();
 
     function renderDomains() {
       const list = document.getElementById('domainsList');
@@ -233,7 +241,7 @@
       document.getElementById('domainModal').style.display = 'none';
     }
 
-    function saveDomain() {
+    async function saveDomain() {
       const name = document.getElementById('domainName').value.trim();
       if (!name) { alert('请输入安全域名称'); return; }
       domains.push({
@@ -242,10 +250,19 @@
         controls: document.getElementById('domainControls').value,
         note: document.getElementById('domainNote').value
       });
-      localStorage.setItem('security_domains', JSON.stringify(domains));
+      await saveToolData('security-arch', domains);
       renderDomains();
       closeDomainModal();
       showAlert('安全域添加成功', 'success');
+    }
+
+    async function deleteDomain(index) {
+      if (confirm('确定删除此安全域？')) {
+        domains.splice(index, 1);
+        await saveToolData('security-arch', domains);
+        renderDomains();
+        showAlert('安全域已删除', 'success');
+      }
     }
 
     function editDomain(index) {
@@ -258,14 +275,6 @@
       domains.splice(index, 1);
     }
 
-    function deleteDomain(index) {
-      if (confirm('确定删除此安全域？')) {
-        domains.splice(index, 1);
-        localStorage.setItem('security_domains', JSON.stringify(domains));
-        renderDomains();
-        showAlert('安全域已删除', 'success');
-      }
-    }
 
     function exportSecurity() {
       let content = '安全架构设计方案\n\n';

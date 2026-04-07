@@ -138,7 +138,8 @@
     </div>
   </div>
   
-  <script>
+  <script src="data-api.js"></script>
+<script>
     let systems = ['ERP', 'MES', 'CRM', 'SCM', 'WMS', 'PLM'];
     let integrations = [
       { from: 'ERP', to: '数据中台', type: '数据同步' },
@@ -264,14 +265,14 @@
     
     function saveToStorage() {
       const data = { systems, integrations, strategy: document.getElementById('strategy').value };
-      localStorage.setItem('integration_data', JSON.stringify(data));
+      await saveToolData('integration', data);
       alert('✅ 集成关系已保存');
     }
     
-    function loadFromStorage() {
-      const saved = localStorage.getItem('integration_data');
-      if (saved) {
-        const data = JSON.parse(saved);
+    async function loadFromStorage() {
+      const result = await loadToolData('integration');
+                if (result.data) {
+                    saved = result.data;
         systems = data.systems || systems;
         integrations = data.integrations || integrations;
         document.getElementById('strategy').value = data.strategy || '';

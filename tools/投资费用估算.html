@@ -184,7 +184,8 @@
     </div>
   </div>
   
-  <script>
+  <script src="data-api.js"></script>
+<script>
     let items = [
       { id: 1, name: '基础设施云化', priority: 'high', cost: 500, period: '第1年', desc: '云平台建设、服务器虚拟化' },
       { id: 2, name: 'ERP系统升级', priority: 'high', cost: 400, period: '第1-2年', desc: 'ERP系统升级与定制开发' },
@@ -291,14 +292,14 @@
     
     function saveToStorage() {
       const data = { items, notes: document.getElementById('notes').value };
-      localStorage.setItem('investment_data', JSON.stringify(data));
+      await saveToolData('investment', data);
       alert('✅ 投资估算已保存');
     }
     
-    function loadFromStorage() {
-      const saved = localStorage.getItem('investment_data');
-      if (saved) {
-        const data = JSON.parse(saved);
+    async function loadFromStorage() {
+      const result = await loadToolData('investment');
+                if (result.data) {
+                    saved = result.data;
         items = data.items || items;
         document.getElementById('notes').value = data.notes || '';
         renderTable();

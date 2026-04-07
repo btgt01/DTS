@@ -127,8 +127,10 @@
     </div>
   </div>
 
-  <script>
-    let goals = JSON.parse(localStorage.getItem('strategic_goals') || '[]');
+  <script src="data-api.js"></script>
+<script>
+    let goals = [];
+    (async function() { var r=await loadToolData('goal'); if(r.data) goals=r.data; renderGoals(); })();
 
     function renderGoals() {
       const list = document.getElementById('goalsList');
@@ -166,7 +168,7 @@
       document.getElementById('goalModal').style.display = 'none';
     }
 
-    function saveGoal() {
+    async function saveGoal() {
       const name = document.getElementById('goalName').value.trim();
       if (!name) { alert('请输入目标名称'); return; }
       goals.push({
@@ -176,7 +178,7 @@
         kpi: document.getElementById('goalKpi').value,
         year: document.getElementById('goalYear').value
       });
-      localStorage.setItem('strategic_goals', JSON.stringify(goals));
+      await saveToolData('goal', goals);
       renderGoals();
       closeGoalModal();
       showAlert('目标添加成功', 'success');
@@ -193,10 +195,10 @@
       goals.splice(index, 1);
     }
 
-    function deleteGoal(index) {
+    async function deleteGoal(index) {
       if (confirm('确定删除此目标？')) {
         goals.splice(index, 1);
-        localStorage.setItem('strategic_goals', JSON.stringify(goals));
+        await saveToolData('goal', goals);
         renderGoals();
         showAlert('目标已删除', 'success');
       }

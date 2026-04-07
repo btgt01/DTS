@@ -125,7 +125,8 @@
     </div>
   </div>
   
-  <script>
+  <script src="data-api.js"></script>
+<script>
     let modules = [
       { id: 1, name: 'ERP系统', desc: '企业核心业务系统', color: '#dbeafe', functions: ['财务管理', '采购管理', '库存管理', '生产计划'], cost: 400 },
       { id: 2, name: 'CRM系统', desc: '客户关系管理系统', color: '#d1fae5', functions: ['客户管理', '销售自动化', '服务管理'], cost: 300 },
@@ -231,14 +232,14 @@
     }
     
     function saveToStorage() {
-      localStorage.setItem('modules_data', JSON.stringify(modules));
+      await saveToolData('modules', modules);
       alert('✅ 系统模块规划已保存');
     }
     
-    function loadFromStorage() {
-      const saved = localStorage.getItem('modules_data');
-      if (saved) {
-        modules = JSON.parse(saved);
+    async function loadFromStorage() {
+      const result = await loadToolData('modules');
+                if (result.data) {
+                    saved = result.data;
         renderModules();
         alert('✅ 已加载草稿');
       } else {

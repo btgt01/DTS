@@ -59,6 +59,17 @@ async function initDB() {
       created_at TEXT DEFAULT (datetime('now'))
     )
   `);
+  db.run(`
+    CREATE TABLE IF NOT EXISTS tool_data (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      module_id TEXT NOT NULL,
+      module_name TEXT DEFAULT '',
+      data TEXT DEFAULT '{}',
+      updated_at TEXT DEFAULT (datetime('now')),
+      UNIQUE(user_id, module_id)
+    )
+  `);
   saveDB();
   // 创建超级管理员
   const admin = db.exec("SELECT id FROM users WHERE role = 'admin'");
@@ -265,6 +276,147 @@ api.get('/admin/audit-logs', (req, res) => {
   if (!requireAdmin(req, res)) return;
   const logs = dbAll("SELECT * FROM audit_logs ORDER BY created_at DESC LIMIT 100");
   res.json({ success: true, logs });
+});
+
+// ===== 辅助：验证登录 =====
+function requireAuth(req, res) {
+  if (!req.session.userId) {
+    res.json({ success: false, message: '请先登录' });
+    return false;
+  }
+  return true;
+}
+
+// ===== 保存工具数据（自动创建或更新） =====
+api.post('/data/save', (req, res) => {
+  if (!requireAuth(req, res)) return;
+  const { moduleId, moduleName, data } = req.body;
+  if (!moduleId) return res.json({ success: false, message: '模块ID不能为空' });
+  try {
+    const existing = dbGet("SELECT id FROM tool_data WHERE user_id = ? AND module_id = ?", [req.session.userId, moduleId]);
+    if (existing) {
+      dbRun("UPDATE tool_data SET module_name = ?, data = ?, updated_at = datetime('now') WHERE user_id = ? AND module_id = ?",
+        [moduleName || moduleId, JSON.stringify(data), req.session.userId, moduleId]);
+    } else {
+      dbRun("INSERT INTO tool_data (id, user_id, module_id, module_name, data) VALUES (?, ?, ?, ?, ?)",
+        [uuidv4(), req.session.userId, moduleId, moduleName || moduleId, JSON.stringify(data)]);
+    }
+    res.json({ success: true });
+  } catch(e) {
+    res.json({ success: false, message: '保存失败: ' + e.message });
+  }
+});
+
+// ===== 加载工具数据 =====
+api.get('/data/load/:moduleId', (req, res) => {
+  if (!requireAuth(req, res)) return;
+  const { moduleId } = req.params;
+  const row = dbGet("SELECT * FROM tool_data WHERE user_id = ? AND module_id = ?", [req.session.userId, moduleId]);
+  if (!row) return res.json({ success: true, data: null });
+  try {
+    res.json({ success: true, data: JSON.parse(row.data), updated_at: row.updated_at });
+  } catch(e) {
+    res.json({ success: true, data: null });
+  }
+});
+
+// ===== 加载当前用户所有工具进度 =====
+api.get('/data/progress', (req, res) => {
+  if (!requireAuth(req, res)) return;
+  const rows = dbAll("SELECT module_id, module_name, updated_at FROM tool_data WHERE user_id = ? ORDER BY updated_at DESC", [req.session.userId]);
+  res.json({ success: true, modules: rows });
+});
+
+// ===== 管理员：全局数据统计 =====
+api.get('/admin/data-stats', (req, res) => {
+  if (!requireAdmin(req, res)) return;
+  // 各模块使用次数
+  const moduleUsage = dbAll(`
+    SELECT module_id, module_name, COUNT(*) as count,
+           COUNT(DISTINCT user_id) as user_count,
+           MAX(updated_at) as last_update
+    FROM tool_data GROUP BY module_id ORDER BY count DESC
+  `);
+  // 活跃用户（有数据的用户）
+  const activeUsers = dbGet("SELECT COUNT(DISTINCT user_id) as c FROM tool_data");
+  // 近7天活跃
+  const recentActive = dbGet("SELECT COUNT(DISTINCT user_id) as c FROM tool_data WHERE updated_at > datetime('now', '-7 days')");
+  // 各模块统计
+  const totalRecords = dbGet("SELECT COUNT(*) as c FROM tool_data");
+  res.json({
+    success: true,
+    stats: {
+      totalRecords: totalRecords?.c || 0,
+      activeUsers: activeUsers?.c || 0,
+      recentActive: recentActive?.c || 0,
+      moduleUsage
+    }
+  });
+});
+
+// ===== 管理员：查看所有用户数据摘要 =====
+api.get('/admin/users-data', (req, res) => {
+  if (!requireAdmin(req, res)) return;
+  const users = dbAll(`
+    SELECT u.id, u.username, u.email, u.company, u.status, u.created_at,
+           COUNT(td.id) as module_count,
+           MAX(td.updated_at) as last_activity
+    FROM users u
+    LEFT JOIN tool_data td ON u.id = td.user_id
+    WHERE u.role != 'admin'
+    GROUP BY u.id
+    ORDER BY last_activity DESC NULLS LAST
+  `);
+  res.json({ success: true, users });
+});
+
+// ===== 管理员：查看指定用户所有数据 =====
+api.get('/admin/user-data/:userId', (req, res) => {
+  if (!requireAdmin(req, res)) return;
+  const { userId } = req.params;
+  const user = dbGet("SELECT id, username, email, company, status, created_at FROM users WHERE id = ?", [userId]);
+  if (!user) return res.json({ success: false, message: '用户不存在' });
+  const rows = dbAll("SELECT module_id, module_name, updated_at FROM tool_data WHERE user_id = ? ORDER BY updated_at DESC", [userId]);
+  res.json({ success: true, user, modules: rows });
+});
+
+// ===== 管理员：导出指定用户单模块数据 =====
+api.get('/admin/export-user-module/:userId/:moduleId', (req, res) => {
+  if (!requireAdmin(req, res)) return;
+  const { userId, moduleId } = req.params;
+  const row = dbGet("SELECT * FROM tool_data WHERE user_id = ? AND module_id = ?", [userId, moduleId]);
+  if (!row) return res.json({ success: false, message: '无数据' });
+  const user = dbGet("SELECT username FROM users WHERE id = ?", [userId]);
+  try {
+    res.json({ success: true, data: JSON.parse(row.data), module_name: row.module_name, username: user?.username });
+  } catch(e) {
+    res.json({ success: false, message: '数据解析失败' });
+  }
+});
+
+// ===== 管理员：导出用户全部数据（JSON下载） =====
+api.get('/admin/export-user-all/:userId', (req, res) => {
+  if (!requireAdmin(req, res)) return;
+  const { userId } = req.params;
+  const user = dbGet("SELECT username, email, company FROM users WHERE id = ?", [userId]);
+  if (!user) return res.json({ success: false, message: '用户不存在' });
+  const rows = dbAll("SELECT module_id, module_name, data, updated_at FROM tool_data WHERE user_id = ? ORDER BY updated_at", [userId]);
+  const exportData = { user, records: rows.map(r => ({ ...r, data: JSON.parse(r.data) })) };
+  res.setHeader('Content-Disposition', `attachment; filename="${user.username}_数据导出.json"`);
+  res.setHeader('Content-Type', 'application/json');
+  res.send(JSON.stringify(exportData, null, 2));
+});
+
+// ===== 管理员：删除指定用户所有数据 =====
+api.post('/admin/delete-user-data', (req, res) => {
+  if (!requireAdmin(req, res)) return;
+  const { userId } = req.body;
+  if (!userId) return res.json({ success: false, message: '参数错误' });
+  const user = dbGet("SELECT username FROM users WHERE id = ?", [userId]);
+  if (!user) return res.json({ success: false, message: '用户不存在' });
+  dbRun("DELETE FROM tool_data WHERE user_id = ?", [userId]);
+  logAudit('DEL_DATA', req.session.userId, `清除了用户 ${user.username} 的所有工具数据`);
+  res.json({ success: true });
 });
 
 // SPA fallback

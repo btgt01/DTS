@@ -411,7 +411,8 @@
     </div>
   </div>
   
-  <script>
+  <script src="data-api.js"></script>
+<script>
     let infraRowCount = 1;
     let selectedDeployType = null;
     
@@ -504,7 +505,7 @@
         deployType: selectedDeployType,
         timestamp: new Date().toISOString()
       };
-      localStorage.setItem('tech_arch', JSON.stringify(data));
+      await saveToolData('tech-arch', data);
       alert('✅ 技术架构配置已保存');
     }
     

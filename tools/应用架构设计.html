@@ -258,7 +258,8 @@
     </div>
   </div>
   
-  <script>
+  <script src="data-api.js"></script>
+<script>
     let appRowCount = 1;
     
     function switchTab(tabId) {
@@ -384,7 +385,7 @@
         modules: [],
         timestamp: new Date().toISOString()
       };
-      localStorage.setItem('app_arch_modules', JSON.stringify(data));
+      await saveToolData('app-arch', data);
       alert('✅ 模块规划已保存');
     }
     

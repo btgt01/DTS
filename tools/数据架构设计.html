@@ -157,7 +157,8 @@
     </div>
   </div>
   
-  <script>
+  <script src="data-api.js"></script>
+<script>
     let masterData = [
       { id: 1, name: '客户主数据', desc: '客户基本信息、联系方式、分类属性' },
       { id: 2, name: '供应商主数据', desc: '供应商基本信息、资质评级、合作范围' },
@@ -286,7 +287,7 @@
       if (type === 'standard') data = { standards };
       if (type === 'model') data = { models };
       data.overview = document.getElementById('overview').value;
-      localStorage.setItem('data_arch_' + type, JSON.stringify(data));
+      await saveToolData('data-arch', data, 'data-arch-' + type);
       alert('✅ 已保存');
     }
     

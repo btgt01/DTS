@@ -190,7 +190,8 @@
     </div>
   </div>
   
-  <script>
+  <script src="data-api.js"></script>
+<script>
     let capabilities = [
       { id: 1, name: '研发创新', desc: '产品设计与研发、创新管理、技术预研' },
       { id: 2, name: '供应链', desc: '采购管理、仓储物流、供应商协同' },
@@ -304,12 +305,12 @@
         data = { orgs };
       }
       data.overview = document.getElementById('overview').value;
-      localStorage.setItem('biz_arch_' + type, JSON.stringify(data));
+      await saveToolData('business-arch', data, 'business-arch-' + type);
       alert('✅ 已保存');
     }
     
-    function loadData(type) {
-      const saved = localStorage.getItem('biz_arch_' + type);
+    async function loadData(type) {
+      const r2 = await loadToolData('business-arch');
       if (saved) {
         const data = JSON.parse(saved);
         if (type === 'capability') capabilities = data.capabilities || capabilities;

@@ -276,7 +276,8 @@
     </div>
   </div>
   
-  <script>
+  <script src="data-api.js"></script>
+<script>
     // 驱动因素选择
     function toggleDriver(el, type) {
       el.classList.toggle('selected');
@@ -375,15 +376,15 @@
         techConstraint: document.getElementById('techConstraint').value
       };
       
-      localStorage.setItem('vision_draft', JSON.stringify(data));
+      await saveToolData('vision', data);
       alert('✅ 草稿已保存');
     }
     
     // 加载草稿
-    function loadDraft() {
-      const saved = localStorage.getItem('vision_draft');
-      if (saved) {
-        const data = JSON.parse(saved);
+    async function loadDraft() {
+      const result = await loadToolData('vision');
+                if (result.data) {
+                    saved = result.data;
         if (data.vision) document.getElementById('visionStatement').value = data.vision;
         if (data.mission) document.getElementById('missionStatement').value = data.mission;
         if (data.timeConstraint) document.getElementById('timeConstraint').value = data.timeConstraint;
