@@ -176,14 +176,7 @@
       </div>
     </div>
     
-    <div class="card">
-      <div class="card-header">
-        <h2>业务架构总览</h2>
-      </div>
-      <div class="card-body">
-        <textarea id="overview" placeholder="描述企业业务架构的整体设计思路和核心能力...">业务架构基于企业战略目标，以客户价值为导向，构建端到端的业务流程能力。重点关注核心业务能力的数字化提升，实现业务敏捷响应和数据驱动决策。</textarea>
-      </div>
-    </div>
+    <!-- 业务架构总览卡片已移除 -->
     
     <div class="export-section">
       <button class="btn btn-primary" onclick="exportWord()">📥 导出Word文档</button>
@@ -328,30 +321,42 @@
     }
     
     function exportWord() {
-      var docx = '\uFEFF<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n';
+      // 使用正确的UTF-8 BOM
+      let docx = String.fromCharCode(0xFEFF);
+      docx += '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n';
       docx += '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">\n<w:body>\n';
       docx += '<w:p><w:r><w:rPr><w:b/><w:sz w:val="40"/></w:rPr><w:t>业务架构设计</w:t></w:r></w:p>\n';
       docx += '<w:p><w:r><w:rPr><w:color w:val="888888"/></w:rPr><w:t>生成日期：' + new Date().toLocaleDateString('zh-CN') + '</w:t></w:r></w:p>\n';
       
       docx += '<w:p><w:r><w:rPr><w:b/><w:sz w:val="28"/></w:rPr><w:t>一、业务能力域</w:t></w:r></w:p>\n';
       capabilities.forEach(c => {
-        docx += '<w:p><w:r><w:rPr><w:b/></w:rPr><w:t>' + c.name + '</w:t></w:r></w:p>\n';
-        docx += '<w:p><w:r><w:t>' + c.desc + '</w:t></w:r></w:p>\n';
+        docx += '<w:p><w:r><w:rPr><w:b/></w:rPr><w:t>' + escapeXml(c.name) + '</w:t></w:r></w:p>\n';
+        docx += '<w:p><w:r><w:t>' + escapeXml(c.desc) + '</w:t></w:r></w:p>\n';
       });
       
       docx += '<w:p><w:r><w:rPr><w:b/><w:sz w:val="28"/></w:rPr><w:t>二、核心业务流程</w:t></w:r></w:p>\n';
       processes.forEach(p => {
-        docx += '<w:p><w:r><w:t>' + p.name + '：' + p.steps + '</w:t></w:r></w:p>\n';
+        docx += '<w:p><w:r><w:t>' + escapeXml(p.name) + '：' + escapeXml(p.steps) + '</w:t></w:r></w:p>\n';
       });
       
       docx += '</w:body></w:document>';
       
-      var blob = new Blob([docx], {type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
+      var blob = new Blob([docx], {type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document;charset=utf-8'});
       var url = URL.createObjectURL(blob);
       var a = document.createElement('a');
       a.href = url;
       a.download = '业务架构设计.docx';
       a.click();
+    }
+    
+    // XML转义函数
+    function escapeXml(str) {
+      if (!str) return '';
+      return str.replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&apos;');
     }
     
     renderCapabilities();

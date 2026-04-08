@@ -237,14 +237,7 @@
       </div>
     </div>
     
-    <div class="card">
-      <div class="card-header">
-        <h2>治理机制说明</h2>
-      </div>
-      <div class="card-body">
-        <textarea id="mechanism" placeholder="描述数字化治理的总体机制...">建立"决策-管理-执行"三级治理架构，明确各级职责分工。决策层负责数字化转型战略方向和重大事项决策；管理层负责制定标准和流程，协调资源配置；执行层负责具体项目的实施和运营。通过定期评估和持续改进，确保数字化转型目标的实现。</textarea>
-      </div>
-    </div>
+    <!-- 治理机制说明卡片已移除 -->
     
     <div class="export-section">
       <button class="btn btn-primary" onclick="exportWord()">📥 导出Word文档</button>
@@ -311,7 +304,8 @@
     }
     
     function exportWord() {
-      var docx = '\uFEFF<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n';
+      let docx = String.fromCharCode(0xFEFF);
+      docx += '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n';
       docx += '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">\n<w:body>\n';
       docx += '<w:p><w:r><w:rPr><w:b/><w:sz w:val="40"/></w:rPr><w:t>治理架构设计</w:t></w:r></w:p>\n';
       docx += '<w:p><w:r><w:rPr><w:color w:val="888888"/></w:rPr><w:t>生成日期：' + new Date().toLocaleDateString('zh-CN') + '</w:t></w:r></w:p>\n';
@@ -324,18 +318,23 @@
       policies.forEach(p => {
         const inputs = p.querySelectorAll('input');
         if (inputs[0].value) {
-          docx += '<w:p><w:r><w:t>• ' + inputs[0].value + '：' + (inputs[1]?.value || '') + '</w:t></w:r></w:p>\n';
+          docx += '<w:p><w:r><w:t>• ' + escapeXml(inputs[0].value) + '：' + escapeXml(inputs[1]?.value || '') + '</w:t></w:r></w:p>\n';
         }
       });
       
       docx += '</w:body></w:document>';
       
-      var blob = new Blob([docx], {type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
+      var blob = new Blob([docx], {type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document;charset=utf-8'});
       var url = URL.createObjectURL(blob);
       var a = document.createElement('a');
       a.href = url;
       a.download = '治理架构设计.docx';
       a.click();
+    }
+    
+    function escapeXml(str) {
+      if (!str) return '';
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
     }
   </script>
 </body>

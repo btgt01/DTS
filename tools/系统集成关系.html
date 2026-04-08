@@ -124,15 +124,6 @@
       </div>
     </div>
     
-    <div class="card">
-      <div class="card-header">
-        <h2>集成策略说明</h2>
-      </div>
-      <div class="card-body">
-        <textarea id="strategy" placeholder="描述系统集成的整体策略，如：&#10;- 采用API网关统一对外服务&#10;- 使用消息队列实现异步解耦&#10;- 建立ESB企业服务总线...">采用API网关统一对外服务，通过消息队列实现异步解耦，建立ESB企业服务总线进行服务编排与协议转换，确保各系统间数据流畅通。</textarea>
-      </div>
-    </div>
-    
     <div class="export-section">
       <button class="btn btn-primary" onclick="exportWord()">📥 导出Word</button>
     </div>
@@ -284,26 +275,28 @@
       }
     }
     
+    function escapeXml(str) {
+      if (!str) return '';
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
+    }
+    
     function exportWord() {
-      var docx = '\uFEFF<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n';
+      var docx = String.fromCharCode(0xFEFF) + '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n';
       docx += '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">\n<w:body>\n';
       docx += '<w:p><w:r><w:rPr><w:b/><w:sz w:val="40"/></w:rPr><w:t>系统集成关系设计</w:t></w:r></w:p>\n';
-      docx += '<w:p><w:r><w:rPr><w:color w:val="888888"/></w:rPr><w:t>生成日期：' + new Date().toLocaleDateString('zh-CN') + '</w:t></w:r></w:p>\n';
+      docx += '<w:p><w:r><w:rPr><w:color w:val="888888"/></w:rPr><w:t>生成日期：' + escapeXml(new Date().toLocaleDateString('zh-CN')) + '</w:t></w:r></w:p>\n';
       
       docx += '<w:p><w:r><w:rPr><w:b/><w:sz w:val="28"/></w:rPr><w:t>一、系统清单</w:t></w:r></w:p>\n';
-      docx += '<w:p><w:r><w:t>' + systems.join('、') + '</w:t></w:r></w:p>\n';
+      docx += '<w:p><w:r><w:t>' + escapeXml(systems.join('、')) + '</w:t></w:r></w:p>\n';
       
       docx += '<w:p><w:r><w:rPr><w:b/><w:sz w:val="28"/></w:rPr><w:t>二、集成关系</w:t></w:r></w:p>\n';
-      integrations.forEach(int => {
-        docx += '<w:p><w:r><w:t>' + int.from + ' ⟷ ' + int.to + ' (' + int.type + ')</w:t></w:r></w:p>\n';
+      integrations.forEach(function(int) {
+        docx += '<w:p><w:r><w:t>' + escapeXml(int.from + ' ⟷ ' + int.to + ' (' + int.type + ')') + '</w:t></w:r></w:p>\n';
       });
-      
-      docx += '<w:p><w:r><w:rPr><w:b/><w:sz w:val="28"/></w:rPr><w:t>三、集成策略</w:t></w:r></w:p>\n';
-      docx += '<w:p><w:r><w:t>' + document.getElementById('strategy').value + '</w:t></w:r></w:p>\n';
       
       docx += '</w:body></w:document>';
       
-      var blob = new Blob([docx], {type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
+      var blob = new Blob([docx], {type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document;charset=utf-8'});
       var url = URL.createObjectURL(blob);
       var a = document.createElement('a');
       a.href = url;

@@ -268,6 +268,26 @@
             opacity: 0.6;
             height: 24px;
         }
+        .btn-save {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .btn-save:hover { background: #059669; }
+        .btn-ppt {
+            background: #6366f1;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .btn-ppt:hover { background: #4f46e5; }
     </style>
 </head>
 <body>
@@ -293,7 +313,11 @@
             <div id="projectEditor" class="project-cards">
                 <!-- 动态生成卡片 -->
             </div>
-            <button class="add-btn" id="addProjectBtn">➕ 添加新项目</button>
+            <div style="display:flex;gap:1rem;flex-wrap:wrap;">
+                <button class="add-btn" id="addProjectBtn">➕ 添加新项目</button>
+                <button class="btn-save" id="saveBtn">💾 保存</button>
+                <button class="btn-ppt" id="exportPptBtn">📊 导出PPT</button>
+            </div>
         </div>
     </div>
 
@@ -591,11 +615,90 @@
                 });
                 renderAll();
             });
+            
+            // 保存按钮
+            document.getElementById('saveBtn').addEventListener('click', async function() {
+                try {
+                    await saveToolData('project-priority', { projects: projects });
+                    alert('✅ 优先级矩阵已保存！');
+                } catch (e) {
+                    console.error('保存失败:', e);
+                    alert('保存失败，请重试！');
+                }
+            });
+            
+            // 导出PPT按钮
+            document.getElementById('exportPptBtn').addEventListener('click', function() {
+                exportToPPT();
+            });
+            
+            // 导出PPT函数
+            function exportToPPT() {
+                const sortedProjects = [...projects].sort((a, b) => (b.urgency + b.importance) - (a.urgency + a.importance));
+                
+                let html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>项目优先级矩阵</title>';
+                html += '<style>';
+                html += '*{margin:0;padding:0;box-sizing:border-box}body{font-family:Microsoft YaHei,sans-serif}';
+                html += '.slide{width:100vw;height:100vh;display:flex;flex-direction:column;padding:4rem;page-break-after:always}';
+                html += '.title-slide{background:linear-gradient(135deg,#1e40af,#3b82f6);color:#fff;justify-content:center;align-items:center}';
+                html += '.content-slide{background:#fff}';
+                html += 'h1{font-size:2.5rem;margin-bottom:1rem}h2{font-size:1.8rem;color:#1e40af;margin:1.5rem 0 1rem}';
+                html += 'table{width:100%;border-collapse:collapse;margin:1rem 0}';
+                html += 'th,td{padding:1rem;border:1px solid #e2e8f0;text-align:left}th{background:#1e40af;color:#fff}';
+                html += 'tr:nth-child(even){background:#f8fafc}';
+                html += '.legend{display:flex;gap:2rem;margin:1rem 0;flex-wrap:wrap}';
+                html += '.legend-item{display:flex;align-items:center;gap:0.5rem}';
+                html += '.dot{width:20px;height:20px;border-radius:50%}';
+                html += '</style></head><body>';
+                
+                // 标题页
+                html += '<div class="slide title-slide"><h1>📊 项目优先级矩阵</h1><p>数字化转型项目优先级评估报告</p></div>';
+                
+                // 矩阵图页
+                html += '<div class="slide content-slide"><h2>📈 四象限优先级矩阵</h2>';
+                html += '<div class="legend">';
+                html += '<div class="legend-item"><div class="dot" style="background:#ef4444"></div>优先执行（紧迫+重要）</div>';
+                html += '<div class="legend-item"><div class="dot" style="background:#f59e0b"></div>重点关注（紧迫）</div>';
+                html += '<div class="legend-item"><div class="dot" style="background:#3b82f6"></div>规划推进（重要）</div>';
+                html += '<div class="legend-item"><div class="dot" style="background:#64748b"></div>暂缓处理</div>';
+                html += '</div>';
+                html += '<table><tr><th>项目</th><th>紧迫性</th><th>重要性</th><th>总分</th><th>优先级</th></tr>';
+                sortedProjects.forEach((p, i) => {
+                    const score = p.urgency + p.importance;
+                    const priority = score >= 4 ? '立即执行' : score >= 2.5 ? '重点关注' : score >= 1.5 ? '规划推进' : '暂缓处理';
+                    html += `<tr><td>${p.name}</td><td>${p.urgency.toFixed(1)}</td><td>${p.importance.toFixed(1)}</td><td>${score.toFixed(1)}</td><td>${priority}</td></tr>`;
+                });
+                html += '</table></div>';
+                
+                html += '</body></html>';
+                
+                const blob = new Blob([html], {type: 'text/html;charset=utf-8'});
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = '项目优先级矩阵.html';
+                a.click();
+                alert('✅ PPT已导出（HTML格式，可用浏览器打印为PDF）');
+            }
         }
 
         // 初始化渲染和事件
         renderAll();
         setupEvents();
+        
+        // 页面加载时恢复数据
+        (async function loadData() {
+            try {
+                const result = await loadToolData('project-priority');
+                if (result && result.data && result.data.projects) {
+                    projects = result.data.projects;
+                    nextId = Math.max(...projects.map(p => p.id)) + 1;
+                    renderAll();
+                }
+            } catch (e) {
+                console.error('加载数据失败:', e);
+            }
+        })();
     })();
 </script>
 </body>

@@ -413,7 +413,7 @@ iframe{width:100%;height:calc(100vh - 120px);border:none;border-radius:10px;back
       <div class="nav-sub" onclick="navigateTo('manufacturing')">智能制造成熟度评估</div>
       <div class="nav-sub" onclick="navigateTo('interview')">调研访谈</div>
       <div class="nav-sub" onclick="navigateTo('benchmark')">对标企业研究</div>
-      <div class="nav-sub" onclick="navigateTo('report-survey')">诊断分析报告</div>
+      <!-- 诊断分析报告已移除 -->
       <div class="nav-item" onclick="toggleSub('plan')"><span class="icon">📐</span>总体规划 ▾</div>
       <div class="nav-sub" onclick="navigateTo('vision')">转型愿景</div>
       <div class="nav-sub" onclick="navigateTo('goal')">战略目标</div>
@@ -423,14 +423,14 @@ iframe{width:100%;height:calc(100vh - 120px);border:none;border-radius:10px;back
       <div class="nav-sub" onclick="navigateTo('tech-arch')">技术架构</div>
       <div class="nav-sub" onclick="navigateTo('security-arch')">安全架构</div>
       <div class="nav-sub" onclick="navigateTo('governance')">治理架构</div>
-      <div class="nav-sub" onclick="navigateTo('report-plan')">总体规划报告</div>
+      <!-- 总体规划报告已移除 -->
       <div class="nav-item" onclick="toggleSub('impl')"><span class="icon">🛤️</span>实施路径 ▾</div>
       <div class="nav-sub" onclick="navigateTo('priority')">项目优先级评估</div>
       <div class="nav-sub" onclick="navigateTo('timeline')">实施进度安排</div>
       <div class="nav-sub" onclick="navigateTo('modules')">系统功能模块</div>
       <div class="nav-sub" onclick="navigateTo('integration')">系统集成关系</div>
       <div class="nav-sub" onclick="navigateTo('investment')">投资费用估算</div>
-      <div class="nav-sub" onclick="navigateTo('report-impl')">实施路径报告</div>
+      <!-- 实施路径报告已移除 -->
       <div class="sidebar-section" id="adminSection" style="display:none">系统管理</div>
       <div class="nav-item" id="adminNavItem" style="display:none" onclick="showAdminPanel()"><span class="icon">⚙️</span>管理后台</div>
       <div class="sidebar-footer">
@@ -470,21 +470,7 @@ iframe{width:100%;height:calc(100vh - 120px);border:none;border-radius:10px;back
             <h4>实施路径</h4>
             <p>项目规划、五年路线图、投资估算</p>
           </div>
-          <div class="module-box" onclick="navigateTo('report-survey')">
-            <div class="module-box-icon" style="background:#fee2e2">📄</div>
-            <h4>调研诊断报告</h4>
-            <p>导出Word格式诊断分析报告</p>
-          </div>
-          <div class="module-box" onclick="navigateTo('report-plan')">
-            <div class="module-box-icon" style="background:#fef3c7">📊</div>
-            <h4>总体规划报告</h4>
-            <p>导出PPT格式总体规划报告</p>
-          </div>
-          <div class="module-box" onclick="navigateTo('report-impl')">
-            <div class="module-box-icon" style="background:#e0e7ff">💰</div>
-            <h4>实施路径报告</h4>
-            <p>导出Excel格式实施路径报告</p>
-          </div>
+          <!-- 调研诊断报告、总体规划报告、实施路径报告已移除 -->
         </div>
       </div>
       <!-- iframe容器 -->
@@ -966,7 +952,7 @@ const MODULE_TITLES = {
   'manufacturing': '智能制造成熟度评估',
   'interview': '调研访谈',
   'benchmark': '对标企业研究分析',
-  'report-survey': '数字化转型调研诊断分析报告',
+  // report-survey 已移除
   'vision': '企业数字化转型愿景',
   'goal': '战略目标设定',
   'business-arch': '业务架构设计',
@@ -975,13 +961,12 @@ const MODULE_TITLES = {
   'tech-arch': '技术架构设计',
   'security-arch': '安全架构设计',
   'governance': '治理架构设计',
-  'report-plan': '数字化转型总体规划报告',
+  // report-plan, report-impl, report-survey 已移除
   'priority': '项目优先级评估',
   'timeline': '实施进度安排（五年期）',
   'modules': '系统功能模块规划',
   'integration': '系统集成关系',
-  'investment': '项目建设投资费用估算',
-  'report-impl': '数字化转型实施路径报告'
+  'investment': '项目建设投资费用估算'
 };
 
 const MODULE_FILES = {
@@ -990,7 +975,7 @@ const MODULE_FILES = {
   'manufacturing': 'tools/智能制造评估 - 不导出.html',
   'interview': 'tools/访谈挖掘机.html',
   'benchmark': 'tools/ADTO评分工具.html',
-  'report-survey': 'tools/诊断分析报告.html',
+  // report-survey 已移除
   'vision': 'tools/转型愿景设计.html',
   'goal': 'tools/战略目标.html',
   'business-arch': 'tools/业务架构设计.html',
@@ -999,13 +984,12 @@ const MODULE_FILES = {
   'tech-arch': 'tools/技术架构设计.html',
   'security-arch': 'tools/安全架构设计.html',
   'governance': 'tools/治理架构设计.html',
-  'report-plan': 'tools/总体规划报告.html',
+  // report-plan, report-impl, report-survey 已移除
   'priority': 'tools/项目优先级矩阵.html',
   'timeline': 'tools/实施进度安排.html',
   'modules': 'tools/系统功能模块规划.html',
   'integration': 'tools/系统集成关系.html',
-  'investment': 'tools/投资费用估算.html',
-  'report-impl': 'tools/实施路径报告.html'
+  'investment': 'tools/投资费用估算.html'
 };
 
 function navigateTo(page) {

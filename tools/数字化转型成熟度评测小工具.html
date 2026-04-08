@@ -1954,13 +1954,27 @@
                 
                 // 开始评测按钮
                 document.getElementById('startAssessmentBtn').addEventListener('click', function() {
-                    document.querySelector('.nav-link[data-section="assessment"]').click();
+                    // 直接导航到评测问卷页面
+                    const navLinks = document.querySelectorAll('.nav-link');
+                    navLinks.forEach(l => l.classList.remove('active'));
+                    document.querySelector('.nav-link[data-section="assessment"]').classList.add('active');
+                    const sections = document.querySelectorAll('.content-section');
+                    sections.forEach(section => section.classList.remove('active'));
+                    document.getElementById('assessment').classList.add('active');
                 });
                 
                 // 查看示例报告按钮
-                document.getElementById('viewDemoBtn').addEventListener('click', function() {
+                document.getElementById('viewDemoBtn').addEventListener('click', async function() {
                     // 加载示例数据
-                    loadDemoData();
+                    await loadDemoData();
+                    // 导航到结果页面
+                    const navLinks = document.querySelectorAll('.nav-link');
+                    navLinks.forEach(l => l.classList.remove('active'));
+                    document.querySelector('.nav-link[data-section="results"]').classList.add('active');
+                    const sections = document.querySelectorAll('.content-section');
+                    sections.forEach(section => section.classList.remove('active'));
+                    document.getElementById('results').classList.add('active');
+                    updateResults();
                     showNotification('示例数据已加载，请查看评估结果', 'info');
                 });
                 

@@ -69,10 +69,26 @@
     <footer>修改任意分数，汇总自动更新。满分参考括号内数值</footer>
 </div>
 
+<script src="data-api.js"></script>
 <script>
     (function() {
         // ----- 构建三级指标库（含评分细则 description）-----
         const tertiaryItems = [];
+        
+        // 自动保存评分（全局函数，在DOMContentLoaded里初始化）
+        var _adoTimer = null;
+        function _adoAutoSave() {
+            if (_adoTimer) clearTimeout(_adoTimer);
+            _adoTimer = setTimeout(async function() {
+                var scoreMap = {};
+                for (var i = 0; i < tertiaryItems.length; i++) {
+                    scoreMap[tertiaryItems[i].id] = tertiaryItems[i].score;
+                }
+                try {
+                    await saveToolData('adto-score', { scores: scoreMap, savedAt: new Date().toISOString() }, 'ADTO评分工具');
+                } catch(e) {}
+            }, 1500);
+        }
 
         function addTert(dimIndex, secName, secMax, tertName, tertMax, description) {
             tertiaryItems.push({
@@ -235,6 +251,7 @@
                     item.score = val;
                     this.value = val.toFixed(1);
                     refreshAfterScoreChange();
+                    if (typeof _adoAutoSave === 'function') _adoAutoSave();
                 });
             });
 
@@ -395,7 +412,19 @@
             }
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
+            // 加载已保存的评分数据
+            try {
+                var saved = await loadToolData('adto-score');
+                if (saved && saved.data && saved.data.scores) {
+                    var scoreMap = saved.data.scores;
+                    for (var i = 0; i < tertiaryItems.length; i++) {
+                        var key = tertiaryItems[i].id;
+                        if (scoreMap[key] !== undefined) tertiaryItems[i].score = parseFloat(scoreMap[key]) || 0;
+                    }
+                }
+            } catch(e) {}
+
             document.getElementById('tabBar').addEventListener('click', (e) => {
                 const btn = e.target.closest('.tab-btn');
                 if (!btn) return;

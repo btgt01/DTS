@@ -180,7 +180,6 @@
     
     <div class="export-section">
       <button class="btn btn-secondary" onclick="exportExcel()">📊 导出Excel</button>
-      <button class="btn btn-primary" onclick="exportWord()">📥 导出Word</button>
     </div>
   </div>
   
@@ -310,51 +309,74 @@
       }
     }
     
-    function exportWord() {
-      var docx = '\uFEFF<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n';
-      docx += '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">\n<w:body>\n';
-      docx += '<w:p><w:r><w:rPr><w:b/><w:sz w:val="40"/></w:rPr><w:t>项目建设投资费用估算</w:t></w:r></w:p>\n';
-      docx += '<w:p><w:r><w:rPr><w:color w:val="888888"/></w:rPr><w:t>生成日期：' + new Date().toLocaleDateString('zh-CN') + '</w:t></w:r></w:p>\n';
-      
-      docx += '<w:p><w:r><w:rPr><w:b/><w:sz w:val="28"/></w:rPr><w:t>一、投资明细</w:t></w:r></w:p>\n';
-      docx += '<w:tbl><w:tr>';
-      ['序号', '项目名称', '优先级', '投资(万)', '实施周期'].forEach(h => {
-        docx += '<w:tc><w:p><w:r><w:rPr><w:b/></w:rPr><w:t>' + h + '</w:t></w:r></w:p></w:tc>';
-      });
-      docx += '</w:tr>';
-      
-      const priorityMap = { high: '高', medium: '中', low: '低' };
-      const total = items.reduce((sum, i) => sum + (i.cost || 0), 0);
-      
-      items.forEach((item, i) => {
-        docx += '<w:tr>';
-        docx += '<w:tc><w:p><w:r><w:t>' + (i+1) + '</w:t></w:r></w:p></w:tc>';
-        docx += '<w:tc><w:p><w:r><w:t>' + item.name + '</w:t></w:r></w:p></w:tc>';
-        docx += '<w:tc><w:p><w:r><w:t>' + (priorityMap[item.priority] || '中') + '</w:t></w:r></w:p></w:tc>';
-        docx += '<w:tc><w:p><w:r><w:t>' + (item.cost || 0) + '</w:t></w:r></w:p></w:tc>';
-        docx += '<w:tc><w:p><w:r><w:t>' + item.period + '</w:t></w:r></w:p></w:tc>';
-        docx += '</w:tr>';
-      });
-      
-      docx += '<w:tr>';
-      docx += '<w:tc colspan="2"><w:p><w:r><w:rPr><w:b/></w:rPr><w:t>合计</w:t></w:r></w:p></w:tc>';
-      docx += '<w:tc><w:p><w:r><w:rPr><w:b/></w:rPr><w:t>' + total + '</w:t></w:r></w:p></w:tc>';
-      docx += '<w:tc colspan="2"></w:tc>';
-      docx += '</w:tr>';
-      docx += '</w:tbl>';
-      
-      docx += '</w:body></w:document>';
-      
-      var blob = new Blob([docx], {type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
-      var url = URL.createObjectURL(blob);
-      var a = document.createElement('a');
-      a.href = url;
-      a.download = '投资费用估算.docx';
-      a.click();
-    }
-    
     function exportExcel() {
-      alert('Excel导出功能开发中，可先使用Word导出');
+      if (typeof XLSX === 'undefined') {
+        var script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
+        script.onload = function() { doExport(); };
+        document.head.appendChild(script);
+      } else {
+        doExport();
+      }
+      function doExport() {
+        var dateStr = new Date().toLocaleDateString('zh-CN');
+        var wb = XLSX.utils.book_new();
+        var priorityMap = { high: '高', medium: '中', low: '低' };
+        
+        // Sheet 1: 投资明细
+        var ws1Data = [
+          ['项目建设投资费用估算'],
+          ['生成日期：' + dateStr],
+          [],
+          ['序号', '项目名称', '优先级', '估算投资(万)', '实施周期', '投资说明']
+        ];
+        items.forEach(function(item, i) {
+          ws1Data.push([
+            i + 1,
+            item.name,
+            priorityMap[item.priority] || '中',
+            item.cost,
+            item.period,
+            item.desc
+          ]);
+        });
+        var total = items.reduce(function(s, i) { return s + (i.cost || 0); }, 0);
+        ws1Data.push([]);
+        ws1Data.push(['合计', '', '', total, '', '']);
+        var ws1 = XLSX.utils.aoa_to_sheet(ws1Data);
+        ws1['!cols'] = [{wch: 8}, {wch: 20}, {wch: 10}, {wch: 15}, {wch: 12}, {wch: 30}];
+        XLSX.utils.book_append_sheet(wb, ws1, '投资明细');
+
+        // Sheet 2: 年度分布
+        var years = ['第1年', '第2年', '第3年', '第4年', '第5年'];
+        var ws2Data = [
+          ['年度投资分布'],
+          [],
+          ['年度', '投资金额(万)']
+        ];
+        years.forEach(function(year, i) {
+          var cost = items.filter(function(item) { return item.period.indexOf(String(i + 1)) !== -1; })
+                          .reduce(function(s, item) { return s + (item.cost || 0); }, 0);
+          ws2Data.push([year, cost]);
+        });
+        var total2 = items.reduce(function(s, i) { return s + (i.cost || 0); }, 0);
+        ws2Data.push(['合计', total2]);
+        var ws2 = XLSX.utils.aoa_to_sheet(ws2Data);
+        ws2['!cols'] = [{wch: 15}, {wch: 15}];
+        XLSX.utils.book_append_sheet(wb, ws2, '年度分布');
+
+        // Sheet 3: 备注说明
+        var ws3Data = [
+          ['备注说明'],
+          [],
+          [document.getElementById('notes').value]
+        ];
+        var ws3 = XLSX.utils.aoa_to_sheet(ws3Data);
+        ws3['!cols'] = [{wch: 80}];
+        XLSX.utils.book_append_sheet(wb, ws3, '备注说明');
+
+        XLSX.writeFile(wb, '投资费用估算_' + dateStr.replace(/\//g, '-') + '.xlsx');
+      }
     }
     
     renderTable();

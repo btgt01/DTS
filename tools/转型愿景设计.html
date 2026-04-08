@@ -280,6 +280,7 @@
 <script>
     // 驱动因素选择
     function toggleDriver(el, type) {
+      // 阻止事件冒泡，防止点击input时触发toggleDriver
       el.classList.toggle('selected');
       const input = el.querySelector('input');
       if (el.classList.contains('selected')) {
@@ -289,6 +290,15 @@
         input.value = '';
       }
     }
+    
+    // 阻止input点击事件冒泡到driver-item
+    document.addEventListener('DOMContentLoaded', function() {
+      document.querySelectorAll('.driver-item input').forEach(function(input) {
+        input.addEventListener('click', function(e) {
+          e.stopPropagation();
+        });
+      });
+    });
     
     function toggleOtherScope() {
       const select = document.getElementById('orgScope');
