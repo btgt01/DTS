@@ -330,6 +330,18 @@
             box-shadow: 0 5px 15px rgba(40, 167, 69, 0.2);
         }
         
+        .btn-save {
+            background-color: #10b981;
+            color: white;
+            border: none;
+        }
+        
+        .btn-save:hover {
+            background-color: #059669;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.2);
+        }
+        
         .btn i {
             margin-right: 8px;
         }
@@ -3631,6 +3643,59 @@
 
         // 用户答案存储
         let userAnswers = {};
+        
+        // 保存进度到服务器
+        async function saveProgress() {
+            try {
+                const basicInfo = {};
+                for (let i = 1; i <= 10; i++) {
+                    const input = document.getElementById(`basic${i}`);
+                    if (input) basicInfo[`basic${i}`] = input.value;
+                }
+                const saveData = {
+                    basicInfo: basicInfo,
+                    answers: userAnswers,
+                    currentSection: currentSectionIndex,
+                    timestamp: new Date().toISOString()
+                };
+                await saveToolData('smart-manufacturing', saveData);
+                alert('✅ 进度已保存，可以下次继续作答！');
+            } catch (e) {
+                console.error('保存失败:', e);
+                alert('保存失败，请重试！');
+            }
+        }
+        
+        // 加载保存的进度
+        async function loadProgress() {
+            try {
+                const result = await loadToolData('smart-manufacturing');
+                if (result && result.data) {
+                    const data = result.data;
+                    // 恢复基本信息
+                    if (data.basicInfo) {
+                        Object.keys(data.basicInfo).forEach(key => {
+                            const input = document.getElementById(key);
+                            if (input) input.value = data.basicInfo[key];
+                        });
+                    }
+                    // 恢复答案
+                    if (data.answers) {
+                        userAnswers = data.answers;
+                    }
+                    // 恢复当前位置
+                    if (data.currentSection !== undefined) {
+                        goToSection(data.currentSection);
+                    }
+                    updateProgress();
+                }
+            } catch (e) {
+                console.error('加载失败:', e);
+            }
+        }
+        
+        // 页面加载时自动恢复进度
+        window.addEventListener('DOMContentLoaded', loadProgress);
         let currentSectionIndex = 0;
         
         // 初始化应用
@@ -3843,6 +3908,15 @@
                     const placeholder = document.createElement('div');
                     buttonContainer.appendChild(placeholder);
                 }
+                
+                // 添加"保存"按钮
+                const saveButton = document.createElement('button');
+                saveButton.className = 'btn btn-save';
+                saveButton.innerHTML = '<i class="fas fa-save"></i>保存';
+                saveButton.style.backgroundColor = '#10b981';
+                saveButton.style.color = 'white';
+                saveButton.addEventListener('click', saveProgress);
+                buttonContainer.appendChild(saveButton);
                 
                 // 添加"下一部分"或"提交"按钮
                 if (section.id !== 'sales') {

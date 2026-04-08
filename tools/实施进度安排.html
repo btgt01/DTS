@@ -138,7 +138,7 @@
     
     <div class="export-section">
       <button class="btn btn-secondary" onclick="exportExcel()">📊 导出Excel</button>
-      <button class="btn btn-primary" onclick="exportWord()">📥 导出Word</button>
+      <!-- 导出Word按钮已移除 -->
     </div>
   </div>
   
@@ -344,7 +344,30 @@
     }
     
     function exportExcel() {
-      alert('Excel导出功能开发中，可先使用Word导出');
+      const wb = XLSX.utils.book_new();
+      
+      // 阶段和任务表
+      const phaseData = [['年份', '阶段名称', '主要任务', '详细说明']];
+      phases.forEach(p => {
+        phaseData.push([p.year, p.title, p.tasks.join('、'), p.details || '']);
+      });
+      const ws1 = XLSX.utils.aoa_to_sheet(phaseData);
+      XLSX.utils.book_append_sheet(wb, ws1, '实施阶段');
+      
+      // 里程碑表
+      const milestoneData = [['里程碑名称', '计划时间', '完成标准', '负责人', '状态']];
+      milestones.forEach(m => {
+        milestoneData.push([m.name, m.date, m.criteria, m.owner || '', m.status || '进行中']);
+      });
+      const ws2 = XLSX.utils.aoa_to_sheet(milestoneData);
+      XLSX.utils.book_append_sheet(wb, ws2, '里程碑');
+      
+      // 备注
+      const notesData = [['实施计划备注'], [document.getElementById('notes').value || '无']];
+      const ws3 = XLSX.utils.aoa_to_sheet(notesData);
+      XLSX.utils.book_append_sheet(wb, ws3, '备注');
+      
+      XLSX.writeFile(wb, '实施进度安排.xlsx');
     }
     
     function downloadDocx(content, filename) {

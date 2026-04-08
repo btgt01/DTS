@@ -255,6 +255,24 @@
             gap: 1rem;
             flex-wrap: wrap;
         }
+        .btn-save {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 0.9rem 2.2rem;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 1rem;
+            box-shadow: 0 8px 18px rgba(16, 185, 129, 0.15);
+            cursor: pointer;
+            transition: 0.1s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+        .btn-save:hover {
+            background: #059669;
+        }
         .report-download {
             background: #1d3d5c;
             color: white;
@@ -320,6 +338,7 @@
     <!-- 底部操作栏 -->
     <div class="action-bar">
         <button class="btn btn-outline" id="mockDataBtn" title="快速填充两条示例访谈">📋 插入示例</button>
+        <button class="btn btn-save" id="saveBtn" title="保存所有访谈记录">💾 保存全部</button>
         <button class="report-download" id="completeAllBtn">📄 全部完成 & 生成汇总报告</button>
     </div>
     <div class="footer-note">
@@ -327,10 +346,40 @@
     </div>
 </div>
 
+<script src="data-api.js"></script>
 <script>
     (function() {
         // ----- 初始数据模型 -----
         let plans = [];
+        
+        // ----- 保存功能 -----
+        async function savePlans() {
+            try {
+                await saveToolData('interview-miner', { plans: plans });
+                alert('✅ 访谈记录已保存！');
+            } catch (e) {
+                console.error('保存失败:', e);
+                alert('保存失败，请重试！');
+            }
+        }
+        
+        // ----- 加载功能 -----
+        async function loadPlans() {
+            try {
+                const result = await loadToolData('interview-miner');
+                if (result && result.data && result.data.plans) {
+                    plans = result.data.plans;
+                    render();
+                }
+            } catch (e) {
+                console.error('加载失败:', e);
+            }
+        }
+        
+        // ----- 自动保存 -----
+        function autoSave() {
+            saveToolData('interview-miner', { plans: plans });
+        }
 
         // 用于生成唯一ID
         function generateId() {
@@ -646,6 +695,12 @@
         });
 
         // 插入示例 (调用初始示例，但避免重复)
+        // 保存按钮
+        document.getElementById('saveBtn').addEventListener('click', savePlans);
+        
+        // 页面加载时自动加载数据
+        loadPlans();
+
         document.getElementById('mockDataBtn').addEventListener('click', () => {
             // 检查是否已有数据太多，简单合并示例，保留原有
             const sample1 = createEmptyPlan('财务共享中心');
