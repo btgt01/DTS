@@ -6,13 +6,15 @@ const { v4: uuidv4 } = require('uuid');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs');
 
 const app = express();
 const PORT = process.env.PORT || 8899;
 
-// PostgreSQL 连接池
-// Railway 会自动注入 DATABASE_URL 环境变量
-// 本地开发时可用 DATABASE_URL 或单独的 PG* 环境变量
+// ===== 检测数据库模式 =====
+const USE_PG = !!process.env.DATABASE_URL;
+
+// ===== PostgreSQL 模式（Railway 有 DATABASE_URL 时）=====
 function buildPgConfig() {
   if (process.env.DATABASE_URL) {
     return { connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } };
@@ -27,98 +29,212 @@ function buildPgConfig() {
   };
 }
 
-const pool = new Pool(buildPgConfig());
+const pool = USE_PG ? new Pool(buildPgConfig()) : null;
 
-// ===== 数据库辅助函数（pg 返回 Promise）=====
 async function dbGet(sql, params = []) {
-  const res = await pool.query(sql, params);
-  if (!res.rows.length) return null;
-  const obj = {};
-  const cols = res.fields.map(f => f.name);
-  cols.forEach((c, i) => obj[c] = res.rows[0][c]);
-  return obj;
+  if (USE_PG) {
+    const res = await pool.query(sql, params);
+    if (!res.rows.length) return null;
+    const obj = {};
+    res.fields.forEach((f, i) => obj[f.name] = res.rows[0][f.name]);
+    return obj;
+  }
+  return fileStore.get(sql, params);
 }
 
 async function dbAll(sql, params = []) {
-  const res = await pool.query(sql, params);
-  if (!res.rows.length) return [];
-  const cols = res.fields.map(f => f.name);
-  return res.rows.map(row => {
-    const obj = {};
-    cols.forEach((c, i) => obj[c] = row[c]);
-    return obj;
-  });
+  if (USE_PG) {
+    const res = await pool.query(sql, params);
+    if (!res.rows.length) return [];
+    const cols = res.fields.map(f => f.name);
+    return res.rows.map(row => { const o = {}; cols.forEach((c, i) => o[c] = row[c]); return o; });
+  }
+  return fileStore.all(sql, params);
 }
 
 async function dbRun(sql, params = []) {
-  await pool.query(sql, params);
+  if (USE_PG) {
+    await pool.query(sql, params);
+    return;
+  }
+  await fileStore.run(sql, params);
 }
+
+// ===== 文件存储模式（无 DATABASE_URL 时降级使用）=====
+const DATA_DIR = path.join('/tmp', 'dts_data');
+if (!USE_PG) {
+  if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+}
+
+function filePath(name) { return path.join(DATA_DIR, name + '.json'); }
+function readJson(name) { try { return JSON.parse(fs.readFileSync(filePath(name), 'utf8')); } catch { return []; } }
+function writeJson(name, data) { fs.writeFileSync(filePath(name), JSON.stringify(data, null, 2)); }
+
+const fileStore = {
+  async get(sql, params) {
+    const rows = await this.all(sql, params);
+    return rows[0] || null;
+  },
+  async all(sql, params) {
+    const users = readJson('users');
+    const sessions = readJson('sessions');
+    const audit = readJson('audit_logs');
+    const tool = readJson('tool_data');
+    // 简化路由
+    if (sql.includes('FROM users') && sql.includes('WHERE role')) return users.filter(u => u.role === 'admin').slice(0, 1);
+    if (sql.includes('FROM users') && sql.includes('LIMIT 1')) {
+      const idx = params[0] ? users.findIndex(u => u.id === params[0]) : -1;
+      return idx >= 0 ? [users[idx]] : [];
+    }
+    if (sql.includes('FROM users') && sql.includes('status = $1') && params[0] === 'pending') return users.filter(u => u.status === 'pending');
+    if (sql.includes('FROM users') && sql.includes('ORDER BY created_at')) return users;
+    if (sql.includes('FROM users') && sql.includes('WHERE id = $1')) {
+      const idx = params[0] ? users.findIndex(u => u.id === params[0]) : -1;
+      return idx >= 0 ? [users[idx]] : [];
+    }
+    if (sql.includes('FROM sessions') && sql.includes('sid = $1')) {
+      const now = Date.now();
+      return sessions.filter(s => s.sid === params[0] && new Date(s.expires_at).getTime() > now);
+    }
+    if (sql.includes('FROM audit_logs') && sql.includes('ORDER BY')) return audit.slice(0, 100);
+    if (sql.includes('FROM tool_data') && sql.includes('user_id = $1') && sql.includes('module_id = $2')) {
+      const idx = tool.findIndex(t => t.user_id === params[0] && t.module_id === params[1]);
+      return idx >= 0 ? [tool[idx]] : [];
+    }
+    if (sql.includes('FROM tool_data') && sql.includes('user_id = $1') && sql.includes('ORDER BY')) {
+      return tool.filter(t => t.user_id === params[0]).sort((a,b) => new Date(b.updated_at)-new Date(a.updated_at));
+    }
+    if (sql.includes('FROM tool_data') && sql.includes('GROUP BY module_id')) {
+      const grouped = {};
+      tool.forEach(t => { if (!grouped[t.module_id]) grouped[t.module_id] = { module_id: t.module_id, module_name: t.module_name, count: 0, user_count: new Set(), last_update: t.updated_at };
+        grouped[t.module_id].count++;
+        grouped[t.module_id].user_count.add(t.user_id);
+        if (new Date(t.updated_at) > new Date(grouped[t.module_id].last_update)) grouped[t.module_id].last_update = t.updated_at;
+      });
+      return Object.values(grouped).map(g => ({ ...g, user_count: g.user_count.size }));
+    }
+    if (sql.includes('COUNT(*)') && sql.includes('FROM users')) {
+      const c = users.length;
+      return [{ c: String(c) }];
+    }
+    if (sql.includes('COUNT(*)') && sql.includes('status = $1') && params[0]) {
+      const c = users.filter(u => u.status === params[0]).length;
+      return [{ c: String(c) }];
+    }
+    if (sql.includes('COUNT(DISTINCT user_id)') && sql.includes('FROM tool_data') && sql.includes('INTERVAL')) {
+      const cutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+      const c = new Set(tool.filter(t => new Date(t.updated_at) > cutoff).map(t => t.user_id)).size;
+      return [{ c: String(c) }];
+    }
+    if (sql.includes('COUNT(DISTINCT user_id)') && sql.includes('FROM tool_data')) {
+      const c = new Set(tool.map(t => t.user_id)).size;
+      return [{ c: String(c) }];
+    }
+    if (sql.includes('COUNT(*)') && sql.includes('FROM tool_data')) {
+      return [{ c: String(tool.length) }];
+    }
+    return [];
+  },
+  async run(sql, params) {
+    const users = readJson('users');
+    const sessions = readJson('sessions');
+    const audit = readJson('audit_logs');
+    const tool = readJson('tool_data');
+    if (sql.includes('INSERT INTO users')) {
+      const [id, username, password, email, role, status] = params;
+      if (!users.find(u => u.username === username)) {
+        users.push({ id, username, password, email, role, status, created_at: new Date().toISOString() });
+        writeJson('users', users);
+      }
+      return;
+    }
+    if (sql.includes('INSERT INTO sessions')) {
+      sessions.push({ sid: params[0], user_id: params[1], created_at: new Date().toISOString(), expires_at: params[2] });
+      writeJson('sessions', sessions);
+      return;
+    }
+    if (sql.includes('DELETE FROM sessions') && sql.includes('sid = $1')) {
+      const idx = sessions.findIndex(s => s.sid === params[0]);
+      if (idx >= 0) { sessions.splice(idx, 1); writeJson('sessions', sessions); }
+      return;
+    }
+    if (sql.includes('INSERT INTO audit_logs')) {
+      audit.push({ id: params[0], action: params[1], user_id: params[2], detail: params[3], created_at: new Date().toISOString() });
+      writeJson('audit_logs', audit);
+      return;
+    }
+    if (sql.includes('INSERT INTO tool_data')) {
+      tool.push({ id: params[0], user_id: params[1], module_id: params[2], module_name: params[3], data: params[4], updated_at: new Date().toISOString() });
+      writeJson('tool_data', tool);
+      return;
+    }
+    if (sql.includes('UPDATE tool_data SET')) {
+      const idx = tool.findIndex(t => t.user_id === params[1] && t.module_id === params[2]);
+      if (idx >= 0) { tool[idx].module_name = params[0]; tool[idx].data = params[1+1+1]; tool[idx].updated_at = new Date().toISOString(); writeJson('tool_data', tool); }
+      return;
+    }
+    if (sql.includes('UPDATE users SET status')) {
+      const idx = users.findIndex(u => u.id === params[2]);
+      if (idx >= 0) { users[idx].status = params[0]; users[idx].approved_at = new Date().toISOString(); users[idx].approved_by = params[1]; writeJson('users', users); }
+      return;
+    }
+    if (sql.includes('UPDATE users SET password')) {
+      const idx = users.findIndex(u => u.id === params[1]);
+      if (idx >= 0) { users[idx].password = params[0]; writeJson('users', users); }
+      return;
+    }
+    if (sql.includes('DELETE FROM users')) {
+      const idx = users.findIndex(u => u.id === params[0]);
+      if (idx >= 0) { users.splice(idx, 1); writeJson('users', users); }
+      return;
+    }
+    if (sql.includes('DELETE FROM tool_data')) {
+      const filtered = tool.filter(t => t.user_id !== params[0]);
+      writeJson('tool_data', filtered);
+      return;
+    }
+  }
+};
 
 // ===== 初始化数据库表 =====
 async function initDB() {
-  // 创建 users 表
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS users (
-      id TEXT PRIMARY KEY,
-      username TEXT UNIQUE NOT NULL,
-      password TEXT NOT NULL,
-      email TEXT DEFAULT '',
-      company TEXT DEFAULT '',
-      role TEXT DEFAULT 'user',
-      status TEXT DEFAULT 'pending',
-      created_at TIMESTAMP DEFAULT NOW(),
-      approved_at TIMESTAMP,
-      approved_by TEXT
-    )
-  `);
-
-  // 创建 sessions 表
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS sessions (
-      sid TEXT PRIMARY KEY,
-      user_id TEXT,
-      created_at TIMESTAMP DEFAULT NOW(),
-      expires_at TIMESTAMP
-    )
-  `);
-
-  // 创建 audit_logs 表
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS audit_logs (
-      id TEXT PRIMARY KEY,
-      action TEXT NOT NULL,
-      user_id TEXT DEFAULT '',
-      detail TEXT DEFAULT '',
-      created_at TIMESTAMP DEFAULT NOW()
-    )
-  `);
-
-  // 创建 tool_data 表
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS tool_data (
-      id TEXT PRIMARY KEY,
-      user_id TEXT NOT NULL,
-      module_id TEXT NOT NULL,
-      module_name TEXT DEFAULT '',
-      data TEXT DEFAULT '{}',
-      updated_at TIMESTAMP DEFAULT NOW(),
-      UNIQUE(user_id, module_id)
-    )
-  `);
-
-  // 创建超级管理员（如果不存在）
-  const admin = await pool.query("SELECT id FROM users WHERE role = 'admin' LIMIT 1");
-  if (admin.rows.length === 0) {
-    const adminId = uuidv4();
-    const hash = bcrypt.hashSync('DTS@Admin2026', 10);
-    await pool.query(
-      "INSERT INTO users (id, username, password, email, role, status, approved_at, approved_by) VALUES ($1, $2, $3, $4, 'admin', 'approved', NOW(), 'system')",
-      [adminId, 'admin', hash, '282727653@qq.com']
-    );
-    console.log('✅ 超级管理员已创建: admin / DTS@Admin2026');
+  if (USE_PG) {
+    // PostgreSQL 初始化
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id TEXT PRIMARY KEY, username TEXT UNIQUE NOT NULL, password TEXT NOT NULL,
+        email TEXT DEFAULT '', company TEXT DEFAULT '', role TEXT DEFAULT 'user',
+        status TEXT DEFAULT 'pending', created_at TIMESTAMP DEFAULT NOW(),
+        approved_at TIMESTAMP, approved_by TEXT
+      )
+    `);
+    await pool.query(`CREATE TABLE IF NOT EXISTS sessions (sid TEXT PRIMARY KEY, user_id TEXT, created_at TIMESTAMP DEFAULT NOW(), expires_at TIMESTAMP)`);
+    await pool.query(`CREATE TABLE IF NOT EXISTS audit_logs (id TEXT PRIMARY KEY, action TEXT NOT NULL, user_id TEXT DEFAULT '', detail TEXT DEFAULT '', created_at TIMESTAMP DEFAULT NOW())`);
+    await pool.query(`CREATE TABLE IF NOT EXISTS tool_data (id TEXT PRIMARY KEY, user_id TEXT NOT NULL, module_id TEXT NOT NULL, module_name TEXT DEFAULT '', data TEXT DEFAULT '{}', updated_at TIMESTAMP DEFAULT NOW(), UNIQUE(user_id, module_id))`);
+    // 创建超级管理员
+    const admin = await pool.query("SELECT id FROM users WHERE role = 'admin' LIMIT 1");
+    if (admin.rows.length === 0) {
+      const hash = bcrypt.hashSync('DTS@Admin2026', 10);
+      await pool.query("INSERT INTO users (id, username, password, email, role, status, approved_at, approved_by) VALUES ($1, $2, $3, $4, 'admin', 'approved', NOW(), 'system')", [uuidv4(), 'admin', hash, '282727653@qq.com']);
+      console.log('✅ 超级管理员已创建: admin / DTS@Admin2026');
+    }
+    console.log('✅ PostgreSQL 数据库初始化完成');
+  } else {
+    // 文件存储初始化：确保数据目录存在
+    ['users', 'sessions', 'audit_logs', 'tool_data'].forEach(f => {
+      const p = path.join(DATA_DIR, f + '.json');
+      if (!fs.existsSync(p)) fs.writeFileSync(p, '[]');
+    });
+    // 创建超级管理员（文件模式）
+    const users = readJson('users');
+    if (!users.find(u => u.role === 'admin')) {
+      users.push({ id: uuidv4(), username: 'admin', password: bcrypt.hashSync('DTS@Admin2026', 10), email: '282727653@qq.com', role: 'admin', status: 'approved', created_at: new Date().toISOString() });
+      writeJson('users', users);
+      console.log('✅ 超级管理员已创建（文件模式）: admin / DTS@Admin2026');
+    }
+    console.log('⚠️  未检测到 DATABASE_URL，使用文件存储（数据保存在容器 /tmp/dts_data，重启后清空）');
+    console.log('   如需持久化，请在 Railway 添加 PostgreSQL 插件');
   }
-
-  console.log('✅ PostgreSQL 数据库初始化完成');
 }
 
 async function logAudit(action, userId, detail) {
@@ -450,9 +566,23 @@ app.get('*', (req, res) => {
 initDB().then(() => {
   app.listen(PORT, () => {
     console.log(`\n🚀 企业数字化转型规划系统`);
-    console.log(`📍 本地访问: http://localhost:${PORT}`);
+    console.log(`📍 访问地址: http://localhost:${PORT}`);
     console.log(`👤 管理员: admin / DTS@Admin2026`);
     console.log(`📋 注册需审批后方可登录`);
-    console.log(`🗄️  数据库: PostgreSQL`);
+    console.log(`🗄️  数据库: ${USE_PG ? 'PostgreSQL' : '文件存储（无持久化）'}`);
   });
-}).catch(e => { console.error('启动失败:', e); process.exit(1); });
+}).catch(e => {
+  console.error('⚠️  数据库初始化失败，尝试以文件模式启动:', e.message);
+  // 即使数据库失败，也尝试以文件模式启动
+  const users = readJson('users');
+  if (!users.find(u => u.role === 'admin')) {
+    users.push({ id: uuidv4(), username: 'admin', password: bcrypt.hashSync('DTS@Admin2026', 10), email: '282727653@qq.com', role: 'admin', status: 'approved', created_at: new Date().toISOString() });
+    writeJson('users', users);
+  }
+  ['sessions', 'audit_logs', 'tool_data'].forEach(f => { const p = path.join(DATA_DIR, f + '.json'); if (!fs.existsSync(p)) fs.writeFileSync(p, '[]'); });
+  app.listen(PORT, () => {
+    console.log(`\n🚀 企业数字化转型规划系统（降级模式）`);
+    console.log(`📍 访问地址: http://localhost:${PORT}`);
+    console.log(`⚠️  使用文件存储，数据重启后清空`);
+  });
+});
