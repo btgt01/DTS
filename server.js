@@ -1,34 +1,63 @@
 const express = require('express');
 const session = require('express-session');
-const initSqlJs = require('sql.js');
+const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
 const { v4: uuidv4 } = require('uuid');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const path = require('path');
-const fs = require('fs');
 
 const app = express();
 const PORT = process.env.PORT || 8899;
-const DB_PATH = path.join(__dirname, 'data', 'users.db');
-const DATA_DIR = path.join(__dirname, 'data');
 
-if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
-
-let db;
-const SQL = {};
-
-// 初始化数据库
-async function initDB() {
-  const SQLJS = await initSqlJs();
-  // 加载已有数据库或创建新数据库
-  if (fs.existsSync(DB_PATH)) {
-    const buf = fs.readFileSync(DB_PATH);
-    db = new SQLJS.Database(buf);
-  } else {
-    db = new SQLJS.Database();
+// PostgreSQL 连接池
+// Railway 会自动注入 DATABASE_URL 环境变量
+// 本地开发时可用 DATABASE_URL 或单独的 PG* 环境变量
+function buildPgConfig() {
+  if (process.env.DATABASE_URL) {
+    return { connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } };
   }
-  db.run(`
+  return {
+    host: process.env.PGHOST || 'localhost',
+    port: process.env.PGPORT || 5432,
+    database: process.env.PGDATABASE || 'dts',
+    user: process.env.PGUSER || 'postgres',
+    password: process.env.PGPASSWORD || '',
+    ssl: { rejectUnauthorized: false }
+  };
+}
+
+const pool = new Pool(buildPgConfig());
+
+// ===== 数据库辅助函数（pg 返回 Promise）=====
+async function dbGet(sql, params = []) {
+  const res = await pool.query(sql, params);
+  if (!res.rows.length) return null;
+  const obj = {};
+  const cols = res.fields.map(f => f.name);
+  cols.forEach((c, i) => obj[c] = res.rows[0][c]);
+  return obj;
+}
+
+async function dbAll(sql, params = []) {
+  const res = await pool.query(sql, params);
+  if (!res.rows.length) return [];
+  const cols = res.fields.map(f => f.name);
+  return res.rows.map(row => {
+    const obj = {};
+    cols.forEach((c, i) => obj[c] = row[c]);
+    return obj;
+  });
+}
+
+async function dbRun(sql, params = []) {
+  await pool.query(sql, params);
+}
+
+// ===== 初始化数据库表 =====
+async function initDB() {
+  // 创建 users 表
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS users (
       id TEXT PRIMARY KEY,
       username TEXT UNIQUE NOT NULL,
@@ -37,92 +66,71 @@ async function initDB() {
       company TEXT DEFAULT '',
       role TEXT DEFAULT 'user',
       status TEXT DEFAULT 'pending',
-      created_at TEXT DEFAULT (datetime('now')),
-      approved_at TEXT,
+      created_at TIMESTAMP DEFAULT NOW(),
+      approved_at TIMESTAMP,
       approved_by TEXT
     )
   `);
-  db.run(`
+
+  // 创建 sessions 表
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS sessions (
       sid TEXT PRIMARY KEY,
       user_id TEXT,
-      created_at TEXT DEFAULT (datetime('now')),
-      expires_at TEXT
+      created_at TIMESTAMP DEFAULT NOW(),
+      expires_at TIMESTAMP
     )
   `);
-  db.run(`
+
+  // 创建 audit_logs 表
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS audit_logs (
       id TEXT PRIMARY KEY,
       action TEXT NOT NULL,
       user_id TEXT DEFAULT '',
       detail TEXT DEFAULT '',
-      created_at TEXT DEFAULT (datetime('now'))
+      created_at TIMESTAMP DEFAULT NOW()
     )
   `);
-  db.run(`
+
+  // 创建 tool_data 表
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS tool_data (
       id TEXT PRIMARY KEY,
       user_id TEXT NOT NULL,
       module_id TEXT NOT NULL,
       module_name TEXT DEFAULT '',
       data TEXT DEFAULT '{}',
-      updated_at TEXT DEFAULT (datetime('now')),
+      updated_at TIMESTAMP DEFAULT NOW(),
       UNIQUE(user_id, module_id)
     )
   `);
-  saveDB();
-  // 创建超级管理员
-  const admin = db.exec("SELECT id FROM users WHERE role = 'admin'");
-  if (admin.length === 0 || admin[0].values.length === 0) {
+
+  // 创建超级管理员（如果不存在）
+  const admin = await pool.query("SELECT id FROM users WHERE role = 'admin' LIMIT 1");
+  if (admin.rows.length === 0) {
     const adminId = uuidv4();
     const hash = bcrypt.hashSync('DTS@Admin2026', 10);
-    db.run("INSERT INTO users (id, username, password, email, role, status, approved_at, approved_by) VALUES (?, ?, ?, ?, 'admin', 'approved', datetime('now'), 'system')",
-      [adminId, 'admin', hash, '282727653@qq.com']);
-    saveDB();
+    await pool.query(
+      "INSERT INTO users (id, username, password, email, role, status, approved_at, approved_by) VALUES ($1, $2, $3, $4, 'admin', 'approved', NOW(), 'system')",
+      [adminId, 'admin', hash, '282727653@qq.com']
+    );
     console.log('✅ 超级管理员已创建: admin / DTS@Admin2026');
   }
-  console.log('✅ 数据库初始化完成');
+
+  console.log('✅ PostgreSQL 数据库初始化完成');
 }
 
-function saveDB() {
+async function logAudit(action, userId, detail) {
   try {
-    const data = db.export();
-    const buf = Buffer.from(data);
-    fs.writeFileSync(DB_PATH, buf);
-  } catch(e) { console.error('DB save error:', e.message); }
+    await dbRun(
+      "INSERT INTO audit_logs (id, action, user_id, detail, created_at) VALUES ($1, $2, $3, $4, NOW())",
+      [uuidv4(), action, userId || '', detail]
+    );
+  } catch (e) {}
 }
 
-function dbGet(sql, params = []) {
-  const r = db.exec(sql, params);
-  if (!r.length || !r[0].values.length) return null;
-  const cols = r[0].columns;
-  const vals = r[0].values[0];
-  const obj = {};
-  cols.forEach((c, i) => obj[c] = vals[i]);
-  return obj;
-}
-
-function dbAll(sql, params = []) {
-  const r = db.exec(sql, params);
-  if (!r.length) return [];
-  const cols = r[0].columns;
-  return r[0].values.map(row => {
-    const obj = {};
-    cols.forEach((c, i) => obj[c] = row[i]);
-    return obj;
-  });
-}
-
-function dbRun(sql, params = []) {
-  db.run(sql, params);
-  saveDB();
-}
-
-function logAudit(action, userId, detail) {
-  try { dbRun("INSERT INTO audit_logs (id, action, user_id, detail, created_at) VALUES (?, ?, ?, ?, datetime('now'))", [uuidv4(), action, userId || '', detail]); } catch(e) {}
-}
-
-// 中间件
+// ===== 中间件 =====
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
@@ -142,31 +150,37 @@ const api = express.Router();
 app.use('/api', api);
 
 // ===== 注册 =====
-api.post('/register', (req, res) => {
+api.post('/register', async (req, res) => {
   const { username, password, email, company } = req.body;
   if (!username || !password) return res.json({ success: false, message: '用户名和密码不能为空' });
   if (password.length < 6) return res.json({ success: false, message: '密码至少6位' });
-  const existing = dbGet("SELECT id FROM users WHERE username = ?", [username]);
+  const existing = await dbGet("SELECT id FROM users WHERE username = $1", [username]);
   if (existing) return res.json({ success: false, message: '用户名已存在' });
   const id = uuidv4();
   const hash = bcrypt.hashSync(password, 10);
-  dbRun("INSERT INTO users (id, username, password, email, company, status) VALUES (?, ?, ?, ?, ?, 'pending')", [id, username, hash, email || '', company || '']);
+  await dbRun(
+    "INSERT INTO users (id, username, password, email, company, status) VALUES ($1, $2, $3, $4, $5, 'pending')",
+    [id, username, hash, email || '', company || '']
+  );
   logAudit('REGISTER', null, `新用户注册: ${username} (${email || '无邮箱'})`);
   res.json({ success: true, message: '注册成功！请等待管理员审批后登录。' });
 });
 
 // ===== 登录 =====
-api.post('/login', (req, res) => {
+api.post('/login', async (req, res) => {
   const { username, password } = req.body;
   if (!username || !password) return res.json({ success: false, message: '请输入用户名和密码' });
-  const user = dbGet("SELECT * FROM users WHERE username = ?", [username]);
+  const user = await dbGet("SELECT * FROM users WHERE username = $1", [username]);
   if (!user) return res.json({ success: false, message: '用户名或密码错误' });
   if (user.status === 'pending') return res.json({ success: false, message: '账号正在等待审批，请联系管理员。' });
   if (user.status === 'rejected') return res.json({ success: false, message: '账号审批未通过，请联系管理员。' });
   if (!bcrypt.compareSync(password, user.password)) return res.json({ success: false, message: '用户名或密码错误' });
   const sid = uuidv4();
-  const expires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
-  dbRun("INSERT INTO sessions (sid, user_id, expires_at) VALUES (?, ?, ?)", [sid, user.id, expires]);
+  const expires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+  await dbRun(
+    "INSERT INTO sessions (sid, user_id, expires_at) VALUES ($1, $2, $3)",
+    [sid, user.id, expires]
+  );
   req.session.userId = user.id;
   req.session.username = user.username;
   req.session.role = user.role;
@@ -176,21 +190,24 @@ api.post('/login', (req, res) => {
 });
 
 // ===== 登出 =====
-api.post('/logout', (req, res) => {
+api.post('/logout', async (req, res) => {
   const sid = req.cookies.dts_sid;
-  if (sid) { dbRun("DELETE FROM sessions WHERE sid = ?", [sid]); }
+  if (sid) await dbRun("DELETE FROM sessions WHERE sid = $1", [sid]);
   req.session.destroy();
   res.clearCookie('dts_sid');
   res.json({ success: true });
 });
 
 // ===== 验证登录 =====
-api.get('/check', (req, res) => {
+api.get('/check', async (req, res) => {
   const sid = req.cookies.dts_sid;
   if (!sid) return res.json({ loggedIn: false });
-  const session = dbGet("SELECT * FROM sessions WHERE sid = ? AND expires_at > datetime('now')", [sid]);
+  const session = await dbGet("SELECT * FROM sessions WHERE sid = $1 AND expires_at > NOW()", [sid]);
   if (!session) return res.json({ loggedIn: false });
-  const user = dbGet("SELECT id, username, email, company, role, status FROM users WHERE id = ? AND status = 'approved'", [session.user_id]);
+  const user = await dbGet(
+    "SELECT id, username, email, company, role, status FROM users WHERE id = $1 AND status = 'approved'",
+    [session.user_id]
+  );
   if (!user) return res.json({ loggedIn: false });
   req.session.userId = user.id;
   req.session.role = user.role;
@@ -206,52 +223,61 @@ function requireAdmin(req, res) {
   return true;
 }
 
+// ===== 辅助：验证登录 =====
+function requireAuth(req, res) {
+  if (!req.session.userId) {
+    res.json({ success: false, message: '请先登录' });
+    return false;
+  }
+  return true;
+}
+
 // ===== 待审批用户 =====
-api.get('/admin/pending-users', (req, res) => {
+api.get('/admin/pending-users', async (req, res) => {
   if (!requireAdmin(req, res)) return;
-  const users = dbAll("SELECT id, username, email, company, created_at FROM users WHERE status = 'pending' ORDER BY created_at DESC");
+  const users = await dbAll("SELECT id, username, email, company, created_at FROM users WHERE status = 'pending' ORDER BY created_at DESC");
   res.json({ success: true, users });
 });
 
 // ===== 所有用户 =====
-api.get('/admin/all-users', (req, res) => {
+api.get('/admin/all-users', async (req, res) => {
   if (!requireAdmin(req, res)) return;
-  const users = dbAll("SELECT id, username, email, company, role, status, created_at, approved_at FROM users ORDER BY created_at DESC");
+  const users = await dbAll("SELECT id, username, email, company, role, status, created_at, approved_at FROM users ORDER BY created_at DESC");
   res.json({ success: true, users });
 });
 
 // ===== 统计数据 =====
-api.get('/admin/stats', (req, res) => {
+api.get('/admin/stats', async (req, res) => {
   if (!requireAdmin(req, res)) return;
-  const total = dbGet("SELECT COUNT(*) as c FROM users");
-  const pending = dbGet("SELECT COUNT(*) as c FROM users WHERE status = 'pending'");
-  const approved = dbGet("SELECT COUNT(*) as c FROM users WHERE status = 'approved'");
-  const rejected = dbGet("SELECT COUNT(*) as c FROM users WHERE status = 'rejected'");
-  res.json({ success: true, stats: { total: total?.c || 0, pending: pending?.c || 0, approved: approved?.c || 0, rejected: rejected?.c || 0 } });
+  const total = await dbGet("SELECT COUNT(*) as c FROM users");
+  const pending = await dbGet("SELECT COUNT(*) as c FROM users WHERE status = 'pending'");
+  const approved = await dbGet("SELECT COUNT(*) as c FROM users WHERE status = 'approved'");
+  const rejected = await dbGet("SELECT COUNT(*) as c FROM users WHERE status = 'rejected'");
+  res.json({ success: true, stats: { total: parseInt(total?.c) || 0, pending: parseInt(pending?.c) || 0, approved: parseInt(approved?.c) || 0, rejected: parseInt(rejected?.c) || 0 } });
 });
 
 // ===== 审批用户 =====
-api.post('/admin/approve-user', (req, res) => {
+api.post('/admin/approve-user', async (req, res) => {
   if (!requireAdmin(req, res)) return;
   const { userId, action } = req.body;
   if (!userId || !action) return res.json({ success: false, message: '参数错误' });
-  const user = dbGet("SELECT * FROM users WHERE id = ?", [userId]);
+  const user = await dbGet("SELECT * FROM users WHERE id = $1", [userId]);
   if (!user) return res.json({ success: false, message: '用户不存在' });
   if (user.status !== 'pending') return res.json({ success: false, message: '用户状态不是待审批' });
   const newStatus = action === 'approve' ? 'approved' : 'rejected';
-  dbRun("UPDATE users SET status = ?, approved_at = datetime('now'), approved_by = ? WHERE id = ?", [newStatus, req.session.username, userId]);
+  await dbRun("UPDATE users SET status = $1, approved_at = NOW(), approved_by = $2 WHERE id = $3", [newStatus, req.session.username, userId]);
   logAudit(action === 'approve' ? 'APPROVE' : 'REJECT', req.session.userId, `${req.session.username} ${action === 'approve' ? '批准' : '拒绝'}用户 ${user.username}`);
   res.json({ success: true, message: action === 'approve' ? '已批准' : '已拒绝' });
 });
 
 // ===== 删除用户 =====
-api.post('/admin/delete-user', (req, res) => {
+api.post('/admin/delete-user', async (req, res) => {
   if (!requireAdmin(req, res)) return;
   const { userId } = req.body;
-  const user = dbGet("SELECT * FROM users WHERE id = ?", [userId]);
+  const user = await dbGet("SELECT * FROM users WHERE id = $1", [userId]);
   if (!user) return res.json({ success: false, message: '用户不存在' });
   if (user.role === 'admin') return res.json({ success: false, message: '不能删除管理员账号' });
-  dbRun("DELETE FROM users WHERE id = ?", [userId]);
+  await dbRun("DELETE FROM users WHERE id = $1", [userId]);
   logAudit('DELETE', req.session.userId, `删除用户: ${user.username}`);
   res.json({ success: true });
 });
@@ -263,101 +289,92 @@ api.post('/admin/reset-password', async (req, res) => {
   if (!newPassword || newPassword.length < 6) {
     return res.json({ success: false, message: '密码长度不能少于6位' });
   }
-  const user = dbGet("SELECT * FROM users WHERE id = ?", [userId]);
+  const user = await dbGet("SELECT * FROM users WHERE id = $1", [userId]);
   if (!user) return res.json({ success: false, message: '用户不存在' });
   const hashed = await bcrypt.hash(newPassword, 10);
-  dbRun("UPDATE users SET password = ? WHERE id = ?", [hashed, userId]);
+  await dbRun("UPDATE users SET password = $1 WHERE id = $2", [hashed, userId]);
   logAudit('RESET_PWD', req.session.userId, `重置用户 ${user.username} 的密码`);
   res.json({ success: true, message: '密码已重置' });
 });
 
 // ===== 审计日志 =====
-api.get('/admin/audit-logs', (req, res) => {
+api.get('/admin/audit-logs', async (req, res) => {
   if (!requireAdmin(req, res)) return;
-  const logs = dbAll("SELECT * FROM audit_logs ORDER BY created_at DESC LIMIT 100");
+  const logs = await dbAll("SELECT * FROM audit_logs ORDER BY created_at DESC LIMIT 100");
   res.json({ success: true, logs });
 });
 
-// ===== 辅助：验证登录 =====
-function requireAuth(req, res) {
-  if (!req.session.userId) {
-    res.json({ success: false, message: '请先登录' });
-    return false;
-  }
-  return true;
-}
-
-// ===== 保存工具数据（自动创建或更新） =====
-api.post('/data/save', (req, res) => {
+// ===== 保存工具数据 =====
+api.post('/data/save', async (req, res) => {
   if (!requireAuth(req, res)) return;
   const { moduleId, moduleName, data } = req.body;
   if (!moduleId) return res.json({ success: false, message: '模块ID不能为空' });
   try {
-    const existing = dbGet("SELECT id FROM tool_data WHERE user_id = ? AND module_id = ?", [req.session.userId, moduleId]);
+    const existing = await dbGet("SELECT id FROM tool_data WHERE user_id = $1 AND module_id = $2", [req.session.userId, moduleId]);
     if (existing) {
-      dbRun("UPDATE tool_data SET module_name = ?, data = ?, updated_at = datetime('now') WHERE user_id = ? AND module_id = ?",
-        [moduleName || moduleId, JSON.stringify(data), req.session.userId, moduleId]);
+      await dbRun(
+        "UPDATE tool_data SET module_name = $1, data = $2, updated_at = NOW() WHERE user_id = $3 AND module_id = $4",
+        [moduleName || moduleId, JSON.stringify(data), req.session.userId, moduleId]
+      );
     } else {
-      dbRun("INSERT INTO tool_data (id, user_id, module_id, module_name, data) VALUES (?, ?, ?, ?, ?)",
-        [uuidv4(), req.session.userId, moduleId, moduleName || moduleId, JSON.stringify(data)]);
+      await dbRun(
+        "INSERT INTO tool_data (id, user_id, module_id, module_name, data) VALUES ($1, $2, $3, $4, $5)",
+        [uuidv4(), req.session.userId, moduleId, moduleName || moduleId, JSON.stringify(data)]
+      );
     }
     res.json({ success: true });
-  } catch(e) {
+  } catch (e) {
     res.json({ success: false, message: '保存失败: ' + e.message });
   }
 });
 
 // ===== 加载工具数据 =====
-api.get('/data/load/:moduleId', (req, res) => {
+api.get('/data/load/:moduleId', async (req, res) => {
   if (!requireAuth(req, res)) return;
   const { moduleId } = req.params;
-  const row = dbGet("SELECT * FROM tool_data WHERE user_id = ? AND module_id = ?", [req.session.userId, moduleId]);
+  const row = await dbGet("SELECT * FROM tool_data WHERE user_id = $1 AND module_id = $2", [req.session.userId, moduleId]);
   if (!row) return res.json({ success: true, data: null });
   try {
     res.json({ success: true, data: JSON.parse(row.data), updated_at: row.updated_at });
-  } catch(e) {
+  } catch (e) {
     res.json({ success: true, data: null });
   }
 });
 
 // ===== 加载当前用户所有工具进度 =====
-api.get('/data/progress', (req, res) => {
+api.get('/data/progress', async (req, res) => {
   if (!requireAuth(req, res)) return;
-  const rows = dbAll("SELECT module_id, module_name, updated_at FROM tool_data WHERE user_id = ? ORDER BY updated_at DESC", [req.session.userId]);
+  const rows = await dbAll("SELECT module_id, module_name, updated_at FROM tool_data WHERE user_id = $1 ORDER BY updated_at DESC", [req.session.userId]);
   res.json({ success: true, modules: rows });
 });
 
 // ===== 管理员：全局数据统计 =====
-api.get('/admin/data-stats', (req, res) => {
+api.get('/admin/data-stats', async (req, res) => {
   if (!requireAdmin(req, res)) return;
-  // 各模块使用次数
-  const moduleUsage = dbAll(`
+  const moduleUsage = await dbAll(`
     SELECT module_id, module_name, COUNT(*) as count,
            COUNT(DISTINCT user_id) as user_count,
            MAX(updated_at) as last_update
     FROM tool_data GROUP BY module_id ORDER BY count DESC
   `);
-  // 活跃用户（有数据的用户）
-  const activeUsers = dbGet("SELECT COUNT(DISTINCT user_id) as c FROM tool_data");
-  // 近7天活跃
-  const recentActive = dbGet("SELECT COUNT(DISTINCT user_id) as c FROM tool_data WHERE updated_at > datetime('now', '-7 days')");
-  // 各模块统计
-  const totalRecords = dbGet("SELECT COUNT(*) as c FROM tool_data");
+  const activeUsers = await dbGet("SELECT COUNT(DISTINCT user_id) as c FROM tool_data");
+  const recentActive = await dbGet("SELECT COUNT(DISTINCT user_id) as c FROM tool_data WHERE updated_at > NOW() - INTERVAL '7 days'");
+  const totalRecords = await dbGet("SELECT COUNT(*) as c FROM tool_data");
   res.json({
     success: true,
     stats: {
-      totalRecords: totalRecords?.c || 0,
-      activeUsers: activeUsers?.c || 0,
-      recentActive: recentActive?.c || 0,
+      totalRecords: parseInt(totalRecords?.c) || 0,
+      activeUsers: parseInt(activeUsers?.c) || 0,
+      recentActive: parseInt(recentActive?.c) || 0,
       moduleUsage
     }
   });
 });
 
 // ===== 管理员：查看所有用户数据摘要 =====
-api.get('/admin/users-data', (req, res) => {
+api.get('/admin/users-data', async (req, res) => {
   if (!requireAdmin(req, res)) return;
-  const users = dbAll(`
+  const users = await dbAll(`
     SELECT u.id, u.username, u.email, u.company, u.status, u.created_at,
            COUNT(td.id) as module_count,
            MAX(td.updated_at) as last_activity
@@ -371,36 +388,36 @@ api.get('/admin/users-data', (req, res) => {
 });
 
 // ===== 管理员：查看指定用户所有数据 =====
-api.get('/admin/user-data/:userId', (req, res) => {
+api.get('/admin/user-data/:userId', async (req, res) => {
   if (!requireAdmin(req, res)) return;
   const { userId } = req.params;
-  const user = dbGet("SELECT id, username, email, company, status, created_at FROM users WHERE id = ?", [userId]);
+  const user = await dbGet("SELECT id, username, email, company, status, created_at FROM users WHERE id = $1", [userId]);
   if (!user) return res.json({ success: false, message: '用户不存在' });
-  const rows = dbAll("SELECT module_id, module_name, updated_at FROM tool_data WHERE user_id = ? ORDER BY updated_at DESC", [userId]);
+  const rows = await dbAll("SELECT module_id, module_name, updated_at FROM tool_data WHERE user_id = $1 ORDER BY updated_at DESC", [userId]);
   res.json({ success: true, user, modules: rows });
 });
 
 // ===== 管理员：导出指定用户单模块数据 =====
-api.get('/admin/export-user-module/:userId/:moduleId', (req, res) => {
+api.get('/admin/export-user-module/:userId/:moduleId', async (req, res) => {
   if (!requireAdmin(req, res)) return;
   const { userId, moduleId } = req.params;
-  const row = dbGet("SELECT * FROM tool_data WHERE user_id = ? AND module_id = ?", [userId, moduleId]);
+  const row = await dbGet("SELECT * FROM tool_data WHERE user_id = $1 AND module_id = $2", [userId, moduleId]);
   if (!row) return res.json({ success: false, message: '无数据' });
-  const user = dbGet("SELECT username FROM users WHERE id = ?", [userId]);
+  const user = await dbGet("SELECT username FROM users WHERE id = $1", [userId]);
   try {
     res.json({ success: true, data: JSON.parse(row.data), module_name: row.module_name, username: user?.username });
-  } catch(e) {
+  } catch (e) {
     res.json({ success: false, message: '数据解析失败' });
   }
 });
 
-// ===== 管理员：导出用户全部数据（JSON下载） =====
-api.get('/admin/export-user-all/:userId', (req, res) => {
+// ===== 管理员：导出用户全部数据（JSON下载）=====
+api.get('/admin/export-user-all/:userId', async (req, res) => {
   if (!requireAdmin(req, res)) return;
   const { userId } = req.params;
-  const user = dbGet("SELECT username, email, company FROM users WHERE id = ?", [userId]);
+  const user = await dbGet("SELECT username, email, company FROM users WHERE id = $1", [userId]);
   if (!user) return res.json({ success: false, message: '用户不存在' });
-  const rows = dbAll("SELECT module_id, module_name, data, updated_at FROM tool_data WHERE user_id = ? ORDER BY updated_at", [userId]);
+  const rows = await dbAll("SELECT module_id, module_name, data, updated_at FROM tool_data WHERE user_id = $1 ORDER BY updated_at", [userId]);
   const exportData = { user, records: rows.map(r => ({ ...r, data: JSON.parse(r.data) })) };
   res.setHeader('Content-Disposition', `attachment; filename="${user.username}_数据导出.json"`);
   res.setHeader('Content-Type', 'application/json');
@@ -408,13 +425,13 @@ api.get('/admin/export-user-all/:userId', (req, res) => {
 });
 
 // ===== 管理员：删除指定用户所有数据 =====
-api.post('/admin/delete-user-data', (req, res) => {
+api.post('/admin/delete-user-data', async (req, res) => {
   if (!requireAdmin(req, res)) return;
   const { userId } = req.body;
   if (!userId) return res.json({ success: false, message: '参数错误' });
-  const user = dbGet("SELECT username FROM users WHERE id = ?", [userId]);
+  const user = await dbGet("SELECT username FROM users WHERE id = $1", [userId]);
   if (!user) return res.json({ success: false, message: '用户不存在' });
-  dbRun("DELETE FROM tool_data WHERE user_id = ?", [userId]);
+  await dbRun("DELETE FROM tool_data WHERE user_id = $1", [userId]);
   logAudit('DEL_DATA', req.session.userId, `清除了用户 ${user.username} 的所有工具数据`);
   res.json({ success: true });
 });
@@ -435,6 +452,7 @@ initDB().then(() => {
     console.log(`\n🚀 企业数字化转型规划系统`);
     console.log(`📍 本地访问: http://localhost:${PORT}`);
     console.log(`👤 管理员: admin / DTS@Admin2026`);
-    console.log(`📋 注册需审批后方可登录\n`);
+    console.log(`📋 注册需审批后方可登录`);
+    console.log(`🗄️  数据库: PostgreSQL`);
   });
 }).catch(e => { console.error('启动失败:', e); process.exit(1); });
