@@ -9,9 +9,5 @@
     "restartPolicyMaxRetries": 10,
     "startCommand": "node server.js"
   },
-  "plugins": {
-    "postgres": {
-      "type": "postgresql"
-    }
-  }
+  "plugins": ["postgresql"]
 }
