@@ -54,16 +54,8 @@ async function dbRun(sql, params = []) {
   await fileStore.run(sql, params);
 }
 
-// ===== 文件存储模式（无 DATABASE_URL 时降级使用）=====
-const DATA_DIR = path.join(process.cwd(), '.dts_data');
-if (!USE_PG) {
-  console.log('⚠️  未检测到 DATABASE_URL，使用文件存储于 .dts_data 目录');
-  if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
-}
-
-function filePath(name) { return path.join(DATA_DIR, name + '.json'); }
-function readJson(name) { try { return JSON.parse(fs.readFileSync(filePath(name), 'utf8')); } catch { return []; } }
-function writeJson(name, data) { fs.writeFileSync(filePath(name), JSON.stringify(data, null, 2)); }
+// ===== 内存存储模式（Railway 容器文件系统是临时的，使用内存确保稳定）=====
+const mem = { users: [], sessions: [], audit_logs: [], tool_data: [] };
 
 const fileStore = {
   async get(sql, params) {
@@ -71,130 +63,69 @@ const fileStore = {
     return rows[0] || null;
   },
   async all(sql, params) {
-    const users = readJson('users');
-    const sessions = readJson('sessions');
-    const audit = readJson('audit_logs');
-    const tool = readJson('tool_data');
-    // 简化路由
-    if (sql.includes('FROM users') && sql.includes('WHERE username = $1')) {
-      const idx = users.findIndex(u => u.username === params[0]);
-      return idx >= 0 ? [users[idx]] : [];
-    }
-    if (sql.includes('FROM users') && sql.includes('WHERE role')) return users.filter(u => u.role === 'admin').slice(0, 1);
-    if (sql.includes('FROM users') && sql.includes('LIMIT 1')) {
-      const idx = params[0] ? users.findIndex(u => u.id === params[0]) : -1;
-      return idx >= 0 ? [users[idx]] : [];
-    }
-    if (sql.includes('FROM users') && sql.includes('status = $1') && params[0] === 'pending') return users.filter(u => u.status === 'pending');
-    if (sql.includes('FROM users') && sql.includes('ORDER BY created_at')) return users;
-    if (sql.includes('FROM users') && sql.includes('WHERE id = $1')) {
-      const idx = params[0] ? users.findIndex(u => u.id === params[0]) : -1;
-      return idx >= 0 ? [users[idx]] : [];
-    }
-    // COUNT(*) 路由
-    if (sql.includes('COUNT(*)') && sql.includes('FROM users') && !sql.includes('WHERE')) return [{ c: String(users.length) }];
-    if (sql.includes('COUNT(*)') && sql.includes('status = $1') && params[0]) return [{ c: String(users.filter(u => u.status === params[0]).length) }];
+    const { users, sessions, audit_logs, tool_data } = mem;
+    // 按用户名查找（登录）
+    if (sql.includes('FROM users') && sql.includes('username = $1')) return users.filter(u => u.username === params[0]);
+    // 按 ID 查找
+    if (sql.includes('FROM users') && sql.includes('WHERE id = $1')) return users.filter(u => u.id === params[0]);
+    // 按状态筛选
+    if (sql.includes('FROM users') && sql.includes('status = $1')) return users.filter(u => u.status === params[0]);
+    // admin 角色
+    if (sql.includes('FROM users') && sql.includes('role')) return users.filter(u => u.role === 'admin').slice(0, 1);
+    // 用户列表
+    if (sql.includes('FROM users') && sql.includes('ORDER BY')) return [...users].sort((a,b) => new Date(b.created_at)-new Date(a.created_at));
+    // 会话
     if (sql.includes('FROM sessions') && sql.includes('sid = $1')) {
       const now = Date.now();
       return sessions.filter(s => s.sid === params[0] && new Date(s.expires_at).getTime() > now);
     }
-    if (sql.includes('FROM audit_logs') && sql.includes('ORDER BY')) return audit.slice(0, 100);
-    if (sql.includes('FROM tool_data') && sql.includes('user_id = $1') && sql.includes('module_id = $2')) {
-      const idx = tool.findIndex(t => t.user_id === params[0] && t.module_id === params[1]);
-      return idx >= 0 ? [tool[idx]] : [];
-    }
-    if (sql.includes('FROM tool_data') && sql.includes('user_id = $1') && sql.includes('ORDER BY')) {
-      return tool.filter(t => t.user_id === params[0]).sort((a,b) => new Date(b.updated_at)-new Date(a.updated_at));
-    }
-    if (sql.includes('FROM tool_data') && sql.includes('GROUP BY module_id')) {
-      const grouped = {};
-      tool.forEach(t => { if (!grouped[t.module_id]) grouped[t.module_id] = { module_id: t.module_id, module_name: t.module_name, count: 0, user_count: new Set(), last_update: t.updated_at };
-        grouped[t.module_id].count++;
-        grouped[t.module_id].user_count.add(t.user_id);
-        if (new Date(t.updated_at) > new Date(grouped[t.module_id].last_update)) grouped[t.module_id].last_update = t.updated_at;
+    // 审计日志
+    if (sql.includes('FROM audit_logs') && sql.includes('ORDER BY')) return [...audit_logs].sort((a,b) => new Date(b.created_at)-new Date(a.created_at)).slice(0, 100);
+    // 工具数据
+    if (sql.includes('FROM tool_data') && sql.includes('user_id = $1') && sql.includes('module_id = $2')) return tool_data.filter(t => t.user_id === params[0] && t.module_id === params[1]);
+    if (sql.includes('FROM tool_data') && sql.includes('user_id = $1') && sql.includes('ORDER BY')) return [...tool_data].filter(t => t.user_id === params[0]).sort((a,b) => new Date(b.updated_at)-new Date(a.updated_at));
+    if (sql.includes('FROM tool_data') && sql.includes('GROUP BY')) {
+      const g = {};
+      tool_data.forEach(t => {
+        if (!g[t.module_id]) g[t.module_id] = { module_id: t.module_id, module_name: t.module_name||'', count:0, user_count:0, last_update: t.updated_at };
+        g[t.module_id].count++;
+        g[t.module_id].user_count = new Set(tool_data.filter(x=>x.module_id===t.module_id).map(x=>x.user_id)).size;
+        if (new Date(t.updated_at) > new Date(g[t.module_id].last_update)) g[t.module_id].last_update = t.updated_at;
       });
-      return Object.values(grouped).map(g => ({ ...g, user_count: g.user_count.size }));
+      return Object.values(g);
     }
-    if (sql.includes('COUNT(*)') && sql.includes('FROM users')) {
-      const c = users.length;
-      return [{ c: String(c) }];
+    // COUNT
+    if (sql.includes('COUNT(*)') && sql.includes('FROM users') && !sql.includes('WHERE')) return [{ c: String(users.length) }];
+    if (sql.includes('COUNT(*)') && sql.includes('status = $1') && params[0]) return [{ c: String(users.filter(u => u.status === params[0]).length) }];
+    if (sql.includes('COUNT(DISTINCT user_id)') && sql.includes('INTERVAL')) {
+      const cut = new Date(Date.now()-7*24*60*60*1000);
+      return [{ c: String(new Set(tool_data.filter(t=>new Date(t.updated_at)>cut).map(t=>t.user_id)).size) }];
     }
-    if (sql.includes('COUNT(*)') && sql.includes('status = $1') && params[0]) {
-      const c = users.filter(u => u.status === params[0]).length;
-      return [{ c: String(c) }];
-    }
-    if (sql.includes('COUNT(DISTINCT user_id)') && sql.includes('FROM tool_data') && sql.includes('INTERVAL')) {
-      const cutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-      const c = new Set(tool.filter(t => new Date(t.updated_at) > cutoff).map(t => t.user_id)).size;
-      return [{ c: String(c) }];
-    }
-    if (sql.includes('COUNT(DISTINCT user_id)') && sql.includes('FROM tool_data')) {
-      const c = new Set(tool.map(t => t.user_id)).size;
-      return [{ c: String(c) }];
-    }
-    if (sql.includes('COUNT(*)') && sql.includes('FROM tool_data')) {
-      return [{ c: String(tool.length) }];
-    }
+    if (sql.includes('COUNT(DISTINCT user_id)') && sql.includes('FROM tool_data')) return [{ c: String(new Set(tool_data.map(t=>t.user_id)).size) }];
+    if (sql.includes('COUNT(*)') && sql.includes('FROM tool_data')) return [{ c: String(tool_data.length) }];
     return [];
   },
   async run(sql, params) {
-    const users = readJson('users');
-    const sessions = readJson('sessions');
-    const audit = readJson('audit_logs');
-    const tool = readJson('tool_data');
+    const { users, sessions, audit_logs, tool_data } = mem;
     if (sql.includes('INSERT INTO users')) {
-      const id = params[0], username = params[1], password = params[2], email = params[3], role = params[4] || 'user', status = params[5] || 'pending';
-      if (!users.find(u => u.username === username)) {
-        users.push({ id, username, password, email, role, status, created_at: new Date().toISOString(), approved_at: role === 'admin' ? new Date().toISOString() : null });
-        writeJson('users', users);
-      }
+      const [id,username,password,email,role,status] = params;
+      if (!users.find(u => u.username === username)) users.push({ id, username, password, email:email||'', role:role||'user', status:status||'pending', created_at: new Date().toISOString(), approved_at: role==='admin' ? new Date().toISOString() : null, approved_by: role==='admin' ? 'system' : null });
       return;
     }
-    if (sql.includes('INSERT INTO sessions')) {
-      sessions.push({ sid: params[0], user_id: params[1], created_at: new Date().toISOString(), expires_at: params[2] });
-      writeJson('sessions', sessions);
-      return;
-    }
-    if (sql.includes('DELETE FROM sessions') && sql.includes('sid = $1')) {
-      const idx = sessions.findIndex(s => s.sid === params[0]);
-      if (idx >= 0) { sessions.splice(idx, 1); writeJson('sessions', sessions); }
-      return;
-    }
-    if (sql.includes('INSERT INTO audit_logs')) {
-      audit.push({ id: params[0], action: params[1], user_id: params[2], detail: params[3], created_at: new Date().toISOString() });
-      writeJson('audit_logs', audit);
-      return;
-    }
+    if (sql.includes('INSERT INTO sessions')) sessions.push({ sid: params[0], user_id: params[1], created_at: new Date().toISOString(), expires_at: params[2] });
+    if (sql.includes('DELETE FROM sessions') && sql.includes('sid = $1')) { const i = sessions.findIndex(s=>s.sid===params[0]); if(i>=0) sessions.splice(i,1); }
+    if (sql.includes('INSERT INTO audit_logs')) audit_logs.push({ id: params[0], action: params[1], user_id: params[2]||'', detail: params[3]||'', created_at: new Date().toISOString() });
     if (sql.includes('INSERT INTO tool_data')) {
-      tool.push({ id: params[0], user_id: params[1], module_id: params[2], module_name: params[3], data: params[4], updated_at: new Date().toISOString() });
-      writeJson('tool_data', tool);
-      return;
+      const [id,user_id,module_id,module_name,data] = params;
+      const i = tool_data.findIndex(t=>t.user_id===user_id&&t.module_id===module_id);
+      if (i>=0) tool_data[i]={id,user_id,module_id,module_name:module_name||'',data:data||'{}',updated_at:new Date().toISOString()};
+      else tool_data.push({id,user_id,module_id,module_name:module_name||'',data:data||'{}',updated_at:new Date().toISOString()});
     }
-    if (sql.includes('UPDATE tool_data SET')) {
-      const idx = tool.findIndex(t => t.user_id === params[1] && t.module_id === params[2]);
-      if (idx >= 0) { tool[idx].module_name = params[0]; tool[idx].data = params[1+1+1]; tool[idx].updated_at = new Date().toISOString(); writeJson('tool_data', tool); }
-      return;
-    }
-    if (sql.includes('UPDATE users SET status')) {
-      const idx = users.findIndex(u => u.id === params[2]);
-      if (idx >= 0) { users[idx].status = params[0]; users[idx].approved_at = new Date().toISOString(); users[idx].approved_by = params[1]; writeJson('users', users); }
-      return;
-    }
-    if (sql.includes('UPDATE users SET password')) {
-      const idx = users.findIndex(u => u.id === params[1]);
-      if (idx >= 0) { users[idx].password = params[0]; writeJson('users', users); }
-      return;
-    }
-    if (sql.includes('DELETE FROM users')) {
-      const idx = users.findIndex(u => u.id === params[0]);
-      if (idx >= 0) { users.splice(idx, 1); writeJson('users', users); }
-      return;
-    }
-    if (sql.includes('DELETE FROM tool_data')) {
-      const filtered = tool.filter(t => t.user_id !== params[0]);
-      writeJson('tool_data', filtered);
-      return;
-    }
+    if (sql.includes('UPDATE tool_data SET')) { const i=tool_data.findIndex(t=>t.user_id===params[2]&&t.module_id===params[3]); if(i>=0){ tool_data[i].module_name=params[0]; tool_data[i].data=params[1]; tool_data[i].updated_at=new Date().toISOString(); } }
+    if (sql.includes('UPDATE users SET status')) { const i=users.findIndex(u=>u.id===params[2]); if(i>=0){ users[i].status=params[0]; users[i].approved_at=new Date().toISOString(); users[i].approved_by=params[1]; } }
+    if (sql.includes('UPDATE users SET password')) { const i=users.findIndex(u=>u.id===params[1]); if(i>=0) users[i].password=params[0]; }
+    if (sql.includes('DELETE FROM users')) { const i=users.findIndex(u=>u.id===params[0]); if(i>=0) users.splice(i,1); }
+    if (sql.includes('DELETE FROM tool_data')) { const f=tool_data.filter(t=>t.user_id!==params[0]); tool_data.length=0; tool_data.push(...f); }
   }
 };
 
@@ -222,41 +153,19 @@ async function initDB() {
     }
     console.log('✅ PostgreSQL 数据库初始化完成');
   } else {
-    // 文件存储初始化：确保数据目录存在
-    ['users', 'sessions', 'audit_logs', 'tool_data'].forEach(f => {
-      const p = path.join(DATA_DIR, f + '.json');
-      if (!fs.existsSync(p)) fs.writeFileSync(p, '[]');
-    });
-    // 创建超级管理员（文件模式）
-    const users = readJson('users');
-    if (!users.find(u => u.role === 'admin')) {
+    // 内存存储初始化
+    const now = new Date().toISOString();
+    if (!mem.users.find(u => u.role === 'admin')) {
       const hash = bcrypt.hashSync('DTS@Admin2026', 10);
-      users.push({ 
-        id: uuidv4(), 
-        username: 'admin', 
-        password: hash, 
-        email: '282727653@qq.com', 
-        role: 'admin', 
-        status: 'approved',
-        created_at: new Date().toISOString(),
-        approved_at: new Date().toISOString(),
-        approved_by: 'system'
-      });
-      writeJson('users', users);
-      console.log('✅ 超级管理员已创建（文件模式）: admin / DTS@Admin2026');
+      mem.users.push({ id: uuidv4(), username: 'admin', password: hash, email: '282727653@qq.com', role: 'admin', status: 'approved', created_at: now, approved_at: now, approved_by: 'system' });
+      console.log('✅ 超级管理员已创建（内存模式）: admin / DTS@Admin2026');
     } else {
       // 确保现有 admin 状态为 approved
-      const adminIdx = users.findIndex(u => u.role === 'admin' && u.status !== 'approved');
-      if (adminIdx >= 0) {
-        users[adminIdx].status = 'approved';
-        users[adminIdx].approved_at = new Date().toISOString();
-        users[adminIdx].approved_by = 'system';
-        writeJson('users', users);
-        console.log('✅ 已修复 admin 账号状态为 approved');
-      }
+      const ai = mem.users.findIndex(u => u.role === 'admin' && u.status !== 'approved');
+      if (ai >= 0) { mem.users[ai].status = 'approved'; mem.users[ai].approved_at = now; mem.users[ai].approved_by = 'system'; }
+      console.log('✅ 已确认 admin 账号状态为 approved');
     }
-    console.log('⚠️  未检测到 DATABASE_URL，使用文件存储（数据保存在容器 /tmp/dts_data，重启后清空）');
-    console.log('   如需持久化，请在 Railway 添加 PostgreSQL 插件');
+    console.log('⚠️  使用内存存储（重启后数据清空，仅适合预览）');
   }
 }
 
@@ -610,23 +519,14 @@ initDB().then(() => {
   server.on('error', (e) => { console.error('❌ 服务器错误:', e.message); });
 }).catch(e => {
   console.error('⚠️  initDB 异常，强制启动:', e.message);
-  ['users', 'sessions', 'audit_logs', 'tool_data'].forEach(f => { const p = path.join(DATA_DIR, f + '.json'); if (!fs.existsSync(p)) fs.writeFileSync(p, '[]'); });
-  const users = readJson('users');
-  if (!users.find(u => u.role === 'admin')) {
+  const now = new Date().toISOString();
+  if (!mem.users.find(u => u.role === 'admin')) {
     const hash = bcrypt.hashSync('DTS@Admin2026', 10);
-    users.push({ id: uuidv4(), username: 'admin', password: hash, email: '282727653@qq.com', role: 'admin', status: 'approved', created_at: new Date().toISOString(), approved_at: new Date().toISOString(), approved_by: 'system' });
-    writeJson('users', users);
-    console.log('✅ 超级管理员已创建（catch降级）: admin / DTS@Admin2026');
+    mem.users.push({ id: uuidv4(), username: 'admin', password: hash, email: '282727653@qq.com', role: 'admin', status: 'approved', created_at: now, approved_at: now, approved_by: 'system' });
+    console.log('✅ 超级管理员已创建: admin / DTS@Admin2026');
   } else {
-    // 确保现有 admin 状态为 approved
-    const adminIdx = users.findIndex(u => u.role === 'admin' && u.status !== 'approved');
-    if (adminIdx >= 0) {
-      users[adminIdx].status = 'approved';
-      users[adminIdx].approved_at = new Date().toISOString();
-      users[adminIdx].approved_by = 'system';
-      writeJson('users', users);
-      console.log('✅ 已修复 admin 账号状态为 approved');
-    }
+    const ai = mem.users.findIndex(u => u.role === 'admin' && u.status !== 'approved');
+    if (ai >= 0) { mem.users[ai].status = 'approved'; mem.users[ai].approved_at = now; mem.users[ai].approved_by = 'system'; }
   }
   const server = app.listen(PORT, '0.0.0.0', () => {
     console.log(`\n🚀 企业数字化转型规划系统（强制启动）`);
