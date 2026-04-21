@@ -240,11 +240,12 @@
     <!-- 治理机制说明卡片已移除 -->
     
     <div class="export-section">
-      <button class="btn btn-primary" onclick="exportWord()">📥 导出Word文档</button>
+      <button class="btn btn-primary" onclick="exportExcel()">📥 导出文档</button>
     </div>
   </div>
   
   <script src="data-api.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
     function addMember(level) {
       const name = prompt('输入岗位名称：');
@@ -335,6 +336,49 @@
     function escapeXml(str) {
       if (!str) return '';
       return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
+    }
+    
+    // 导出Excel
+    function exportExcel() {
+      const policies = document.querySelectorAll('#policyList .policy-item');
+      const aoa1 = [
+        ['治理架构设计 - 管理制度'],
+        ['序号', '制度名称', '类别', '描述'],
+        ...Array.from(policies).map((p, i) => {
+          const inputs = p.querySelectorAll('input');
+          const select = p.querySelector('select');
+          return [
+            i + 1,
+            inputs[0]?.value || '',
+            select?.options[select?.selectedIndex]?.text || '',
+            inputs[1]?.value || ''
+          ];
+        })
+      ];
+      const ws1 = XLSX.utils.aoa_to_sheet(aoa1);
+      
+      const kpiRows = document.querySelectorAll('#kpiTable tr');
+      const aoa2 = [
+        ['治理架构设计 - 评估指标KPI'],
+        ['序号', '指标名称', '指标定义', '目标值', '评估周期'],
+        ...Array.from(kpiRows).map((tr, i) => {
+          const inputs = tr.querySelectorAll('input');
+          const select = tr.querySelector('select');
+          return [
+            i + 1,
+            inputs[0]?.value || '',
+            inputs[1]?.value || '',
+            inputs[2]?.value || '',
+            select?.options[select?.selectedIndex]?.text || ''
+          ];
+        })
+      ];
+      const ws2 = XLSX.utils.aoa_to_sheet(aoa2);
+      
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws1, '管理制度');
+      XLSX.utils.book_append_sheet(wb, ws2, 'KPI指标');
+      XLSX.writeFile(wb, '治理架构设计.xlsx');
     }
   </script>
 </body>

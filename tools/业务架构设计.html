@@ -179,11 +179,12 @@
     <!-- 业务架构总览卡片已移除 -->
     
     <div class="export-section">
-      <button class="btn btn-primary" onclick="exportWord()">📥 导出Word文档</button>
+      <button class="btn btn-primary" onclick="exportExcel()">📥 导出文档</button>
     </div>
   </div>
   
   <script src="data-api.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
     let capabilities = [
       { id: 1, name: '研发创新', desc: '产品设计与研发、创新管理、技术预研' },
@@ -357,6 +358,28 @@
                 .replace(/>/g, '&gt;')
                 .replace(/"/g, '&quot;')
                 .replace(/'/g, '&apos;');
+    }
+    
+    // 导出Excel
+    function exportExcel() {
+      const aoa1 = [
+        ['业务架构设计 - 业务能力域'],
+        ['序号', '能力域名称', '能力描述'],
+        ...capabilities.map((c, i) => [i + 1, c.name, c.desc])
+      ];
+      const ws1 = XLSX.utils.aoa_to_sheet(aoa1);
+      
+      const aoa2 = [
+        ['业务架构设计 - 核心业务流程'],
+        ['序号', '流程名称', '流程步骤'],
+        ...processes.map((p, i) => [i + 1, p.name, p.steps])
+      ];
+      const ws2 = XLSX.utils.aoa_to_sheet(aoa2);
+      
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws1, '业务能力');
+      XLSX.utils.book_append_sheet(wb, ws2, '业务流程');
+      XLSX.writeFile(wb, '业务架构设计.xlsx');
     }
     
     renderCapabilities();

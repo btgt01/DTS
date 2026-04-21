@@ -74,6 +74,7 @@
     <p>基于TOGAF ADM方法论，规划企业数字化转型的战略愿景与目标</p>
   </div>
   
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <div class="container">
     <!-- 第一步：选择业务驱动因素 -->
     <div class="card">
@@ -269,7 +270,7 @@
         
         <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 1.5rem;">
           <button class="btn btn-primary" onclick="previewVision()">👁️ 预览效果</button>
-          <button class="btn btn-success" onclick="exportVision()">📥 导出Word报告</button>
+          <button class="btn btn-success" onclick="exportVisionExcel()">📥 导出文档</button>
           <button class="btn btn-secondary" onclick="saveToLocal()">💾 保存草稿</button>
         </div>
       </div>
@@ -432,6 +433,61 @@
       a.href = url;
       a.download = '数字化转型愿景规划.docx';
       a.click();
+    }
+    
+    // 导出Excel报告
+    function exportVisionExcel() {
+      const vision = document.getElementById('visionStatement').value;
+      const mission = document.getElementById('missionStatement').value;
+      const timeConstraint = document.getElementById('timeConstraint').value;
+      const budgetConstraint = document.getElementById('budgetConstraint').value;
+      const techConstraint = document.getElementById('techConstraint').value;
+      
+      // 获取战略主题
+      const themes = [];
+      document.querySelectorAll('#strategicThemes input[type="text"]').forEach(input => {
+        if (input.value.trim()) themes.push(input.value.trim());
+      });
+      
+      // 获取关键成功因素
+      const factors = [];
+      document.querySelectorAll('#criticalFactors input[type="text"]').forEach(input => {
+        if (input.value.trim()) factors.push(input.value.trim());
+      });
+      
+      // 获取业务驱动因素
+      const drivers = [];
+      document.querySelectorAll('.driver-item.selected strong').forEach(el => {
+        drivers.push(el.textContent.replace(/^[📈👥⚡💡📊🛡️]\s*/, ''));
+      });
+      
+      const aoa = [
+        ['企业数字化转型愿景规划'],
+        ['生成日期', new Date().toLocaleDateString('zh-CN')],
+        [],
+        ['一、基本信息'],
+        ['愿景', vision || '未填写'],
+        ['使命', mission || '未填写'],
+        [],
+        ['二、业务驱动因素'],
+        ...drivers.map(d => [d]),
+        [],
+        ['三、战略主题'],
+        ...themes.map(t => [t]),
+        [],
+        ['四、关键成功因素'],
+        ...factors.map(f => [f]),
+        [],
+        ['五、约束条件'],
+        ['时间约束', timeConstraint],
+        ['预算约束', budgetConstraint],
+        ['技术约束', techConstraint]
+      ];
+      
+      const ws = XLSX.utils.aoa_to_sheet(aoa);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, '愿景规划');
+      XLSX.writeFile(wb, '数字化转型愿景规划.xlsx');
     }
     
     // 页面加载时尝试恢复草稿

@@ -293,11 +293,12 @@
     
     <div class="export-section">
       <button class="btn btn-primary" onclick="saveTechArch()">💾 保存配置</button>
-      <button class="btn btn-primary" onclick="exportTechArch()">📥 导出技术架构文档</button>
+      <button class="btn btn-primary" onclick="exportTechArchExcel()">📥 导出文档</button>
     </div>
   </div>
   
   <script src="data-api.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
     let infraRowCount = 1;
     let selectedDeployType = null;
@@ -417,6 +418,42 @@
       a.href = url;
       a.download = '技术架构规划.docx';
       a.click();
+    }
+    
+    // 导出Excel
+    function exportTechArchExcel() {
+      const rows = document.querySelectorAll('#infraTableBody tr');
+      const aoa1 = [
+        ['技术架构设计 - 基础设施规划'],
+        ['序号', '类别', '组件名称', '规格要求', '数量/容量', '部署方式', '备注'],
+        ...Array.from(rows).map((row, i) => {
+          const inputs = row.querySelectorAll('input');
+          const selects = row.querySelectorAll('select');
+          return [
+            i + 1,
+            selects[0]?.options[selects[0]?.selectedIndex]?.text || '',
+            inputs[0]?.value || '',
+            inputs[1]?.value || '',
+            inputs[2]?.value || '',
+            selects[1]?.options[selects[1]?.selectedIndex]?.text || '',
+            inputs[3]?.value || ''
+          ];
+        })
+      ];
+      const ws1 = XLSX.utils.aoa_to_sheet(aoa1);
+      
+      const deployMap = { 'cloud-native': '云原生架构', 'hybrid': '混合云架构', 'distributed': '分布式架构', 'traditional': '传统集中式架构' };
+      const aoa2 = [
+        ['技术架构设计 - 部署架构'],
+        ['部署模式', deployMap[selectedDeployType] || '未选择'],
+        ['生成日期', new Date().toLocaleDateString('zh-CN')]
+      ];
+      const ws2 = XLSX.utils.aoa_to_sheet(aoa2);
+      
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws1, '基础设施');
+      XLSX.utils.book_append_sheet(wb, ws2, '部署架构');
+      XLSX.writeFile(wb, '技术架构设计.xlsx');
     }
   </script>
 </body>

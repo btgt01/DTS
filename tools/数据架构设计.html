@@ -146,11 +146,12 @@
     <!-- 数据架构总览卡片已移除 -->
     
     <div class="export-section">
-      <button class="btn btn-primary" onclick="exportWord()">📥 导出Word文档</button>
+      <button class="btn btn-primary" onclick="exportExcel()">📥 导出文档</button>
     </div>
   </div>
   
   <script src="data-api.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
     let masterData = [
       { id: 1, name: '客户主数据', desc: '客户基本信息、联系方式、分类属性' },
@@ -310,6 +311,36 @@
     function escapeXml(str) {
       if (!str) return '';
       return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
+    }
+    
+    // 导出Excel
+    function exportExcel() {
+      const aoa1 = [
+        ['数据架构设计 - 主数据管理'],
+        ['序号', '主数据名称', '描述'],
+        ...masterData.map((m, i) => [i + 1, m.name, m.desc])
+      ];
+      const ws1 = XLSX.utils.aoa_to_sheet(aoa1);
+      
+      const aoa2 = [
+        ['数据架构设计 - 数据标准'],
+        ['序号', '数据域', '数据项', '数据类型', '数据长度', '标准值'],
+        ...standards.map((s, i) => [i + 1, s.domain, s.field, s.type, s.length, s.value])
+      ];
+      const ws2 = XLSX.utils.aoa_to_sheet(aoa2);
+      
+      const aoa3 = [
+        ['数据架构设计 - 数据模型'],
+        ['序号', '模型名称', '描述'],
+        ...models.map((m, i) => [i + 1, m.name, m.desc])
+      ];
+      const ws3 = XLSX.utils.aoa_to_sheet(aoa3);
+      
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws1, '主数据管理');
+      XLSX.utils.book_append_sheet(wb, ws2, '数据标准');
+      XLSX.utils.book_append_sheet(wb, ws3, '数据模型');
+      XLSX.writeFile(wb, '数据架构设计.xlsx');
     }
     
     renderMasterData();

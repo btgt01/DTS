@@ -428,7 +428,6 @@ iframe{width:100%;height:calc(100vh - 120px);border:none;border-radius:10px;back
       <div class="nav-sub" onclick="navigateTo('priority')">项目优先级评估</div>
       <div class="nav-sub" onclick="navigateTo('timeline')">实施进度安排</div>
       <div class="nav-sub" onclick="navigateTo('modules')">系统功能模块</div>
-      <div class="nav-sub" onclick="navigateTo('integration')">系统集成关系</div>
       <div class="nav-sub" onclick="navigateTo('investment')">投资费用估算</div>
       <!-- 实施路径报告已移除 -->
       <div class="sidebar-section" id="adminSection" style="display:none">系统管理</div>
@@ -965,7 +964,6 @@ const MODULE_TITLES = {
   'priority': '项目优先级评估',
   'timeline': '实施进度安排（五年期）',
   'modules': '系统功能模块规划',
-  'integration': '系统集成关系',
   'investment': '项目建设投资费用估算'
 };
 
@@ -988,7 +986,6 @@ const MODULE_FILES = {
   'priority': 'tools/项目优先级矩阵.html',
   'timeline': 'tools/实施进度安排.html',
   'modules': 'tools/系统功能模块规划.html',
-  'integration': 'tools/系统集成关系.html',
   'investment': 'tools/投资费用估算.html'
 };
 
@@ -1343,22 +1340,6 @@ function generatePageHTML(page, title) {
           <div style="background:#fee2e2;border-radius:8px;padding:1rem;border:1px solid #fca5a5"><h4 style="font-size:.88rem;margin-bottom:.5rem">🔐 安全管理平台</h4><p style="font-size:.78rem;color:#64748b">身份认证/权限管理/安全监控</p></div>
           <div style="background:#f0fdf4;border-radius:8px;padding:1rem;border:1px solid #a7f3d0"><h4 style="font-size:.88rem;margin-bottom:.5rem">📱 协同办公平台</h4><p style="font-size:.78rem;color:#64748b">OA/审批/文档/沟通协作</p></div>
           <div style="background:#fef3c7;border-radius:8px;padding:1rem;border:1px solid #fde68a"><h4 style="font-size:.88rem;margin-bottom:.5rem">🌐 电商平台</h4><p style="font-size:.78rem;color:#64748b">B2B/B2C商城/订单/支付</p></div>
-        </div>
-      </div>`,
-    'integration': `
-      <div style="padding:2rem;font-family:Segoe UI,sans-serif;max-width:900px;margin:0 auto;background:#fff;min-height:100%">
-        <h1 style="font-size:1.5rem;margin-bottom:2rem;border-bottom:2px solid #1a56db;padding-bottom:1rem">🔗 系统集成关系</h1>
-        <div style="display:flex;align-items:center;justify-content:center;margin:2rem 0">
-          <div style="width:100px;height:100px;background:linear-gradient(135deg,#1a56db,#6366f1);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:.85rem;text-align:center;box-shadow:0 4px 20px rgba(26,86,219,.3)">数据中台<br>核心枢纽</div>
-        </div>
-        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;text-align:center">
-          <div style="background:#eff6ff;border-radius:8px;padding:1rem"><div style="font-size:1.2rem;margin-bottom:.3rem">ERP</div><div style="font-size:.72rem;color:#64748b">核心业务数据</div></div>
-          <div style="background:#f0fdf4;border-radius:8px;padding:1rem"><div style="font-size:1.2rem;margin-bottom:.3rem">MES</div><div style="font-size:.72rem;color:#64748b">生产执行数据</div></div>
-          <div style="background:#fef3c7;border-radius:8px;padding:1rem"><div style="font-size:1.2rem;margin-bottom:.3rem">CRM</div><div style="font-size:.72rem;color:#64748b">客户数据</div></div>
-          <div style="background:#ede9fe;border-radius:8px;padding:1rem"><div style="font-size:1.2rem;margin-bottom:.3rem">SCM</div><div style="font-size:.72rem;color:#64748b">供应链数据</div></div>
-        </div>
-        <div contenteditable="true" style="margin-top:2rem;background:#f8fafc;border-radius:8px;padding:1.5rem;font-size:.88rem;line-height:1.8;color:#374151;outline:none">
-          <strong>集成策略：</strong>通过API网关统一对外服务，采用消息队列实现异步解耦，建立ESB企业服务总线进行服务编排与协议转换，确保各系统间数据流畅通。
         </div>
       </div>`,
     'investment': `

@@ -193,6 +193,7 @@
   </div>
 
   <script src="data-api.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
     let domains = [];
 
@@ -277,14 +278,23 @@
 
 
     function exportSecurity() {
-      let content = '安全架构设计方案\n\n';
-      domains.forEach(d => {
-        content += `【${d.name}】风险等级：${d.risk === 'high' ? '高' : d.risk === 'medium' ? '中' : '低'}\n`;
-        content += `控制措施：\n${(d.controls || '').split('\n').map(c => c.trim() ? '  • ' + c : '').join('\n')}\n\n`;
-      });
-      downloadText(content, '安全架构设计.txt');
+      const aoa = [
+        ['安全架构设计'],
+        ['序号', '安全域名称', '风险等级', '控制措施', '备注'],
+        ...domains.map((d, i) => [
+          i + 1,
+          d.name,
+          d.risk === 'high' ? '高风险' : d.risk === 'medium' ? '中风险' : '低风险',
+          (d.controls || '').replace(/\n/g, '; '),
+          d.note || ''
+        ])
+      ];
+      const ws = XLSX.utils.aoa_to_sheet(aoa);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, '安全域');
+      XLSX.writeFile(wb, '安全架构设计.xlsx');
     }
-
+    
     function downloadText(text, filename) {
       const blob = new Blob([text], {type: 'text/plain'});
       const a = document.createElement('a');

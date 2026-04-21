@@ -1271,10 +1271,9 @@
         </div>
     </div>
 
-    <script src="data-api.js"></script>
     <script>
         // 数字化转型成熟度评测工具主逻辑
-        document.addEventListener('DOMContentLoaded', async function() {
+        document.addEventListener('DOMContentLoaded', function() {
             // 全局变量
             let currentPage = 1;
             const questionsPerPage = 10;
@@ -1581,9 +1580,9 @@
             // 初始化
             init();
             
-            async function init() {
-                // 加载保存的数据（从服务器）
-                await loadSavedData();
+            function init() {
+                // 加载保存的数据
+                loadSavedData();
                 
                 // 初始化导航
                 initNavigation();
@@ -1770,20 +1769,20 @@
                 });
             }
             
-            async function saveAnswer(questionName, answer) {
+            function saveAnswer(questionName, answer) {
                 assessmentData[questionName] = answer;
-                await saveToolData('survey-maturity', assessmentData);
+                localStorage.setItem('digitalTransformationAssessment', JSON.stringify(assessmentData));
             }
             
-            async function saveCompanyInfo(fieldName, value) {
+            function saveCompanyInfo(fieldName, value) {
                 assessmentData[fieldName] = value;
-                await saveToolData('survey-maturity', assessmentData);
+                localStorage.setItem('digitalTransformationAssessment', JSON.stringify(assessmentData));
             }
             
-            async function loadSavedData() {
-                const result = await loadToolData('survey-maturity');
-                if (result.data) {
-                    assessmentData = result.data;
+            function loadSavedData() {
+                const savedData = localStorage.getItem('digitalTransformationAssessment');
+                if (savedData) {
+                    assessmentData = JSON.parse(savedData);
                     
                     // 恢复企业基本信息
                     if (assessmentData.companyName) {
@@ -1954,27 +1953,13 @@
                 
                 // 开始评测按钮
                 document.getElementById('startAssessmentBtn').addEventListener('click', function() {
-                    // 直接导航到评测问卷页面
-                    const navLinks = document.querySelectorAll('.nav-link');
-                    navLinks.forEach(l => l.classList.remove('active'));
-                    document.querySelector('.nav-link[data-section="assessment"]').classList.add('active');
-                    const sections = document.querySelectorAll('.content-section');
-                    sections.forEach(section => section.classList.remove('active'));
-                    document.getElementById('assessment').classList.add('active');
+                    document.querySelector('.nav-link[data-section="assessment"]').click();
                 });
                 
                 // 查看示例报告按钮
-                document.getElementById('viewDemoBtn').addEventListener('click', async function() {
+                document.getElementById('viewDemoBtn').addEventListener('click', function() {
                     // 加载示例数据
-                    await loadDemoData();
-                    // 导航到结果页面
-                    const navLinks = document.querySelectorAll('.nav-link');
-                    navLinks.forEach(l => l.classList.remove('active'));
-                    document.querySelector('.nav-link[data-section="results"]').classList.add('active');
-                    const sections = document.querySelectorAll('.content-section');
-                    sections.forEach(section => section.classList.remove('active'));
-                    document.getElementById('results').classList.add('active');
-                    updateResults();
+                    loadDemoData();
                     showNotification('示例数据已加载，请查看评估结果', 'info');
                 });
                 
@@ -2153,8 +2138,8 @@
                     }
                 };
                 
-                // 保存到服务器
-                await saveToolData('survey-maturity-results', assessmentResults);
+                // 保存到localStorage
+                localStorage.setItem('digitalTransformationResults', JSON.stringify(assessmentResults));
             }
             
             function getLevelByScore(score) {
@@ -2220,9 +2205,8 @@
                     // 隐藏加载器
                     resultsLoader.classList.remove('active');
                     
-                    // 检查是否有评估结果（从服务器）
-                    const result = await loadToolData('survey-maturity-results');
-                    const savedResults = result.data ? JSON.stringify(result.data) : null;
+                    // 检查是否有评估结果
+                    const savedResults = localStorage.getItem('digitalTransformationResults');
                     if (!savedResults) {
                         resultsContent.innerHTML = `
                             <div style="text-align: center; padding: 3rem 1rem;">
@@ -2433,9 +2417,9 @@
                 });
             }
             
-            async function saveToHistory() {
-                // 加载现有历史记录（从服务器）
-                await loadHistory();
+            function saveToHistory() {
+                // 加载现有历史记录
+                loadHistory();
                 
                 // 添加新记录
                 historyData.push({
@@ -2447,17 +2431,17 @@
                     companyName: assessmentResults.companyInfo.name
                 });
                 
-                // 保存到服务器
-                await saveToolData('survey-maturity-history', historyData);
+                // 保存到localStorage
+                localStorage.setItem('digitalTransformationHistory', JSON.stringify(historyData));
                 
                 // 更新历史记录显示
                 updateHistory();
             }
             
-            async function loadHistory() {
-                const result = await loadToolData('survey-maturity-history');
-                if (result.data) {
-                    historyData = result.data;
+            function loadHistory() {
+                const savedHistory = localStorage.getItem('digitalTransformationHistory');
+                if (savedHistory) {
+                    historyData = JSON.parse(savedHistory);
                 }
             }
             
@@ -2621,16 +2605,15 @@
                 });
             }
             
-            async function clearHistory() {
+            function clearHistory() {
                 historyData = [];
-                await saveToolData('survey-maturity-history', []);
+                localStorage.removeItem('digitalTransformationHistory');
                 updateHistory();
             }
             
-            async function updateExportContent() {
-                // 更新导出页面的内容（从服务器）
-                const result = await loadToolData('survey-maturity-results');
-                const savedResults = result.data ? JSON.stringify(result.data) : null;
+            function updateExportContent() {
+                // 更新导出页面的内容
+                const savedResults = localStorage.getItem('digitalTransformationResults');
                 if (savedResults) {
                     const results = JSON.parse(savedResults);
                     
@@ -2689,13 +2672,12 @@
                 });
             }
             
-            async function generatePDFReport(type = 'detailed') {
+            function generatePDFReport(type = 'detailed') {
                 const { jsPDF } = window.jspdf;
                 const doc = new jsPDF('p', 'mm', 'a4');
                 
-                // 获取评估结果（从服务器）
-                const result = await loadToolData('survey-maturity-results');
-                const savedResults = result.data ? JSON.stringify(result.data) : null;
+                // 获取评估结果
+                const savedResults = localStorage.getItem('digitalTransformationResults');
                 if (!savedResults) {
                     showNotification('请先完成评估再生成报告', 'error');
                     return;
@@ -2894,7 +2876,7 @@
                 reader.readAsArrayBuffer(file);
             }
             
-            async function processImportedData(data) {
+            function processImportedData(data) {
                 // 这里应该根据Excel文件的结构处理数据
                 // 假设Excel有两列：题号和答案
                 
@@ -2933,7 +2915,7 @@
                 });
                 
                 // 保存数据
-                await saveToolData('survey-maturity', assessmentData);
+                localStorage.setItem('digitalTransformationAssessment', JSON.stringify(assessmentData));
                 
                 // 更新状态
                 const statusMessage = document.getElementById('statusMessage');
@@ -2988,7 +2970,7 @@
                 showNotification('模板文件已开始下载', 'success');
             }
             
-            async function loadDemoData() {
+            function loadDemoData() {
                 // 加载示例数据
                 assessmentData = {
                     companyName: '示例科技有限公司',
@@ -3009,10 +2991,10 @@
                 }
                 
                 // 保存数据
-                await saveToolData('survey-maturity', assessmentData);
+                localStorage.setItem('digitalTransformationAssessment', JSON.stringify(assessmentData));
                 
                 // 重新加载表单
-                await loadSavedData();
+                loadSavedData();
                 generateQuestionnaire();
                 updateProgress();
                 

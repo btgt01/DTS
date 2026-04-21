@@ -183,7 +183,7 @@
         </table>
         
         <div class="export-section">
-          <button class="btn btn-primary" onclick="exportAppMatrix()">📥 导出应用架构文档</button>
+          <button class="btn btn-primary" onclick="exportAppMatrixExcel()">📥 导出文档</button>
         </div>
       </div>
       
@@ -259,6 +259,7 @@
   </div>
   
   <script src="data-api.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
     let appRowCount = 1;
     
@@ -460,6 +461,33 @@
     function escapeXml(str) {
       if (!str) return '';
       return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
+    }
+    
+    // 导出Excel
+    function exportAppMatrixExcel() {
+      const rows = document.querySelectorAll('#appTableBody tr');
+      const aoa = [
+        ['应用架构设计 - 应用系统矩阵'],
+        ['序号', '系统名称', '系统英文名', '所属领域', '核心功能', '建设方式', '优先级'],
+        ...Array.from(rows).map((row, i) => {
+          const inputs = row.querySelectorAll('input');
+          const selects = row.querySelectorAll('select');
+          return [
+            i + 1,
+            inputs[0]?.value || '',
+            inputs[1]?.value || '',
+            selects[0]?.options[selects[0]?.selectedIndex]?.text || '',
+            inputs[2]?.value || '',
+            selects[1]?.options[selects[1]?.selectedIndex]?.text || '',
+            selects[2]?.options[selects[2]?.selectedIndex]?.text || ''
+          ];
+        })
+      ];
+      
+      const ws = XLSX.utils.aoa_to_sheet(aoa);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, '应用系统');
+      XLSX.writeFile(wb, '应用架构设计.xlsx');
     }
     
     function exportIntegration() {
