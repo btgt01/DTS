@@ -55,8 +55,9 @@ async function dbRun(sql, params = []) {
 }
 
 // ===== 文件存储模式（无 DATABASE_URL 时降级使用）=====
-const DATA_DIR = path.join('/tmp', 'dts_data');
+const DATA_DIR = path.join(process.cwd(), '.dts_data');
 if (!USE_PG) {
+  console.log('⚠️  未检测到 DATABASE_URL，使用文件存储于 .dts_data 目录');
   if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
 }
 
@@ -75,6 +76,10 @@ const fileStore = {
     const audit = readJson('audit_logs');
     const tool = readJson('tool_data');
     // 简化路由
+    if (sql.includes('FROM users') && sql.includes('WHERE username = $1')) {
+      const idx = users.findIndex(u => u.username === params[0]);
+      return idx >= 0 ? [users[idx]] : [];
+    }
     if (sql.includes('FROM users') && sql.includes('WHERE role')) return users.filter(u => u.role === 'admin').slice(0, 1);
     if (sql.includes('FROM users') && sql.includes('LIMIT 1')) {
       const idx = params[0] ? users.findIndex(u => u.id === params[0]) : -1;
@@ -86,6 +91,9 @@ const fileStore = {
       const idx = params[0] ? users.findIndex(u => u.id === params[0]) : -1;
       return idx >= 0 ? [users[idx]] : [];
     }
+    // COUNT(*) 路由
+    if (sql.includes('COUNT(*)') && sql.includes('FROM users') && !sql.includes('WHERE')) return [{ c: String(users.length) }];
+    if (sql.includes('COUNT(*)') && sql.includes('status = $1') && params[0]) return [{ c: String(users.filter(u => u.status === params[0]).length) }];
     if (sql.includes('FROM sessions') && sql.includes('sid = $1')) {
       const now = Date.now();
       return sessions.filter(s => s.sid === params[0] && new Date(s.expires_at).getTime() > now);
@@ -135,9 +143,9 @@ const fileStore = {
     const audit = readJson('audit_logs');
     const tool = readJson('tool_data');
     if (sql.includes('INSERT INTO users')) {
-      const [id, username, password, email, role, status] = params;
+      const id = params[0], username = params[1], password = params[2], email = params[3], role = params[4] || 'user', status = params[5] || 'pending';
       if (!users.find(u => u.username === username)) {
-        users.push({ id, username, password, email, role, status, created_at: new Date().toISOString() });
+        users.push({ id, username, password, email, role, status, created_at: new Date().toISOString(), approved_at: role === 'admin' ? new Date().toISOString() : null });
         writeJson('users', users);
       }
       return;
@@ -584,8 +592,10 @@ initDB().then(() => {
   ['users', 'sessions', 'audit_logs', 'tool_data'].forEach(f => { const p = path.join(DATA_DIR, f + '.json'); if (!fs.existsSync(p)) fs.writeFileSync(p, '[]'); });
   const users = readJson('users');
   if (!users.find(u => u.role === 'admin')) {
-    users.push({ id: uuidv4(), username: 'admin', password: bcrypt.hashSync('DTS@Admin2026', 10), email: '282727653@qq.com', role: 'admin', status: 'approved', created_at: new Date().toISOString() });
+    const hash = bcrypt.hashSync('DTS@Admin2026', 10);
+    users.push({ id: uuidv4(), username: 'admin', password: hash, email: '282727653@qq.com', role: 'admin', status: 'approved', created_at: new Date().toISOString() });
     writeJson('users', users);
+    console.log('✅ 超级管理员已创建（catch降级）: admin / DTS@Admin2026');
   }
   const server = app.listen(PORT, '0.0.0.0', () => {
     console.log(`\n🚀 企业数字化转型规划系统（强制启动）`);
