@@ -230,9 +230,30 @@ async function initDB() {
     // 创建超级管理员（文件模式）
     const users = readJson('users');
     if (!users.find(u => u.role === 'admin')) {
-      users.push({ id: uuidv4(), username: 'admin', password: bcrypt.hashSync('DTS@Admin2026', 10), email: '282727653@qq.com', role: 'admin', status: 'approved', created_at: new Date().toISOString() });
+      const hash = bcrypt.hashSync('DTS@Admin2026', 10);
+      users.push({ 
+        id: uuidv4(), 
+        username: 'admin', 
+        password: hash, 
+        email: '282727653@qq.com', 
+        role: 'admin', 
+        status: 'approved',
+        created_at: new Date().toISOString(),
+        approved_at: new Date().toISOString(),
+        approved_by: 'system'
+      });
       writeJson('users', users);
       console.log('✅ 超级管理员已创建（文件模式）: admin / DTS@Admin2026');
+    } else {
+      // 确保现有 admin 状态为 approved
+      const adminIdx = users.findIndex(u => u.role === 'admin' && u.status !== 'approved');
+      if (adminIdx >= 0) {
+        users[adminIdx].status = 'approved';
+        users[adminIdx].approved_at = new Date().toISOString();
+        users[adminIdx].approved_by = 'system';
+        writeJson('users', users);
+        console.log('✅ 已修复 admin 账号状态为 approved');
+      }
     }
     console.log('⚠️  未检测到 DATABASE_URL，使用文件存储（数据保存在容器 /tmp/dts_data，重启后清空）');
     console.log('   如需持久化，请在 Railway 添加 PostgreSQL 插件');
@@ -593,9 +614,19 @@ initDB().then(() => {
   const users = readJson('users');
   if (!users.find(u => u.role === 'admin')) {
     const hash = bcrypt.hashSync('DTS@Admin2026', 10);
-    users.push({ id: uuidv4(), username: 'admin', password: hash, email: '282727653@qq.com', role: 'admin', status: 'approved', created_at: new Date().toISOString() });
+    users.push({ id: uuidv4(), username: 'admin', password: hash, email: '282727653@qq.com', role: 'admin', status: 'approved', created_at: new Date().toISOString(), approved_at: new Date().toISOString(), approved_by: 'system' });
     writeJson('users', users);
     console.log('✅ 超级管理员已创建（catch降级）: admin / DTS@Admin2026');
+  } else {
+    // 确保现有 admin 状态为 approved
+    const adminIdx = users.findIndex(u => u.role === 'admin' && u.status !== 'approved');
+    if (adminIdx >= 0) {
+      users[adminIdx].status = 'approved';
+      users[adminIdx].approved_at = new Date().toISOString();
+      users[adminIdx].approved_by = 'system';
+      writeJson('users', users);
+      console.log('✅ 已修复 admin 账号状态为 approved');
+    }
   }
   const server = app.listen(PORT, '0.0.0.0', () => {
     console.log(`\n🚀 企业数字化转型规划系统（强制启动）`);
